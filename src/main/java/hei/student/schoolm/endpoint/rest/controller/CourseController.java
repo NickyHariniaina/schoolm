@@ -2,6 +2,8 @@ package hei.student.schoolm.endpoint.rest.controller;
 
 import hei.student.schoolm.dto.CourseDto;
 import hei.student.schoolm.dto.TeacherIdsRequest;
+import hei.student.schoolm.mapper.CourseMapper;
+import hei.student.schoolm.model.Course;
 import hei.student.schoolm.service.CourseService;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -14,12 +16,13 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class CourseController {
   private final CourseService courseService;
+  private final CourseMapper courseMapper;
 
   @PutMapping("/{courseId}/teacher")
   public ResponseEntity<CourseDto> assignTeachers(
       @PathVariable UUID courseId, @Valid @RequestBody TeacherIdsRequest request) {
 
-    CourseDto course = courseService.assignTeachers(courseId, request.getTeacherIds());
-    return ResponseEntity.ok(course);
+    Course course = courseService.assignTeachers(courseId, request.getTeacherIds());
+    return ResponseEntity.ok(courseMapper.toDto(course));
   }
 }
