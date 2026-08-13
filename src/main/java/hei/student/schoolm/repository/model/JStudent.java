@@ -1,13 +1,15 @@
 package hei.student.schoolm.repository.model;
 
+import hei.student.schoolm.model.Track;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
@@ -24,9 +26,12 @@ import lombok.experimental.SuperBuilder;
 public class JStudent extends JUser {
   @Id private String id;
 
-  @NotBlank
   @Column(nullable = false, unique = true)
   private String reference;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private Track track;
 
   @ManyToOne
   @JoinColumn(name = "group_id")
