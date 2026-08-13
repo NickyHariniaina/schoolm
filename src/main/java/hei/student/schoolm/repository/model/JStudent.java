@@ -10,6 +10,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
@@ -26,9 +28,11 @@ import lombok.experimental.SuperBuilder;
 public class JStudent extends JUser {
   @Id private String id;
 
+  @NotBlank
   @Column(nullable = false, unique = true)
   private String reference;
 
+  @NotNull
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private Track track;
