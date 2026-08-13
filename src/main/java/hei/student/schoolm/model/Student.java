@@ -12,7 +12,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @SuperBuilder
 public final class Student extends User {
-  private String std;
+  private String reference;
   private Track track;
   private Group group;
 }
