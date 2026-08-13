@@ -13,7 +13,8 @@ import hei.student.schoolm.model.Teacher;
 import hei.student.schoolm.model.Track;
 import hei.student.schoolm.repository.CourseRepository;
 import hei.student.schoolm.repository.TeacherRepository;
-import hei.student.schoolm.validator.CourseTeacherValidator;
+import hei.student.schoolm.validator.CourseValidator;
+import hei.student.schoolm.validator.TeacherValidator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,7 +29,10 @@ class CourseServiceTest {
   private final CourseRepository courseRepository = Mockito.mock(CourseRepository.class);
   private final TeacherRepository teacherRepository = Mockito.mock(TeacherRepository.class);
   private final CourseService courseService =
-      new CourseService(courseRepository, new CourseTeacherValidator(courseRepository, teacherRepository));
+      new CourseService(
+          courseRepository,
+          new CourseValidator(courseRepository),
+          new TeacherValidator(teacherRepository));
 
   private Course createCourse() {
     return Course.builder()

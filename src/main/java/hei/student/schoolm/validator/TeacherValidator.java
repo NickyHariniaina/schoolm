@@ -1,9 +1,7 @@
 package hei.student.schoolm.validator;
 
 import hei.student.schoolm.exception.NotFoundException;
-import hei.student.schoolm.model.Course;
 import hei.student.schoolm.model.Teacher;
-import hei.student.schoolm.repository.CourseRepository;
 import hei.student.schoolm.repository.TeacherRepository;
 import java.util.List;
 import java.util.Set;
@@ -14,15 +12,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class CourseTeacherValidator {
-  private final CourseRepository courseRepository;
+public class TeacherValidator {
   private final TeacherRepository teacherRepository;
-
-  public Course checkCourseExists(UUID courseId) {
-    return courseRepository
-        .findById(courseId)
-        .orElseThrow(() -> new NotFoundException("Course " + courseId + " not found"));
-  }
 
   public List<Teacher> checkTeachersExist(List<UUID> teacherIds) {
     var uniqueIds = teacherIds.stream().distinct().toList();
