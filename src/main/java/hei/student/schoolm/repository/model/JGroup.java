@@ -28,7 +28,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "student_group")
+@Table(name = "group")
 public class JGroup {
   @Id private String id;
 
