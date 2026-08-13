@@ -18,6 +18,7 @@ public class Group {
   private UUID id;
   private String ref;
   private Cohort cohort;
+  private Track track;
   private List<Student> students;
   private List<Course> courses;
 
