@@ -36,7 +36,5 @@ public abstract class JUser {
   @Column(updatable = false)
   private Instant createdAt;
 
-  @UpdateTimestamp
-  @Column
-  private Instant updatedAt;
+  @UpdateTimestamp @Column private Instant updatedAt;
 }
