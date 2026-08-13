@@ -4,6 +4,7 @@ import hei.student.schoolm.exception.model.ApiException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -26,10 +27,11 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler({
     MethodArgumentNotValidException.class,
-    MethodArgumentTypeMismatchException.class
+    MethodArgumentTypeMismatchException.class,
+    HttpMessageNotReadableException.class
   })
-  public ResponseEntity<ExceptionBody> handleMethodArgumentNotValidException(
-      MethodArgumentNotValidException exception, HttpServletRequest request) {
+  public ResponseEntity<ExceptionBody> handleBadRequest(
+      Exception exception, HttpServletRequest request) {
     return ResponseEntity.badRequest()
         .body(
             new ExceptionBody(
