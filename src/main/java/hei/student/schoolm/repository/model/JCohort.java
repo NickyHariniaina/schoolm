@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +26,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 public class JCohort {
   @Id private String id;
 
+  @NotBlank
   @Column(nullable = false)
   private String ref;
 
