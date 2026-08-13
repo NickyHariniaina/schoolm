@@ -9,17 +9,17 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CourseMapper {
-    public CourseDto toDto(JCourse course) {
-        CourseDto dto = new CourseDto();
-        dto.setId(course.getId());
-        dto.setRef(course.getRef());
-        dto.setTitle(course.getTitle());
-        dto.setCredit(course.getCredit());
-        dto.setTrack(course.getTrack().name());
-        dto.setSemester(course.getSemester().name());
-        dto.setTeacherIds(mapTeacherIds(course));
-        return dto;
-    }
+  public CourseDto toDto(JCourse course) {
+    CourseDto dto = new CourseDto();
+    dto.setId(course.getId());
+    dto.setRef(course.getRef());
+    dto.setTitle(course.getTitle());
+    dto.setCredit(course.getCredit());
+    dto.setTrack(course.getTrack().name());
+    dto.setSemester(course.getSemester().name());
+    dto.setTeacherIds(mapTeacherIds(course));
+    return dto;
+  }
 
   private List<UUID> mapTeacherIds(JCourse course) {
     return course.getTeachers().stream().map(JTeacher::getId).toList();
