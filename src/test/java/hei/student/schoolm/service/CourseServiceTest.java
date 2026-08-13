@@ -124,8 +124,7 @@ class CourseServiceTest {
 
     Course result = courseService.assignTeachers(COURSE_ID, List.of(TEACHER_TOKY));
 
-    assertEquals(
-        List.of(TEACHER_TOKY), result.getTeachers().stream().map(Teacher::getId).toList());
+    assertEquals(List.of(TEACHER_TOKY), result.getTeachers().stream().map(Teacher::getId).toList());
     assertEquals(List.of(toky), course.getTeachers());
     verify(courseRepository).save(course);
   }

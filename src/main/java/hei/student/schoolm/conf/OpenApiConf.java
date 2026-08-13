@@ -8,6 +8,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class OpenApiConf implements WebMvcConfigurer {
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
-    //registry.addResourceHandler("/doc/**").addResourceLocations("file:./doc/");
+    registry.addResourceHandler("/doc/**").addResourceLocations("file:./doc/");
   }
 }

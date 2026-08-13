@@ -36,7 +36,7 @@ class CourseControllerTest {
   private static final UUID TEACHER_YUME = UUID.fromString("00000000-0000-0000-0000-000000000003");
 
   private Course createCourse(UUID id, List<UUID> teacherIds) {
-    List<Teacher> teachers = teacherIds.stream().map(tid -> Teacher.builder().id(tid).build()).toList();
+    List<Teacher> teachers = teacherIds.stream().map(this::createTeacher).toList();
     return Course.builder()
         .id(id)
         .ref("PROG4")
@@ -46,6 +46,10 @@ class CourseControllerTest {
         .semester(Semester.S3)
         .teachers(teachers)
         .build();
+  }
+
+  private Teacher createTeacher(UUID id) {
+    return Teacher.builder().id(id).build();
   }
 
   @Test

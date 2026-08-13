@@ -64,8 +64,7 @@ class JCourseMapperTest {
     assertEquals(8, jCourse.getCredit());
     assertEquals(Track.EL, jCourse.getTrack());
     assertEquals(Semester.S3, jCourse.getSemester());
-    assertEquals(
-        List.of(TEACHER_ID), jCourse.getTeachers().stream().map(JTeacher::getId).toList());
+    assertEquals(List.of(TEACHER_ID), jCourse.getTeachers().stream().map(JTeacher::getId).toList());
   }
 
   private JTeacher createJTeacher() {

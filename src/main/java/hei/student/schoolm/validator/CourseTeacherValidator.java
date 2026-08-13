@@ -5,7 +5,6 @@ import hei.student.schoolm.repository.CourseRepository;
 import hei.student.schoolm.repository.TeacherRepository;
 import hei.student.schoolm.repository.model.JCourse;
 import hei.student.schoolm.repository.model.JTeacher;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
