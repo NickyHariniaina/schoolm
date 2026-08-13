@@ -16,6 +16,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -30,7 +31,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Entity
 @Table(name = "group")
 public class JGroup {
-  @Id private String id;
+  @Id private UUID id;
 
   @NotBlank
   @Column(nullable = false)
