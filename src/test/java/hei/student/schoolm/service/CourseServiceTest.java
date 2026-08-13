@@ -6,32 +6,37 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import hei.student.schoolm.endpoint.rest.CourseResponse;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.model.Course;
 import hei.student.schoolm.model.Semester;
+import hei.student.schoolm.model.Teacher;
 import hei.student.schoolm.model.Track;
-import hei.student.schoolm.repository.JCourseRepository;
-import hei.student.schoolm.repository.JTeacherRepository;
+import hei.student.schoolm.model.User;
+import hei.student.schoolm.repository.CourseRepository;
+import hei.student.schoolm.repository.TeacherRepository;
+import hei.student.schoolm.repository.mapper.JCourseMapper;
+import hei.student.schoolm.repository.mapper.JTeacherMapper;
 import hei.student.schoolm.repository.model.JCourse;
 import hei.student.schoolm.repository.model.JTeacher;
+import hei.student.schoolm.validator.CourseTeacherValidator;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.Mockito;
 
-@ExtendWith(MockitoExtension.class)
-public class CourseServiceTest {
-  @Mock JCourseRepository jCourseRepository;
-  @Mock JTeacherRepository jTeacherRepository;
-  @InjectMocks CourseService courseService;
+class CourseServiceTest {
+  private static final UUID COURSE_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+  private static final UUID TEACHER_TOKY = UUID.fromString("00000000-0000-0000-0000-000000000002");
+  private static final UUID TEACHER_YUME = UUID.fromString("00000000-0000-0000-0000-000000000003");
 
-  private static final String COURSE_ID = "course-prog4";
-  private static final String TEACHER_TOKY = "teacher-toky";
-  private static final String TEACHER_YUME = "teacher-yume";
+  private final CourseRepository courseRepository = Mockito.mock(CourseRepository.class);
+  private final TeacherRepository teacherRepository = Mockito.mock(TeacherRepository.class);
+  private final CourseService courseService =
+      new CourseService(
+          courseRepository,
+          new CourseTeacherValidator(courseRepository, teacherRepository),
+          new JCourseMapper(new JTeacherMapper()));
 
   private JCourse createCourse() {
     return JCourse.builder()
@@ -44,28 +49,34 @@ public class CourseServiceTest {
         .build();
   }
 
-  private JTeacher createTeacher(String id) {
-    return JTeacher.builder().id(id).build();
+  private JTeacher createTeacher(UUID id) {
+    return JTeacher.builder()
+        .id(id)
+        .email("teacher@hei.school")
+        .firstName("Teacher")
+        .lastName(id.toString())
+        .role(User.Role.TEACHER)
+        .build();
   }
 
   @Test
   void should_throw_not_found_when_course_does_not_exist() {
-    var unknownCourse = "course-unknown";
-    when(jCourseRepository.findById(unknownCourse)).thenReturn(Optional.empty());
+    var unknownCourse = UUID.fromString("99999999-9999-9999-9999-999999999999");
+    when(courseRepository.findById(unknownCourse)).thenReturn(Optional.empty());
 
     var exception =
         assertThrows(
             NotFoundException.class,
             () -> courseService.assignTeachers(unknownCourse, List.of(TEACHER_TOKY)));
 
-    assertTrue(exception.getMessage().contains(unknownCourse));
+    assertTrue(exception.getMessage().contains(unknownCourse.toString()));
   }
 
   @Test
   void should_throw_not_found_when_teacher_does_not_exist() {
-    var unknownTeacher = "teacher-unknown";
-    when(jCourseRepository.findById(COURSE_ID)).thenReturn(Optional.of(createCourse()));
-    when(jTeacherRepository.findAllById(List.of(TEACHER_TOKY, unknownTeacher)))
+    var unknownTeacher = UUID.fromString("99999999-9999-9999-9999-999999999998");
+    when(courseRepository.findById(COURSE_ID)).thenReturn(Optional.of(createCourse()));
+    when(teacherRepository.findAllById(List.of(TEACHER_TOKY, unknownTeacher)))
         .thenReturn(List.of(createTeacher(TEACHER_TOKY)));
 
     var exception =
@@ -73,7 +84,7 @@ public class CourseServiceTest {
             NotFoundException.class,
             () -> courseService.assignTeachers(COURSE_ID, List.of(TEACHER_TOKY, unknownTeacher)));
 
-    assertTrue(exception.getMessage().contains(unknownTeacher));
+    assertTrue(exception.getMessage().contains(unknownTeacher.toString()));
   }
 
   @Test
@@ -81,23 +92,24 @@ public class CourseServiceTest {
     var course = createCourse();
     var toky = createTeacher(TEACHER_TOKY);
     var yume = createTeacher(TEACHER_YUME);
-    when(jCourseRepository.findById(COURSE_ID)).thenReturn(Optional.of(course));
-    when(jTeacherRepository.findAllById(List.of(TEACHER_TOKY, TEACHER_YUME)))
+    when(courseRepository.findById(COURSE_ID)).thenReturn(Optional.of(course));
+    when(teacherRepository.findAllById(List.of(TEACHER_TOKY, TEACHER_YUME)))
         .thenReturn(List.of(toky, yume));
+    when(courseRepository.save(course)).thenReturn(course);
 
-    CourseResponse response =
-        courseService.assignTeachers(COURSE_ID, List.of(TEACHER_TOKY, TEACHER_YUME));
+    Course result = courseService.assignTeachers(COURSE_ID, List.of(TEACHER_TOKY, TEACHER_YUME));
 
-    // TODO: Refactor this later.
-    assertEquals(COURSE_ID, response.id());
-    assertEquals("PROG4", response.ref());
-    assertEquals("Exploitation dans le cloud", response.title());
-    assertEquals(8, response.credit());
-    assertEquals(Track.EL, response.track());
-    assertEquals(Semester.S3, response.semester());
-    assertEquals(List.of(TEACHER_TOKY, TEACHER_YUME), response.teacherIds());
+    assertEquals(COURSE_ID, result.getId());
+    assertEquals("PROG4", result.getRef());
+    assertEquals("Exploitation dans le cloud", result.getTitle());
+    assertEquals(8, result.getCredit());
+    assertEquals(Track.EL, result.getTrack());
+    assertEquals(Semester.S3, result.getSemester());
+    assertEquals(
+        List.of(TEACHER_TOKY, TEACHER_YUME),
+        result.getTeachers().stream().map(Teacher::getId).toList());
 
-    verify(jCourseRepository).save(course);
+    verify(courseRepository).save(course);
     assertEquals(List.of(toky, yume), course.getTeachers());
   }
 
@@ -106,13 +118,15 @@ public class CourseServiceTest {
     var course = createCourse();
     var toky = createTeacher(TEACHER_TOKY);
     course.setTeachers(List.of(toky));
-    when(jCourseRepository.findById(COURSE_ID)).thenReturn(Optional.of(course));
-    when(jTeacherRepository.findAllById(List.of(TEACHER_TOKY))).thenReturn(List.of(toky));
+    when(courseRepository.findById(COURSE_ID)).thenReturn(Optional.of(course));
+    when(teacherRepository.findAllById(List.of(TEACHER_TOKY))).thenReturn(List.of(toky));
+    when(courseRepository.save(course)).thenReturn(course);
 
-    CourseResponse response = courseService.assignTeachers(COURSE_ID, List.of(TEACHER_TOKY));
+    Course result = courseService.assignTeachers(COURSE_ID, List.of(TEACHER_TOKY));
 
-    assertEquals(List.of(TEACHER_TOKY), response.teacherIds());
+    assertEquals(
+        List.of(TEACHER_TOKY), result.getTeachers().stream().map(Teacher::getId).toList());
     assertEquals(List.of(toky), course.getTeachers());
-    verify(jCourseRepository).save(course);
+    verify(courseRepository).save(course);
   }
 }
