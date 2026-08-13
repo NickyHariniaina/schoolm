@@ -83,7 +83,7 @@ class CourseServiceTest {
         .thenReturn(List.of(toky, yume));
     when(courseRepository.save(course)).thenReturn(course);
 
-    Course result = courseService.assignTeachers(COURSE_ID, List.of(TEACHER_TOKY, TEACHER_YUME));
+    var result = courseService.assignTeachers(COURSE_ID, List.of(TEACHER_TOKY, TEACHER_YUME));
 
     assertEquals(COURSE_ID, result.getId());
     assertEquals("PROG4", result.getRef());
@@ -108,7 +108,7 @@ class CourseServiceTest {
     when(teacherRepository.findAllById(List.of(TEACHER_TOKY))).thenReturn(List.of(toky));
     when(courseRepository.save(course)).thenReturn(course);
 
-    Course result = courseService.assignTeachers(COURSE_ID, List.of(TEACHER_TOKY));
+    var result = courseService.assignTeachers(COURSE_ID, List.of(TEACHER_TOKY));
 
     assertEquals(List.of(TEACHER_TOKY), result.getTeachers().stream().map(Teacher::getId).toList());
     assertEquals(List.of(toky), course.getTeachers());

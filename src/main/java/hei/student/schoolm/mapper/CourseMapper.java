@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CourseMapper {
   public CourseDto toDto(Course course) {
-    CourseDto dto = new CourseDto();
+    var dto = new CourseDto();
     dto.setId(course.getId());
     dto.setRef(course.getRef());
     dto.setTitle(course.getTitle());

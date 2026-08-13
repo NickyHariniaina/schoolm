@@ -14,9 +14,9 @@ public class JCourseMapper {
   private final JTeacherMapper jTeacherMapper;
 
   public Course toDomain(JCourse jCourse) {
-    List<Teacher> teachers =
+    var teachers =
         jCourse.getTeachers() == null
-            ? List.of()
+            ? List.<Teacher>of()
             : jCourse.getTeachers().stream().map(jTeacherMapper::toDomain).toList();
     return Course.builder()
         .id(jCourse.getId())
@@ -32,9 +32,9 @@ public class JCourseMapper {
   }
 
   public JCourse toEntity(Course course) {
-    List<JTeacher> teachers =
+    var teachers =
         course.getTeachers() == null
-            ? List.of()
+            ? List.<JTeacher>of()
             : course.getTeachers().stream().map(jTeacherMapper::toEntity).toList();
     return JCourse.builder()
         .id(course.getId())

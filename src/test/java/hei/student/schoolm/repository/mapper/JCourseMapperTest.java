@@ -21,7 +21,7 @@ class JCourseMapperTest {
 
   @Test
   void toDomain_maps_all_fields_and_teachers() {
-    JCourse jCourse =
+    var jCourse =
         JCourse.builder()
             .id(COURSE_ID)
             .ref("PROG4")
@@ -32,7 +32,7 @@ class JCourseMapperTest {
             .teachers(List.of(createJTeacher()))
             .build();
 
-    Course course = jCourseMapper.toDomain(jCourse);
+    var course = jCourseMapper.toDomain(jCourse);
 
     assertEquals(COURSE_ID, course.getId());
     assertEquals("PROG4", course.getRef());
@@ -45,7 +45,7 @@ class JCourseMapperTest {
 
   @Test
   void toEntity_maps_all_fields_and_teachers() {
-    Course course =
+    var course =
         Course.builder()
             .id(COURSE_ID)
             .ref("PROG4")
@@ -56,7 +56,7 @@ class JCourseMapperTest {
             .teachers(List.of(createTeacher()))
             .build();
 
-    JCourse jCourse = jCourseMapper.toEntity(course);
+    var jCourse = jCourseMapper.toEntity(course);
 
     assertEquals(COURSE_ID, jCourse.getId());
     assertEquals("PROG4", jCourse.getRef());

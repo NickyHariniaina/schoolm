@@ -1,7 +1,6 @@
 package hei.student.schoolm.service;
 
 import hei.student.schoolm.model.Course;
-import hei.student.schoolm.model.Teacher;
 import hei.student.schoolm.repository.CourseRepository;
 import hei.student.schoolm.validator.CourseTeacherValidator;
 import java.util.List;
@@ -18,8 +17,8 @@ public class CourseService {
 
   @Transactional
   public Course assignTeachers(UUID courseId, List<UUID> teacherIds) {
-    Course course = validator.checkCourseExists(courseId);
-    List<Teacher> teachers = validator.checkTeachersExist(teacherIds);
+    var course = validator.checkCourseExists(courseId);
+    var teachers = validator.checkTeachersExist(teacherIds);
 
     course.setTeachers(teachers);
     return courseRepository.save(course);

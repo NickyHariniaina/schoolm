@@ -25,10 +25,10 @@ public class CourseTeacherValidator {
   }
 
   public List<Teacher> checkTeachersExist(List<UUID> teacherIds) {
-    List<UUID> uniqueIds = teacherIds.stream().distinct().toList();
-    List<Teacher> teachers = teacherRepository.findAllById(uniqueIds);
-    Set<UUID> foundIds = teachers.stream().map(Teacher::getId).collect(Collectors.toSet());
-    List<UUID> missing = uniqueIds.stream().filter(id -> !foundIds.contains(id)).toList();
+    var uniqueIds = teacherIds.stream().distinct().toList();
+    var teachers = teacherRepository.findAllById(uniqueIds);
+    var foundIds = teachers.stream().map(Teacher::getId).collect(Collectors.toSet());
+    var missing = uniqueIds.stream().filter(id -> !foundIds.contains(id)).toList();
     if (!missing.isEmpty()) {
       throw new NotFoundException("Teacher(s) not found: " + missing);
     }

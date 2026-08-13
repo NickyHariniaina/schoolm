@@ -3,7 +3,6 @@ package hei.student.schoolm.endpoint.rest.controller;
 import hei.student.schoolm.dto.CourseDto;
 import hei.student.schoolm.dto.TeacherIdsRequest;
 import hei.student.schoolm.mapper.CourseMapper;
-import hei.student.schoolm.model.Course;
 import hei.student.schoolm.service.CourseService;
 import jakarta.validation.Valid;
 import java.util.UUID;
@@ -21,7 +20,7 @@ public class CourseController {
   public CourseDto assignTeachers(
       @PathVariable UUID courseId, @Valid @RequestBody TeacherIdsRequest request) {
 
-    Course course = courseService.assignTeachers(courseId, request.teacherIds());
+    var course = courseService.assignTeachers(courseId, request.teacherIds());
     return courseMapper.toDto(course);
   }
 }
