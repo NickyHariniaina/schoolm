@@ -8,5 +8,11 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @SuperBuilder
-public final class Teacher extends User {}
+public final class Student extends User {
+  private String std;
+  private Track track;
+  private Group group;
+}

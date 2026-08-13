@@ -9,4 +9,4 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @SuperBuilder
-public final class Teacher extends User {}
+public final class Admin extends User {}
