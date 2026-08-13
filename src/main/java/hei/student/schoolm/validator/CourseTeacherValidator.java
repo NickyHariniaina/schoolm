@@ -26,10 +26,11 @@ public class CourseTeacherValidator {
   }
 
   public List<JTeacher> checkTeachersExist(List<UUID> teacherIds) {
-    List<JTeacher> teachers = teacherRepository.findAllById(teacherIds);
-    if (teachers.size() != new HashSet<>(teacherIds).size()) {
-      Set<String> foundIds = teachers.stream().map(JTeacher::getId).collect(Collectors.toSet());
-      List<UUID> missing = teacherIds.stream().filter(id -> !foundIds.contains(id)).toList();
+    List<UUID> uniqueIds = teacherIds.stream().distinct().toList();
+    List<JTeacher> teachers = teacherRepository.findAllById(uniqueIds);
+    Set<UUID> foundIds = teachers.stream().map(JTeacher::getId).collect(Collectors.toSet());
+    List<UUID> missing = uniqueIds.stream().filter(id -> !foundIds.contains(id)).toList();
+    if (!missing.isEmpty()) {
       throw new NotFoundException("Teacher(s) not found: " + missing);
     }
     return teachers;
