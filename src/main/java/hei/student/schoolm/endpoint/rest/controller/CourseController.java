@@ -8,7 +8,6 @@ import hei.student.schoolm.service.CourseService;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,10 +18,10 @@ public class CourseController {
   private final CourseMapper courseMapper;
 
   @PutMapping("/{courseId}/teacher")
-  public ResponseEntity<CourseDto> assignTeachers(
+  public CourseDto assignTeachers(
       @PathVariable UUID courseId, @Valid @RequestBody TeacherIdsRequest request) {
 
-    Course course = courseService.assignTeachers(courseId, request.getTeacherIds());
-    return ResponseEntity.ok(courseMapper.toDto(course));
+    Course course = courseService.assignTeachers(courseId, request.teacherIds());
+    return courseMapper.toDto(course);
   }
 }
