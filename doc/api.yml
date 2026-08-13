@@ -4,7 +4,7 @@ info:
   description: School management API (HEI)
   version: v1
 paths:
-  /course/{courseId}/teacher:
+  /courses/{courseId}/teacher:
     put:
       tags:
         - Course
