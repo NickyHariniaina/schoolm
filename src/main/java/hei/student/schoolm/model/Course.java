@@ -1,6 +1,7 @@
 package hei.student.schoolm.model;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,4 +23,8 @@ public class Course {
   private Semester semester;
   private Instant createdAt;
   private Instant updatedAt;
+  private List<Teacher> teachers;
+  private List<Group> groups;
+  private List<Exam> exams;
+  private List<Grade> grades;
 }
