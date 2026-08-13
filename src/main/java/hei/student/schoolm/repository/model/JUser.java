@@ -5,6 +5,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.MappedSuperclass;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,15 +22,20 @@ import org.hibernate.annotations.UpdateTimestamp;
 @SuperBuilder
 @MappedSuperclass
 public abstract class JUser {
+  @NotBlank
+  @Email
   @Column(nullable = false, unique = true)
   private String email;
 
+  @NotBlank
   @Column(nullable = false)
   private String firstName;
 
+  @NotBlank
   @Column(nullable = false)
   private String lastName;
 
+  @NotNull
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private Role role;
