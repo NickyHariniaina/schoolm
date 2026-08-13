@@ -1,7 +1,27 @@
 package hei.student.schoolm.repository;
 
-import hei.student.schoolm.repository.model.JCourse;
+import hei.student.schoolm.model.Course;
+import hei.student.schoolm.repository.jpa.JCourseRepository;
+import hei.student.schoolm.repository.mapper.JCourseMapper;
+import java.util.Optional;
 import java.util.UUID;
-import org.springframework.data.jpa.repository.JpaRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-public interface CourseRepository extends JpaRepository<JCourse, UUID> {}
+@Repository
+@RequiredArgsConstructor
+public class CourseRepository {
+  private final JCourseRepository jCourseRepository;
+  private final JCourseMapper jCourseMapper;
+
+  @Transactional(readOnly = true)
+  public Optional<Course> findById(UUID id) {
+    return jCourseRepository.findById(id).map(jCourseMapper::toDomain);
+  }
+
+  @Transactional
+  public Course save(Course course) {
+    return jCourseMapper.toDomain(jCourseRepository.save(jCourseMapper.toEntity(course)));
+  }
+}

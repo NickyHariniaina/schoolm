@@ -11,13 +11,8 @@ import hei.student.schoolm.model.Course;
 import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.model.Teacher;
 import hei.student.schoolm.model.Track;
-import hei.student.schoolm.model.User;
 import hei.student.schoolm.repository.CourseRepository;
 import hei.student.schoolm.repository.TeacherRepository;
-import hei.student.schoolm.repository.mapper.JCourseMapper;
-import hei.student.schoolm.repository.mapper.JTeacherMapper;
-import hei.student.schoolm.repository.model.JCourse;
-import hei.student.schoolm.repository.model.JTeacher;
 import hei.student.schoolm.validator.CourseTeacherValidator;
 import java.util.List;
 import java.util.Optional;
@@ -33,13 +28,10 @@ class CourseServiceTest {
   private final CourseRepository courseRepository = Mockito.mock(CourseRepository.class);
   private final TeacherRepository teacherRepository = Mockito.mock(TeacherRepository.class);
   private final CourseService courseService =
-      new CourseService(
-          courseRepository,
-          new CourseTeacherValidator(courseRepository, teacherRepository),
-          new JCourseMapper(new JTeacherMapper()));
+      new CourseService(courseRepository, new CourseTeacherValidator(courseRepository, teacherRepository));
 
-  private JCourse createCourse() {
-    return JCourse.builder()
+  private Course createCourse() {
+    return Course.builder()
         .id(COURSE_ID)
         .ref("PROG4")
         .title("Exploitation dans le cloud")
@@ -49,14 +41,8 @@ class CourseServiceTest {
         .build();
   }
 
-  private JTeacher createTeacher(UUID id) {
-    return JTeacher.builder()
-        .id(id)
-        .email("teacher@hei.school")
-        .firstName("Teacher")
-        .lastName(id.toString())
-        .role(User.Role.TEACHER)
-        .build();
+  private Teacher createTeacher(UUID id) {
+    return Teacher.builder().id(id).build();
   }
 
   @Test
