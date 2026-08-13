@@ -13,6 +13,5 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public final class Student extends User {
   private String reference;
-  private Track track;
   private Group group;
 }
