@@ -2,6 +2,7 @@ package hei.student.schoolm.model;
 
 import java.time.Instant;
 import java.time.Year;
+import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,4 +21,5 @@ public class Cohort {
   private Year entryYear;
   private Instant createdAt;
   private Instant updatedAt;
+  private List<Group> groups;
 }
