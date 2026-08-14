@@ -3,6 +3,7 @@ package hei.student.schoolm.repository;
 import hei.student.schoolm.model.Course;
 import hei.student.schoolm.repository.jpa.JCourseRepository;
 import hei.student.schoolm.repository.mapper.JCourseMapper;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,11 @@ public class CourseRepository {
   @Transactional(readOnly = true)
   public Optional<Course> findById(UUID id) {
     return jCourseRepository.findById(id).map(jCourseMapper::toDomain);
+  }
+
+  @Transactional(readOnly = true)
+  public List<Course> findAll() {
+    return jCourseRepository.findAll().stream().map(jCourseMapper::toDomain).toList();
   }
 
   @Transactional

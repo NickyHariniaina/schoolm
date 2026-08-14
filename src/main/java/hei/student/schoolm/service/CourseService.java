@@ -17,6 +17,16 @@ public class CourseService {
   private final CourseValidator courseValidator;
   private final TeacherValidator teacherValidator;
 
+  @Transactional(readOnly = true)
+  public List<Course> getAllCourses() {
+    return courseRepository.findAll();
+  }
+
+  @Transactional(readOnly = true)
+  public Course getCourseById(UUID courseId) {
+    return courseValidator.checkCourseExists(courseId);
+  }
+
   @Transactional
   public Course assignTeachers(UUID courseId, List<UUID> teacherIds) {
     var course = courseValidator.checkCourseExists(courseId);

@@ -2,6 +2,8 @@ package hei.student.schoolm.mapper;
 
 import hei.student.schoolm.dto.CourseDto;
 import hei.student.schoolm.model.Course;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -16,5 +18,12 @@ public class CourseMapper {
     dto.setSemester(course.getSemester().name());
     dto.setTeacherIds(course.teacherIds());
     return dto;
+  }
+
+  public List<CourseDto> toDtoList(List<Course> courses) {
+    if (courses == null) {
+      return List.of();
+    }
+    return courses.stream().map(this::toDto).collect(Collectors.toList());
   }
 }
