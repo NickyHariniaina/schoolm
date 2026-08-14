@@ -56,6 +56,36 @@ class StudentControllerTest {
   }
 
   @Test
+  void should_return_400_when_month_zero() throws Exception {
+    mockMvc
+        .perform(
+            get("/student/{id}/graduate-transcript", STUDENT_ID)
+                .param("month", "0")
+                .param("year", "2026"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void should_return_400_when_month_negative() throws Exception {
+    mockMvc
+        .perform(
+            get("/student/{id}/graduate-transcript", STUDENT_ID)
+                .param("month", "-1")
+                .param("year", "2026"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void should_return_400_when_year_not_a_number() throws Exception {
+    mockMvc
+        .perform(
+            get("/student/{id}/graduate-transcript", STUDENT_ID)
+                .param("month", "3")
+                .param("year", "abc"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
   void should_return_404_when_student_not_found() throws Exception {
     when(service.getTranscript(STUDENT_ID, 3, 2026))
         .thenThrow(new NotFoundException("Student " + STUDENT_ID + " not found"));
