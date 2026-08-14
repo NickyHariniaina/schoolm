@@ -1,5 +1,6 @@
 package hei.student.schoolm.service;
 
+import static hei.student.schoolm.utils.GroupTestUtils.createGroup;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -8,12 +9,15 @@ import static org.mockito.Mockito.when;
 
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.model.Course;
+import hei.student.schoolm.model.Group;
 import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.model.Teacher;
 import hei.student.schoolm.model.Track;
 import hei.student.schoolm.repository.CourseRepository;
+import hei.student.schoolm.repository.GroupRepository;
 import hei.student.schoolm.repository.TeacherRepository;
 import hei.student.schoolm.validator.CourseValidator;
+import hei.student.schoolm.validator.GroupValidator;
 import hei.student.schoolm.validator.TeacherValidator;
 import java.util.List;
 import java.util.Optional;
@@ -25,14 +29,18 @@ class CourseServiceTest {
   private static final UUID COURSE_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
   private static final UUID TEACHER_TOKY = UUID.fromString("00000000-0000-0000-0000-000000000002");
   private static final UUID TEACHER_YUME = UUID.fromString("00000000-0000-0000-0000-000000000003");
+  private static final UUID GROUP_L1_EL_01 = UUID.fromString("00000000-0000-0000-0000-000000000004");
+  private static final UUID GROUP_L1_EL_02 = UUID.fromString("00000000-0000-0000-0000-000000000005");
 
   private final CourseRepository courseRepository = Mockito.mock(CourseRepository.class);
   private final TeacherRepository teacherRepository = Mockito.mock(TeacherRepository.class);
+  private final GroupRepository groupRepository = Mockito.mock(GroupRepository.class);
   private final CourseService courseService =
       new CourseService(
           courseRepository,
           new CourseValidator(courseRepository),
-          new TeacherValidator(teacherRepository));
+          new TeacherValidator(teacherRepository),
+          new GroupValidator(groupRepository));
 
   private Course createCourse() {
     return Course.builder()
@@ -116,6 +124,59 @@ class CourseServiceTest {
 
     assertEquals(List.of(TEACHER_TOKY), result.getTeachers().stream().map(Teacher::getId).toList());
     assertEquals(List.of(toky), course.getTeachers());
+    verify(courseRepository).save(course);
+  }
+
+  @Test
+  void should_throw_not_found_when_group_does_not_exist() {
+    var unknownGroup = UUID.fromString("99999999-9999-9999-9999-999999999997");
+    when(courseRepository.findById(COURSE_ID)).thenReturn(Optional.of(createCourse()));
+    when(groupRepository.findAllById(List.of(GROUP_L1_EL_01, unknownGroup)))
+        .thenReturn(List.of(createGroup(GROUP_L1_EL_01)));
+
+    var exception =
+        assertThrows(
+            NotFoundException.class,
+            () -> courseService.assignGroups(COURSE_ID, List.of(GROUP_L1_EL_01, unknownGroup)));
+
+    assertTrue(exception.getMessage().contains(unknownGroup.toString()));
+  }
+
+  @Test
+  void should_assign_groups_and_return_course() {
+    var course = createCourse();
+    var group1 = createGroup(GROUP_L1_EL_01);
+    var group2 = createGroup(GROUP_L1_EL_02);
+    when(courseRepository.findById(COURSE_ID)).thenReturn(Optional.of(course));
+    when(groupRepository.findAllById(List.of(GROUP_L1_EL_01, GROUP_L1_EL_02)))
+        .thenReturn(List.of(group1, group2));
+    when(courseRepository.save(course)).thenReturn(course);
+
+    var result = courseService.assignGroups(COURSE_ID, List.of(GROUP_L1_EL_01, GROUP_L1_EL_02));
+
+    assertEquals(COURSE_ID, result.getId());
+    assertEquals("PROG4", result.getRef());
+    assertEquals(
+        List.of(GROUP_L1_EL_01, GROUP_L1_EL_02),
+        result.getGroups().stream().map(Group::getId).toList());
+
+    verify(courseRepository).save(course);
+    assertEquals(List.of(group1, group2), course.getGroups());
+  }
+
+  @Test
+  void should_keep_group_already_assigned() {
+    var course = createCourse();
+    var group1 = createGroup(GROUP_L1_EL_01);
+    course.setGroups(List.of(group1));
+    when(courseRepository.findById(COURSE_ID)).thenReturn(Optional.of(course));
+    when(groupRepository.findAllById(List.of(GROUP_L1_EL_01))).thenReturn(List.of(group1));
+    when(courseRepository.save(course)).thenReturn(course);
+
+    var result = courseService.assignGroups(COURSE_ID, List.of(GROUP_L1_EL_01));
+
+    assertEquals(List.of(GROUP_L1_EL_01), result.getGroups().stream().map(Group::getId).toList());
+    assertEquals(List.of(group1), course.getGroups());
     verify(courseRepository).save(course);
   }
 }
