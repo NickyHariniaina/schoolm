@@ -27,8 +27,4 @@ public class Course {
   private List<Group> groups;
   private List<Exam> exams;
   private List<Grade> grades;
-
-  public List<UUID> teacherIds() {
-    return teachers == null ? List.of() : teachers.stream().map(Teacher::getId).toList();
-  }
 }

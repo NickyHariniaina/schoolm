@@ -10,7 +10,6 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,7 +22,7 @@ import lombok.experimental.SuperBuilder;
 @Entity
 @Table(name = "student")
 public class JStudent extends JUser {
-  @Id private UUID id;
+  @Id private String id;
 
   @NotBlank
   @Column(nullable = false, unique = true)
