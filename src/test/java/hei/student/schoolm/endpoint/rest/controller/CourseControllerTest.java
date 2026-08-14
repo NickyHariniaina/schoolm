@@ -1,6 +1,5 @@
 package hei.student.schoolm.endpoint.rest.controller;
 
-import static hei.student.schoolm.utils.GroupTestUtils.createGroup;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -36,8 +35,10 @@ class CourseControllerTest {
   private static final UUID COURSE_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
   private static final UUID TEACHER_TOKY = UUID.fromString("00000000-0000-0000-0000-000000000002");
   private static final UUID TEACHER_YUME = UUID.fromString("00000000-0000-0000-0000-000000000003");
-  private static final UUID GROUP_L1_EL_01 = UUID.fromString("00000000-0000-0000-0000-000000000004");
-  private static final UUID GROUP_L1_EL_02 = UUID.fromString("00000000-0000-0000-0000-000000000005");
+  private static final UUID GROUP_L1_EL_01 =
+      UUID.fromString("00000000-0000-0000-0000-000000000004");
+  private static final UUID GROUP_L1_EL_02 =
+      UUID.fromString("00000000-0000-0000-0000-000000000005");
 
   private Course createCourse(UUID id, List<UUID> teacherIds) {
     var teachers = teacherIds.stream().map(this::createTeacher).toList();
@@ -225,9 +226,7 @@ class CourseControllerTest {
   void should_return_400_for_missing_group_ids() throws Exception {
     mockMvc
         .perform(
-            put("/courses/{courseId}/group", COURSE_ID)
-                .contentType(APPLICATION_JSON)
-                .content("{}"))
+            put("/courses/{courseId}/group", COURSE_ID).contentType(APPLICATION_JSON).content("{}"))
         .andExpect(status().isBadRequest());
   }
 

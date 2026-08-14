@@ -29,8 +29,10 @@ class CourseServiceTest {
   private static final UUID COURSE_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
   private static final UUID TEACHER_TOKY = UUID.fromString("00000000-0000-0000-0000-000000000002");
   private static final UUID TEACHER_YUME = UUID.fromString("00000000-0000-0000-0000-000000000003");
-  private static final UUID GROUP_L1_EL_01 = UUID.fromString("00000000-0000-0000-0000-000000000004");
-  private static final UUID GROUP_L1_EL_02 = UUID.fromString("00000000-0000-0000-0000-000000000005");
+  private static final UUID GROUP_L1_EL_01 =
+      UUID.fromString("00000000-0000-0000-0000-000000000004");
+  private static final UUID GROUP_L1_EL_02 =
+      UUID.fromString("00000000-0000-0000-0000-000000000005");
 
   private final CourseRepository courseRepository = Mockito.mock(CourseRepository.class);
   private final TeacherRepository teacherRepository = Mockito.mock(TeacherRepository.class);
