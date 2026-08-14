@@ -24,6 +24,7 @@ public class CourseRepository {
   @Transactional(readOnly = true)
   public List<Course> findAll() {
     return jCourseRepository.findAll().stream().map(jCourseMapper::toDomain).toList();
+
   }
 
   @Transactional

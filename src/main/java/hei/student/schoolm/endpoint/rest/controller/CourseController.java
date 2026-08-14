@@ -29,6 +29,7 @@ public class CourseController {
     return courseMapper.toDto(course);
   }
 
+
   @PutMapping("/{courseId}/teacher")
   public CourseDto assignTeachers(
       @PathVariable UUID courseId, @Valid @RequestBody TeacherIdsRequest request) {
