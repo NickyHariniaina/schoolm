@@ -413,4 +413,38 @@ class TranscriptServiceTest {
 
     assertThrows(NotFoundException.class, () -> transcriptService.getTranscript(STUDENT_ID, 3, 2026));
   }
+
+  @Test
+  void should_throw_not_found_when_group_unknown() {
+    var cohort = createCohort(2024);
+    var group = createGroup(cohort, List.of());
+    var student = createStudent(group);
+    when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
+    when(groupValidator.checkGroupExists(GROUP_ID))
+        .thenThrow(new NotFoundException("Group " + GROUP_ID + " not found"));
+
+    assertThrows(NotFoundException.class, () -> transcriptService.getTranscript(STUDENT_ID, 3, 2026));
+  }
+
+  @Test
+  void should_throw_when_month_without_year() {
+    var cohort = createCohort(2024);
+    var group = createGroup(cohort, List.of());
+    var student = createStudent(group);
+    when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
+    when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(student.getGroup());
+
+    assertThrows(BadRequestException.class, () -> transcriptService.getTranscript(STUDENT_ID, 3, null));
+  }
+
+  @Test
+  void should_throw_when_year_without_month() {
+    var cohort = createCohort(2024);
+    var group = createGroup(cohort, List.of());
+    var student = createStudent(group);
+    when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
+    when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(student.getGroup());
+
+    assertThrows(BadRequestException.class, () -> transcriptService.getTranscript(STUDENT_ID, null, 2026));
+  }
 }
