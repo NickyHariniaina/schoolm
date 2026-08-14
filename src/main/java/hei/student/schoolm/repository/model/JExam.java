@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -27,7 +28,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Entity
 @Table(name = "exam")
 public class JExam {
-  @Id private String id;
+  @Id private UUID id;
 
   @NotNull
   @ManyToOne

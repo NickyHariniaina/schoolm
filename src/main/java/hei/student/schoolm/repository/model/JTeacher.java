@@ -6,6 +6,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,7 +19,7 @@ import lombok.experimental.SuperBuilder;
 @Entity
 @Table(name = "teacher")
 public class JTeacher extends JUser {
-  @Id private String id;
+  @Id private UUID id;
 
   @ManyToMany(mappedBy = "teachers")
   private List<JCourse> courses = new ArrayList<>();
