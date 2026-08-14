@@ -4,6 +4,45 @@ info:
   description: School management API (HEI)
   version: v1
 paths:
+  /courses:
+    get:
+      tags:
+        - Course
+      summary: List all courses
+      description: Returns the full list of courses.
+      operationId: getAllCourses
+      responses:
+        '200':
+          description: Courses retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
+  /courses/{courseId}:
+    get:
+      tags:
+        - Course
+      summary: Get a course by id
+      description: Returns a single course by its identifier.
+      operationId: getCourseById
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: Course identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Course retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /courses/{courseId}/teacher:
     put:
       tags:
@@ -35,6 +74,37 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+  /courses/{courseId}/group:
+    put:
+      tags:
+        - Course
+      summary: Assign groups to a course
+      description: Replaces the full set of groups that take the course.
+      operationId: assignGroups
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: Course identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupIdsRequest'
+      responses:
+        '200':
+          description: Groups assigned to the course successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
 components:
   schemas:
     TeacherIdsRequest:
@@ -48,6 +118,17 @@ components:
           items:
             type: string
           description: List of teacher identifiers to assign to the course
+    GroupIdsRequest:
+      type: object
+      required:
+        - groupIds
+      properties:
+        groupIds:
+          type: array
+          minItems: 1
+          items:
+            type: string
+          description: List of group identifiers that take the course
     Course:
       type: object
       properties:
@@ -68,6 +149,11 @@ components:
           items:
             type: string
           description: Teachers assigned to the course
+        groupIds:
+          type: array
+          items:
+            type: string
+          description: Groups that take the course
     ErrorBody:
       type: object
       properties:
