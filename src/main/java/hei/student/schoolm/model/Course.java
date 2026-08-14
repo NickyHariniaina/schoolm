@@ -31,4 +31,8 @@ public class Course {
   public List<UUID> teacherIds() {
     return teachers == null ? List.of() : teachers.stream().map(Teacher::getId).toList();
   }
+
+  public List<UUID> groupIds() {
+    return groups == null ? List.of() : groups.stream().map(Group::getId).toList();
+  }
 }

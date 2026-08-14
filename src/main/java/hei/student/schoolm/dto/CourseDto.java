@@ -19,4 +19,5 @@ public class CourseDto {
   private String track;
   private String semester;
   private List<UUID> teacherIds;
+  private List<UUID> groupIds;
 }
