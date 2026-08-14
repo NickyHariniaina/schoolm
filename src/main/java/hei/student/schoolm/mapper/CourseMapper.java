@@ -25,6 +25,5 @@ public class CourseMapper {
       return List.of();
     }
     return courses.stream().map(this::toDto).collect(Collectors.toList());
-
   }
 }
