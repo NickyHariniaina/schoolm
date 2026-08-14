@@ -3,6 +3,7 @@ package hei.student.schoolm.service;
 import hei.student.schoolm.model.Course;
 import hei.student.schoolm.repository.CourseRepository;
 import hei.student.schoolm.validator.CourseValidator;
+import hei.student.schoolm.validator.GroupValidator;
 import hei.student.schoolm.validator.TeacherValidator;
 import java.util.List;
 import java.util.UUID;
@@ -16,6 +17,7 @@ public class CourseService {
   private final CourseRepository courseRepository;
   private final CourseValidator courseValidator;
   private final TeacherValidator teacherValidator;
+  private final GroupValidator groupValidator;
 
   @Transactional(readOnly = true)
   public List<Course> getAllCourses() {
@@ -33,6 +35,15 @@ public class CourseService {
     var teachers = teacherValidator.checkTeachersExist(teacherIds);
 
     course.setTeachers(teachers);
+    return courseRepository.save(course);
+  }
+
+  @Transactional
+  public Course assignGroups(UUID courseId, List<UUID> groupIds) {
+    var course = courseValidator.checkCourseExists(courseId);
+    var groups = groupValidator.checkGroupsExist(groupIds);
+
+    course.setGroups(groups);
     return courseRepository.save(course);
   }
 }

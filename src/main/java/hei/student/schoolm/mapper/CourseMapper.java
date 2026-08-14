@@ -17,6 +17,7 @@ public class CourseMapper {
     dto.setTrack(course.getTrack().name());
     dto.setSemester(course.getSemester().name());
     dto.setTeacherIds(course.teacherIds());
+    dto.setGroupIds(course.groupIds());
     return dto;
   }
 
