@@ -12,14 +12,18 @@ import hei.student.schoolm.repository.TeacherRepository;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class TeacherValidatorTest {
   private static final UUID TEACHER_TOKY = UUID.fromString("00000000-0000-0000-0000-000000000002");
   private static final UUID TEACHER_YUME = UUID.fromString("00000000-0000-0000-0000-000000000003");
 
-  private final TeacherRepository teacherRepository = Mockito.mock(TeacherRepository.class);
-  private final TeacherValidator teacherValidator = new TeacherValidator(teacherRepository);
+  @Mock TeacherRepository teacherRepository;
+  @InjectMocks TeacherValidator teacherValidator;
 
   private Teacher createTeacher(UUID id) {
     return Teacher.builder().id(id).build();
