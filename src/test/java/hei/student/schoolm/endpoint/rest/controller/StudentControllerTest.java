@@ -1,5 +1,6 @@
 package hei.student.schoolm.endpoint.rest.controller;
 
+import static hei.student.schoolm.utils.TranscriptTestUtils.createTranscriptDto;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -91,5 +92,83 @@ class StudentControllerTest {
         .perform(get("/students/{id}/semester-validation", STUDENT_ID).param("semester", "S3"))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.message").value(containsString("Student " + STUDENT_ID)));
+  }
+
+  @Test
+  void should_return_transcript_when_month_and_year_provided() throws Exception {
+    when(studentService.getTranscript(STUDENT_ID, 3, 2026)).thenReturn(createTranscriptDto());
+
+    mockMvc
+        .perform(
+            get("/students/{id}/graduate-transcript", STUDENT_ID)
+                .param("month", "3")
+                .param("year", "2026"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("COMPLET"))
+        .andExpect(jsonPath("$.studentRef").value("STD26001"))
+        .andExpect(jsonPath("$.academicYear").value("2025-2026"))
+        .andExpect(jsonPath("$.courses[0].ref").value("PROG4"));
+  }
+
+  @Test
+  void should_default_to_today_when_no_params() throws Exception {
+    when(studentService.getTranscript(STUDENT_ID, null, null)).thenReturn(createTranscriptDto());
+
+    mockMvc
+        .perform(get("/students/{id}/graduate-transcript", STUDENT_ID))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void should_return_400_when_month_out_of_range() throws Exception {
+    mockMvc
+        .perform(
+            get("/students/{id}/graduate-transcript", STUDENT_ID)
+                .param("month", "13")
+                .param("year", "2026"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void should_return_400_when_month_zero() throws Exception {
+    mockMvc
+        .perform(
+            get("/students/{id}/graduate-transcript", STUDENT_ID)
+                .param("month", "0")
+                .param("year", "2026"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void should_return_400_when_month_negative() throws Exception {
+    mockMvc
+        .perform(
+            get("/students/{id}/graduate-transcript", STUDENT_ID)
+                .param("month", "-1")
+                .param("year", "2026"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void should_return_400_when_year_not_a_number() throws Exception {
+    mockMvc
+        .perform(
+            get("/students/{id}/graduate-transcript", STUDENT_ID)
+                .param("month", "3")
+                .param("year", "abc"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void should_return_404_when_student_not_found_for_transcript() throws Exception {
+    when(studentService.getTranscript(STUDENT_ID, 3, 2026))
+        .thenThrow(new NotFoundException("Student " + STUDENT_ID + " not found"));
+
+    mockMvc
+        .perform(
+            get("/students/{id}/graduate-transcript", STUDENT_ID)
+                .param("month", "3")
+                .param("year", "2026"))
+        .andExpect(status().isNotFound());
   }
 }

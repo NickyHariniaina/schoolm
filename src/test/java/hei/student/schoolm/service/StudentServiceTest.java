@@ -19,7 +19,9 @@ import static org.mockito.Mockito.when;
 import hei.student.schoolm.dto.SemesterValidationDto;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.mapper.StudentMapper;
+import hei.student.schoolm.model.Group;
 import hei.student.schoolm.model.Semester;
+import hei.student.schoolm.model.Student;
 import hei.student.schoolm.validator.GroupValidator;
 import hei.student.schoolm.validator.StudentValidator;
 import java.util.List;
@@ -112,5 +114,16 @@ class StudentServiceTest {
             () -> studentService.getStudentSemesterValidation(STUDENT_ID, Semester.S3));
 
     assertTrue(exception.getMessage().contains(GROUP_ID.toString()));
+  }
+
+  @Test
+  void should_return_student_group() {
+    var group = Group.builder().id(GROUP_ID).ref("L1-EL-01").build();
+    var student = Student.builder().id(STUDENT_ID).reference("S-001").group(group).build();
+    when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
+
+    var result = studentService.getGroup(STUDENT_ID);
+
+    assertEquals(group, result);
   }
 }
