@@ -105,6 +105,47 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+  /students/{id}/semester-validation:
+    get:
+      tags:
+        - Student
+      summary: Validate a semester for a student
+      description: >-
+        Returns whether a semester is validated for a student. A course is
+        acquired when its final grade is greater than or equal to 10, and the
+        semester is validated when every course of the semester is acquired.
+      operationId: getSemesterValidation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Student identifier
+          schema:
+            type: string
+        - name: semester
+          in: query
+          required: true
+          description: Semester to validate
+          schema:
+            type: string
+            enum:
+              - S1
+              - S2
+              - S3
+              - S4
+              - S5
+              - S6
+      responses:
+        '200':
+          description: Semester validation retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SemesterValidation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
 components:
   schemas:
     TeacherIdsRequest:
@@ -154,6 +195,47 @@ components:
           items:
             type: string
           description: Groups that take the course
+    SemesterValidation:
+      type: object
+      properties:
+        studentId:
+          type: string
+        studentRef:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        groupRef:
+          type: string
+        semester:
+          type: string
+        totalCredits:
+          type: integer
+        acquiredCredits:
+          type: integer
+        validated:
+          type: boolean
+        courses:
+          type: array
+          items:
+            $ref: '#/components/schemas/CourseValidation'
+    CourseValidation:
+      type: object
+      properties:
+        courseId:
+          type: string
+        ref:
+          type: string
+        title:
+          type: string
+        credit:
+          type: integer
+        finalGrade:
+          type: number
+          format: double
+        acquired:
+          type: boolean
     ErrorBody:
       type: object
       properties:

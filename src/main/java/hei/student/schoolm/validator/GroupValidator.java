@@ -24,4 +24,10 @@ public class GroupValidator {
     }
     return groups;
   }
+
+  public Group checkGroupExists(UUID groupId) {
+    return groupRepository
+        .findById(groupId)
+        .orElseThrow(() -> new NotFoundException("Group " + groupId + " not found"));
+  }
 }

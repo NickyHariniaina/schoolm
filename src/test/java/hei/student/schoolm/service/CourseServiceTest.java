@@ -20,11 +20,14 @@ import hei.student.schoolm.validator.CourseValidator;
 import hei.student.schoolm.validator.GroupValidator;
 import hei.student.schoolm.validator.TeacherValidator;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class CourseServiceTest {
   private static final UUID COURSE_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
   private static final UUID TEACHER_TOKY = UUID.fromString("00000000-0000-0000-0000-000000000002");
@@ -34,15 +37,13 @@ class CourseServiceTest {
   private static final UUID GROUP_L1_EL_02 =
       UUID.fromString("00000000-0000-0000-0000-000000000005");
 
-  private final CourseRepository courseRepository = Mockito.mock(CourseRepository.class);
-  private final TeacherRepository teacherRepository = Mockito.mock(TeacherRepository.class);
-  private final GroupRepository groupRepository = Mockito.mock(GroupRepository.class);
-  private final CourseService courseService =
-      new CourseService(
-          courseRepository,
-          new CourseValidator(courseRepository),
-          new TeacherValidator(teacherRepository),
-          new GroupValidator(groupRepository));
+  @Mock CourseRepository courseRepository;
+  @Mock TeacherRepository teacherRepository;
+  @Mock GroupRepository groupRepository;
+  @Mock CourseValidator courseValidator;
+  @Mock TeacherValidator teacherValidator;
+  @Mock GroupValidator groupValidator;
+  @InjectMocks CourseService courseService;
 
   private Course createCourse() {
     return Course.builder()
@@ -62,7 +63,8 @@ class CourseServiceTest {
   @Test
   void should_throw_not_found_when_course_does_not_exist() {
     var unknownCourse = UUID.fromString("99999999-9999-9999-9999-999999999999");
-    when(courseRepository.findById(unknownCourse)).thenReturn(Optional.empty());
+    when(courseValidator.checkCourseExists(unknownCourse))
+        .thenThrow(new NotFoundException("Course " + unknownCourse + " not found"));
 
     var exception =
         assertThrows(
@@ -75,9 +77,9 @@ class CourseServiceTest {
   @Test
   void should_throw_not_found_when_teacher_does_not_exist() {
     var unknownTeacher = UUID.fromString("99999999-9999-9999-9999-999999999998");
-    when(courseRepository.findById(COURSE_ID)).thenReturn(Optional.of(createCourse()));
-    when(teacherRepository.findAllById(List.of(TEACHER_TOKY, unknownTeacher)))
-        .thenReturn(List.of(createTeacher(TEACHER_TOKY)));
+    when(courseValidator.checkCourseExists(COURSE_ID)).thenReturn(createCourse());
+    when(teacherValidator.checkTeachersExist(List.of(TEACHER_TOKY, unknownTeacher)))
+        .thenThrow(new NotFoundException("Teacher " + unknownTeacher + " not found"));
 
     var exception =
         assertThrows(
@@ -92,8 +94,8 @@ class CourseServiceTest {
     var course = createCourse();
     var toky = createTeacher(TEACHER_TOKY);
     var yume = createTeacher(TEACHER_YUME);
-    when(courseRepository.findById(COURSE_ID)).thenReturn(Optional.of(course));
-    when(teacherRepository.findAllById(List.of(TEACHER_TOKY, TEACHER_YUME)))
+    when(courseValidator.checkCourseExists(COURSE_ID)).thenReturn(course);
+    when(teacherValidator.checkTeachersExist(List.of(TEACHER_TOKY, TEACHER_YUME)))
         .thenReturn(List.of(toky, yume));
     when(courseRepository.save(course)).thenReturn(course);
 
@@ -118,8 +120,8 @@ class CourseServiceTest {
     var course = createCourse();
     var toky = createTeacher(TEACHER_TOKY);
     course.setTeachers(List.of(toky));
-    when(courseRepository.findById(COURSE_ID)).thenReturn(Optional.of(course));
-    when(teacherRepository.findAllById(List.of(TEACHER_TOKY))).thenReturn(List.of(toky));
+    when(courseValidator.checkCourseExists(COURSE_ID)).thenReturn(course);
+    when(teacherValidator.checkTeachersExist(List.of(TEACHER_TOKY))).thenReturn(List.of(toky));
     when(courseRepository.save(course)).thenReturn(course);
 
     var result = courseService.assignTeachers(COURSE_ID, List.of(TEACHER_TOKY));
@@ -132,9 +134,9 @@ class CourseServiceTest {
   @Test
   void should_throw_not_found_when_group_does_not_exist() {
     var unknownGroup = UUID.fromString("99999999-9999-9999-9999-999999999997");
-    when(courseRepository.findById(COURSE_ID)).thenReturn(Optional.of(createCourse()));
-    when(groupRepository.findAllById(List.of(GROUP_L1_EL_01, unknownGroup)))
-        .thenReturn(List.of(createGroup(GROUP_L1_EL_01)));
+    when(courseValidator.checkCourseExists(COURSE_ID)).thenReturn(createCourse());
+    when(groupValidator.checkGroupsExist(List.of(GROUP_L1_EL_01, unknownGroup)))
+        .thenThrow(new NotFoundException("Group " + unknownGroup + " not found"));
 
     var exception =
         assertThrows(
@@ -149,8 +151,8 @@ class CourseServiceTest {
     var course = createCourse();
     var group1 = createGroup(GROUP_L1_EL_01);
     var group2 = createGroup(GROUP_L1_EL_02);
-    when(courseRepository.findById(COURSE_ID)).thenReturn(Optional.of(course));
-    when(groupRepository.findAllById(List.of(GROUP_L1_EL_01, GROUP_L1_EL_02)))
+    when(courseValidator.checkCourseExists(COURSE_ID)).thenReturn(course);
+    when(groupValidator.checkGroupsExist(List.of(GROUP_L1_EL_01, GROUP_L1_EL_02)))
         .thenReturn(List.of(group1, group2));
     when(courseRepository.save(course)).thenReturn(course);
 
@@ -171,8 +173,8 @@ class CourseServiceTest {
     var course = createCourse();
     var group1 = createGroup(GROUP_L1_EL_01);
     course.setGroups(List.of(group1));
-    when(courseRepository.findById(COURSE_ID)).thenReturn(Optional.of(course));
-    when(groupRepository.findAllById(List.of(GROUP_L1_EL_01))).thenReturn(List.of(group1));
+    when(courseValidator.checkCourseExists(COURSE_ID)).thenReturn(course);
+    when(groupValidator.checkGroupsExist(List.of(GROUP_L1_EL_01))).thenReturn(List.of(group1));
     when(courseRepository.save(course)).thenReturn(course);
 
     var result = courseService.assignGroups(COURSE_ID, List.of(GROUP_L1_EL_01));
