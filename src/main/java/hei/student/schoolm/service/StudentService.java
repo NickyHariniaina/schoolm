@@ -69,7 +69,8 @@ public class StudentService {
             .map(course -> toCourseGradeDto(course, student, semester))
             .toList();
     var status =
-        courseDtos.stream().anyMatch(courseDto -> courseDto.getStatus() == TranscriptStatus.INCOMPLET)
+        courseDtos.stream()
+                .anyMatch(courseDto -> courseDto.getStatus() == TranscriptStatus.INCOMPLET)
             ? TranscriptStatus.INCOMPLET
             : TranscriptStatus.COMPLET;
 
@@ -139,10 +140,7 @@ public class StudentService {
     if (exams == null || exams.isEmpty()) {
       return TranscriptStatus.INCOMPLET;
     }
-    var sum =
-        exams.stream()
-            .map(Exam::getCoefficient)
-            .reduce(new Fraction(0, 1), Fraction::add);
+    var sum = exams.stream().map(Exam::getCoefficient).reduce(new Fraction(0, 1), Fraction::add);
     return sum.isOne() ? TranscriptStatus.COMPLET : TranscriptStatus.INCOMPLET;
   }
 
@@ -157,7 +155,8 @@ public class StudentService {
     return computeSemester(entryYear, month, year);
   }
 
-  private CourseGradeDto toCourseGradeDto(Course course, Student student, Semester currentSemester) {
+  private CourseGradeDto toCourseGradeDto(
+      Course course, Student student, Semester currentSemester) {
     return CourseGradeDto.builder()
         .courseId(course.getId())
         .ref(course.getRef())
@@ -201,9 +200,7 @@ public class StudentService {
     if (exams == null || exams.isEmpty()) {
       return 0.0;
     }
-    return exams.stream()
-        .map(exam -> exam.getCoefficient().toDouble())
-        .reduce(0.0, Double::sum);
+    return exams.stream().map(exam -> exam.getCoefficient().toDouble()).reduce(0.0, Double::sum);
   }
 
   private String academicYear(Semester semester, Year entryYear) {
