@@ -49,54 +49,54 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class TranscriptServiceTest {
+class StudentServiceTranscriptTest {
   @Mock private StudentValidator studentValidator;
   @Mock private GroupValidator groupValidator;
-  @InjectMocks private TranscriptService transcriptService;
+  @InjectMocks private StudentService studentService;
 
   private TranscriptDto getTranscript(Student student, Group group, Integer month, Integer year) {
     when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
     when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(group);
-    return transcriptService.getTranscript(STUDENT_ID, month, year);
+    return studentService.getTranscript(STUDENT_ID, month, year);
   }
 
   @Test
   void should_return_S1_for_october_of_entry_year() {
-    assertEquals(Semester.S1, transcriptService.computeSemester(Year.of(2024), 10, 2024));
+    assertEquals(Semester.S1, studentService.computeSemester(Year.of(2024), 10, 2024));
   }
 
   @Test
   void should_return_S2_for_september() {
-    assertEquals(Semester.S2, transcriptService.computeSemester(Year.of(2024), 9, 2025));
+    assertEquals(Semester.S2, studentService.computeSemester(Year.of(2024), 9, 2025));
   }
 
   @Test
   void should_return_S3_for_march() {
-    assertEquals(Semester.S3, transcriptService.computeSemester(Year.of(2024), 3, 2026));
+    assertEquals(Semester.S3, studentService.computeSemester(Year.of(2024), 3, 2026));
   }
 
   @Test
   void should_return_S4_for_august() {
-    assertEquals(Semester.S4, transcriptService.computeSemester(Year.of(2024), 8, 2026));
+    assertEquals(Semester.S4, studentService.computeSemester(Year.of(2024), 8, 2026));
   }
 
   @Test
   void should_return_S6_for_april() {
-    assertEquals(Semester.S6, transcriptService.computeSemester(Year.of(2024), 4, 2027));
+    assertEquals(Semester.S6, studentService.computeSemester(Year.of(2024), 4, 2027));
   }
 
   @Test
   void should_throw_when_date_before_cohort_start() {
     assertThrows(
         BadRequestException.class,
-        () -> transcriptService.computeSemester(Year.of(2024), 3, 2024));
+        () -> studentService.computeSemester(Year.of(2024), 3, 2024));
   }
 
   @Test
   void should_throw_when_date_in_future() {
     assertThrows(
         BadRequestException.class,
-        () -> transcriptService.computeSemester(Year.of(2024), 1, 2028));
+        () -> studentService.computeSemester(Year.of(2024), 1, 2028));
   }
 
   @Test
@@ -116,8 +116,8 @@ class TranscriptServiceTest {
 
     var today = LocalDate.now();
     var expectedPair =
-        transcriptService.semesterPair(
-            transcriptService.computeSemester(
+        studentService.semesterPair(
+            studentService.computeSemester(
                 Year.of(2024), today.getMonthValue(), today.getYear()));
 
     var dto = getTranscript(student, group, null, null);
@@ -127,32 +127,32 @@ class TranscriptServiceTest {
 
   @Test
   void should_map_S1_to_S1_S2_pair() {
-    assertEquals(List.of(Semester.S1, Semester.S2), transcriptService.semesterPair(Semester.S1));
+    assertEquals(List.of(Semester.S1, Semester.S2), studentService.semesterPair(Semester.S1));
   }
 
   @Test
   void should_map_S2_to_S1_S2_pair() {
-    assertEquals(List.of(Semester.S1, Semester.S2), transcriptService.semesterPair(Semester.S2));
+    assertEquals(List.of(Semester.S1, Semester.S2), studentService.semesterPair(Semester.S2));
   }
 
   @Test
   void should_map_S3_to_S3_S4_pair() {
-    assertEquals(List.of(Semester.S3, Semester.S4), transcriptService.semesterPair(Semester.S3));
+    assertEquals(List.of(Semester.S3, Semester.S4), studentService.semesterPair(Semester.S3));
   }
 
   @Test
   void should_map_S4_to_S3_S4_pair() {
-    assertEquals(List.of(Semester.S3, Semester.S4), transcriptService.semesterPair(Semester.S4));
+    assertEquals(List.of(Semester.S3, Semester.S4), studentService.semesterPair(Semester.S4));
   }
 
   @Test
   void should_map_S5_to_S5_S6_pair() {
-    assertEquals(List.of(Semester.S5, Semester.S6), transcriptService.semesterPair(Semester.S5));
+    assertEquals(List.of(Semester.S5, Semester.S6), studentService.semesterPair(Semester.S5));
   }
 
   @Test
   void should_map_S6_to_S5_S6_pair() {
-    assertEquals(List.of(Semester.S5, Semester.S6), transcriptService.semesterPair(Semester.S6));
+    assertEquals(List.of(Semester.S5, Semester.S6), studentService.semesterPair(Semester.S6));
   }
 
   @Test
@@ -163,7 +163,7 @@ class TranscriptServiceTest {
             createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(), List.of()),
             createCourse(COURSE_S1_ID, "THEORIE1", Semester.S1, List.of(), List.of()));
 
-    var result = transcriptService.filterCourses(courses, List.of(Semester.S3, Semester.S4));
+    var result = studentService.filterCourses(courses, List.of(Semester.S3, Semester.S4));
 
     assertEquals(List.of("PROG4", "LV2"), result.stream().map(Course::getRef).toList());
   }
@@ -179,7 +179,7 @@ class TranscriptServiceTest {
     var fullCourse =
         createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam1, exam2), List.of(grade1, grade2));
 
-    var result = transcriptService.computeFinalGrade(fullCourse, student);
+    var result = studentService.computeFinalGrade(fullCourse, student);
 
     var expectedFinalGrade = new BigDecimal("13.0");
     assertTrue(result.compareTo(expectedFinalGrade) == 0);
@@ -195,7 +195,7 @@ class TranscriptServiceTest {
     var fullCourse =
         createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam1, exam2), List.of(grade1));
 
-    var result = transcriptService.computeFinalGrade(fullCourse, student);
+    var result = studentService.computeFinalGrade(fullCourse, student);
 
     var expectedFinalGrade = new BigDecimal("7.0");
     assertTrue(result.compareTo(expectedFinalGrade) == 0);
@@ -217,7 +217,7 @@ class TranscriptServiceTest {
     var fullCourse =
         createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam), List.of(grade));
 
-    var result = transcriptService.computeFinalGrade(fullCourse, student);
+    var result = studentService.computeFinalGrade(fullCourse, student);
 
     var expectedFinalGrade = new BigDecimal("15.0");
     assertTrue(result.compareTo(expectedFinalGrade) == 0);
@@ -232,7 +232,7 @@ class TranscriptServiceTest {
         createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam1, exam2), List.of());
 
     var expectedStatus = TranscriptStatus.COMPLET;
-    assertEquals(expectedStatus, transcriptService.computeStatus(fullCourse, Semester.S3));
+    assertEquals(expectedStatus, studentService.computeStatus(fullCourse, Semester.S3));
   }
 
   @Test
@@ -244,7 +244,7 @@ class TranscriptServiceTest {
         createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam1, exam2), List.of());
 
     var expectedStatus = TranscriptStatus.INCOMPLET;
-    assertEquals(expectedStatus, transcriptService.computeStatus(fullCourse, Semester.S3));
+    assertEquals(expectedStatus, studentService.computeStatus(fullCourse, Semester.S3));
   }
 
   @Test
@@ -256,7 +256,7 @@ class TranscriptServiceTest {
         createCourse(COURSE_S4_ID, "PROG4", Semester.S4, List.of(exam1, exam2), List.of());
 
     var expectedStatus = TranscriptStatus.INCOMPLET;
-    assertEquals(expectedStatus, transcriptService.computeStatus(fullCourse, Semester.S3));
+    assertEquals(expectedStatus, studentService.computeStatus(fullCourse, Semester.S3));
   }
 
   @Test
@@ -265,8 +265,8 @@ class TranscriptServiceTest {
     var student = createStudent(null);
 
     var expectedStatus = TranscriptStatus.INCOMPLET;
-    assertEquals(expectedStatus, transcriptService.computeStatus(course, Semester.S3));
-    assertNull(transcriptService.computeFinalGrade(course, student));
+    assertEquals(expectedStatus, studentService.computeStatus(course, Semester.S3));
+    assertNull(studentService.computeFinalGrade(course, student));
   }
 
   @Test
@@ -411,7 +411,7 @@ class TranscriptServiceTest {
     when(studentValidator.checkStudentExists(STUDENT_ID))
         .thenThrow(new NotFoundException("Student " + STUDENT_ID + " not found"));
 
-    assertThrows(NotFoundException.class, () -> transcriptService.getTranscript(STUDENT_ID, 3, 2026));
+    assertThrows(NotFoundException.class, () -> studentService.getTranscript(STUDENT_ID, 3, 2026));
   }
 
   @Test
@@ -423,7 +423,7 @@ class TranscriptServiceTest {
     when(groupValidator.checkGroupExists(GROUP_ID))
         .thenThrow(new NotFoundException("Group " + GROUP_ID + " not found"));
 
-    assertThrows(NotFoundException.class, () -> transcriptService.getTranscript(STUDENT_ID, 3, 2026));
+    assertThrows(NotFoundException.class, () -> studentService.getTranscript(STUDENT_ID, 3, 2026));
   }
 
   @Test
@@ -434,7 +434,7 @@ class TranscriptServiceTest {
     when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
     when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(student.getGroup());
 
-    assertThrows(BadRequestException.class, () -> transcriptService.getTranscript(STUDENT_ID, 3, null));
+    assertThrows(BadRequestException.class, () -> studentService.getTranscript(STUDENT_ID, 3, null));
   }
 
   @Test
@@ -445,6 +445,6 @@ class TranscriptServiceTest {
     when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
     when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(student.getGroup());
 
-    assertThrows(BadRequestException.class, () -> transcriptService.getTranscript(STUDENT_ID, null, 2026));
+    assertThrows(BadRequestException.class, () -> studentService.getTranscript(STUDENT_ID, null, 2026));
   }
 }

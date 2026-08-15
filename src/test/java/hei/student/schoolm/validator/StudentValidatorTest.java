@@ -1,12 +1,13 @@
 package hei.student.schoolm.validator;
 
+import static hei.student.schoolm.utils.SemesterValidationTestUtils.STUDENT_ID;
+import static hei.student.schoolm.utils.SemesterValidationTestUtils.createStudent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import hei.student.schoolm.exception.NotFoundException;
-import hei.student.schoolm.model.Student;
 import hei.student.schoolm.repository.StudentRepository;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,32 +19,27 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class StudentValidatorTest {
-  private static final UUID STUDENT_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
-
-  @Mock private StudentRepository studentRepository;
-  @InjectMocks private StudentValidator studentValidator;
-
-  private Student createStudent() {
-    return Student.builder().id(STUDENT_ID).reference("S-001").build();
-  }
+  @Mock StudentRepository studentRepository;
+  @InjectMocks StudentValidator studentValidator;
 
   @Test
   void should_return_student_when_exists() {
-    var student = createStudent();
-    when(studentRepository.findById(STUDENT_ID)).thenReturn(Optional.of(student));
+    when(studentRepository.findById(STUDENT_ID)).thenReturn(Optional.of(createStudent()));
 
     var result = studentValidator.checkStudentExists(STUDENT_ID);
 
-    assertEquals(student, result);
+    assertEquals(STUDENT_ID, result.getId());
   }
 
   @Test
   void should_throw_not_found_when_student_missing() {
-    when(studentRepository.findById(STUDENT_ID)).thenReturn(Optional.empty());
+    var unknownStudent = UUID.fromString("99999999-9999-9999-9999-999999999999");
+    when(studentRepository.findById(unknownStudent)).thenReturn(Optional.empty());
 
     var exception =
-        assertThrows(NotFoundException.class, () -> studentValidator.checkStudentExists(STUDENT_ID));
+        assertThrows(
+            NotFoundException.class, () -> studentValidator.checkStudentExists(unknownStudent));
 
-    assertTrue(exception.getMessage().contains(STUDENT_ID.toString()));
+    assertTrue(exception.getMessage().contains(unknownStudent.toString()));
   }
 }

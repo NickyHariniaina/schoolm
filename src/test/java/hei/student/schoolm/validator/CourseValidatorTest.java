@@ -13,13 +13,17 @@ import hei.student.schoolm.repository.CourseRepository;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class CourseValidatorTest {
   private static final UUID COURSE_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
 
-  private final CourseRepository courseRepository = Mockito.mock(CourseRepository.class);
-  private final CourseValidator courseValidator = new CourseValidator(courseRepository);
+  @Mock CourseRepository courseRepository;
+  @InjectMocks CourseValidator courseValidator;
 
   private Course createCourse() {
     return Course.builder()

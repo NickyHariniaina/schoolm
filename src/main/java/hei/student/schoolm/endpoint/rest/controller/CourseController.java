@@ -1,6 +1,7 @@
 package hei.student.schoolm.endpoint.rest.controller;
 
 import hei.student.schoolm.dto.CourseDto;
+import hei.student.schoolm.dto.GroupIdsRequest;
 import hei.student.schoolm.dto.TeacherIdsRequest;
 import hei.student.schoolm.mapper.CourseMapper;
 import hei.student.schoolm.service.CourseService;
@@ -34,6 +35,14 @@ public class CourseController {
       @PathVariable UUID courseId, @Valid @RequestBody TeacherIdsRequest request) {
 
     var course = courseService.assignTeachers(courseId, request.teacherIds());
+    return courseMapper.toDto(course);
+  }
+
+  @PutMapping("/{courseId}/group")
+  public CourseDto assignGroups(
+      @PathVariable UUID courseId, @Valid @RequestBody GroupIdsRequest request) {
+
+    var course = courseService.assignGroups(courseId, request.groupIds());
     return courseMapper.toDto(course);
   }
 }

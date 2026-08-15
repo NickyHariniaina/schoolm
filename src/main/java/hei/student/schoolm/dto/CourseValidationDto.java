@@ -1,8 +1,9 @@
 package hei.student.schoolm.dto;
 
-import java.util.List;
+import java.math.BigDecimal;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,13 +12,12 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CourseDto {
-  private UUID id;
+@Builder
+public class CourseValidationDto {
+  private UUID courseId;
   private String ref;
   private String title;
   private int credit;
-  private String track;
-  private String semester;
-  private List<UUID> teacherIds;
-  private List<UUID> groupIds;
+  private BigDecimal finalGrade;
+  private boolean acquired;
 }
