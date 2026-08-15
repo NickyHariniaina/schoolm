@@ -14,8 +14,7 @@ class JStudentMapperTest {
   private static final UUID GROUP_ID = UUID.fromString("00000000-0000-0000-0000-000000000002");
 
   private final JStudentMapper jStudentMapper =
-      new JStudentMapper(
-          new JGroupMapper(new JCohortMapper(), Mockito.mock(JCourseMapper.class)));
+      new JStudentMapper(new JGroupMapper(new JCohortMapper(), Mockito.mock(JCourseMapper.class)));
 
   @Test
   void toDomain_maps_all_fields_and_group() {

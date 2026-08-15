@@ -70,8 +70,7 @@ class GroupValidatorTest {
     when(groupRepository.findById(unknownGroup)).thenReturn(Optional.empty());
 
     var exception =
-        assertThrows(
-            NotFoundException.class, () -> groupValidator.checkGroupExists(unknownGroup));
+        assertThrows(NotFoundException.class, () -> groupValidator.checkGroupExists(unknownGroup));
 
     assertTrue(exception.getMessage().contains(unknownGroup.toString()));
   }

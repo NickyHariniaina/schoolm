@@ -34,12 +34,7 @@ class JGroupMapperTest {
             .id(GROUP_ID)
             .ref("L1-EL-01")
             .track(Track.EL)
-            .cohort(
-                JCohort.builder()
-                    .id(COHORT_ID)
-                    .ref("P24")
-                    .entryYear(2024)
-                    .build())
+            .cohort(JCohort.builder().id(COHORT_ID).ref("P24").entryYear(2024).build())
             .build();
 
     var group = jGroupMapper.toDomain(jGroup);

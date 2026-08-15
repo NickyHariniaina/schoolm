@@ -15,10 +15,7 @@ public class JGradeMapper {
             jGrade.getStudent() == null
                 ? null
                 : Student.builder().id(jGrade.getStudent().getId()).build())
-        .exam(
-            jGrade.getExam() == null
-                ? null
-                : Exam.builder().id(jGrade.getExam().getId()).build())
+        .exam(jGrade.getExam() == null ? null : Exam.builder().id(jGrade.getExam().getId()).build())
         .value(jGrade.getValue())
         .changeReason(jGrade.getChangeReason())
         .createdAt(jGrade.getCreatedAt())
