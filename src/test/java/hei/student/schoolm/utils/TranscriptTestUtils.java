@@ -57,13 +57,7 @@ public final class TranscriptTestUtils {
   }
 
   public static Grade createGrade(UUID id, Student student, Exam exam, BigDecimal value) {
-    return Grade.builder()
-        .id(id)
-        .student(student)
-        .exam(exam)
-        .value(value)
-        .changeReason("")
-        .build();
+    return Grade.builder().id(id).student(student).exam(exam).value(value).changeReason("").build();
   }
 
   public static TranscriptDto createTranscriptDto() {

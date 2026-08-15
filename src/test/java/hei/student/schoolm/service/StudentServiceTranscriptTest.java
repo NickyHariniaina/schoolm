@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import hei.student.schoolm.dto.CourseGradeDto;
 import hei.student.schoolm.dto.ExamGradeDto;
 import hei.student.schoolm.dto.TranscriptDto;
 import hei.student.schoolm.dto.TranscriptStatus;
@@ -88,15 +87,13 @@ class StudentServiceTranscriptTest {
   @Test
   void should_throw_when_date_before_cohort_start() {
     assertThrows(
-        BadRequestException.class,
-        () -> studentService.computeSemester(Year.of(2024), 3, 2024));
+        BadRequestException.class, () -> studentService.computeSemester(Year.of(2024), 3, 2024));
   }
 
   @Test
   void should_throw_when_date_in_future() {
     assertThrows(
-        BadRequestException.class,
-        () -> studentService.computeSemester(Year.of(2024), 1, 2028));
+        BadRequestException.class, () -> studentService.computeSemester(Year.of(2024), 1, 2028));
   }
 
   @Test
@@ -117,8 +114,7 @@ class StudentServiceTranscriptTest {
     var today = LocalDate.now();
     var expectedPair =
         studentService.semesterPair(
-            studentService.computeSemester(
-                Year.of(2024), today.getMonthValue(), today.getYear()));
+            studentService.computeSemester(Year.of(2024), today.getMonthValue(), today.getYear()));
 
     var dto = getTranscript(student, group, null, null);
 
@@ -177,7 +173,8 @@ class StudentServiceTranscriptTest {
     var grade1 = createGrade(GRADE_1_ID, student, exam1, new BigDecimal("14"));
     var grade2 = createGrade(GRADE_2_ID, student, exam2, new BigDecimal("12"));
     var fullCourse =
-        createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam1, exam2), List.of(grade1, grade2));
+        createCourse(
+            COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam1, exam2), List.of(grade1, grade2));
 
     var result = studentService.computeFinalGrade(fullCourse, student);
 
@@ -309,7 +306,8 @@ class StudentServiceTranscriptTest {
     var s2Course = createCourse(COURSE_S2_ID, "PROG2", Semester.S2, List.of(), List.of());
     var s2Exam = createExam(EXAM_2_ID, s2Course, new Fraction(1, 1));
     var student = createStudent(null);
-    var s1Full = createCourse(COURSE_S1_ID, "MATH1", Semester.S1, List.of(s1Exam1, s1Exam2), List.of());
+    var s1Full =
+        createCourse(COURSE_S1_ID, "MATH1", Semester.S1, List.of(s1Exam1, s1Exam2), List.of());
     var s2Full =
         createCourse(
             COURSE_S2_ID,
@@ -434,7 +432,8 @@ class StudentServiceTranscriptTest {
     when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
     when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(student.getGroup());
 
-    assertThrows(BadRequestException.class, () -> studentService.getTranscript(STUDENT_ID, 3, null));
+    assertThrows(
+        BadRequestException.class, () -> studentService.getTranscript(STUDENT_ID, 3, null));
   }
 
   @Test
@@ -445,6 +444,7 @@ class StudentServiceTranscriptTest {
     when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
     when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(student.getGroup());
 
-    assertThrows(BadRequestException.class, () -> studentService.getTranscript(STUDENT_ID, null, 2026));
+    assertThrows(
+        BadRequestException.class, () -> studentService.getTranscript(STUDENT_ID, null, 2026));
   }
 }
