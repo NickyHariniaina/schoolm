@@ -29,11 +29,7 @@ import hei.student.schoolm.dto.TranscriptDto;
 import hei.student.schoolm.dto.TranscriptStatus;
 import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.exception.NotFoundException;
-import hei.student.schoolm.model.Course;
-import hei.student.schoolm.model.Grade;
-import hei.student.schoolm.model.Group;
-import hei.student.schoolm.model.Semester;
-import hei.student.schoolm.model.Student;
+import hei.student.schoolm.model.*;
 import hei.student.schoolm.util.Fraction;
 import hei.student.schoolm.validator.GroupValidator;
 import hei.student.schoolm.validator.StudentValidator;
@@ -159,7 +155,8 @@ class StudentServiceTranscriptTest {
             createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(), List.of()),
             createCourse(COURSE_S1_ID, "THEORIE1", Semester.S1, List.of(), List.of()));
 
-    var result = studentService.filterCourses(courses, List.of(Semester.S3, Semester.S4));
+    var result =
+        studentService.filterCourses(courses, List.of(Semester.S3, Semester.S4), Track.COMMON);
 
     assertEquals(List.of("PROG4", "LV2"), result.stream().map(Course::getRef).toList());
   }
