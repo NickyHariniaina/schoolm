@@ -194,6 +194,62 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+  /grades/{gradeId}:
+    put:
+      tags:
+        - Grade
+      summary: Update a grade with change reason
+      description: Updates a grade value and records the reason for the change. Keeps history of all changes.
+      operationId: updateGrade
+      parameters:
+        - name: gradeId
+          in: path
+          required: true
+          description: Grade identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGradeRequest'
+      responses:
+        '200':
+          description: Grade updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grade'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /grades/{gradeId}/history:
+    get:
+      tags:
+        - Grade
+      summary: Get grade change history
+      description: Returns all historical versions of a grade with timestamps and change reasons
+      operationId: getGradeHistory
+      parameters:
+        - name: gradeId
+          in: path
+          required: true
+          description: Grade identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Grade history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GradeHistory'
+        '404':
+          $ref: '#/components/responses/NotFound'
 components:
   schemas:
     TeacherIdsRequest:
@@ -218,6 +274,22 @@ components:
           items:
             type: string
           description: List of group identifiers that take the course
+    UpdateGradeRequest:
+      type: object
+      required:
+        - value
+        - changeReason
+      properties:
+        value:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 20
+          description: New grade value (0-20)
+        changeReason:
+          type: string
+          minLength: 1
+          description: Reason for the grade change
     Course:
       type: object
       properties:
@@ -356,6 +428,39 @@ components:
           format: double
           nullable: true
           description: Grade of the student, null when the exam has not been taken
+    Grade:
+      type: object
+      properties:
+        id:
+          type: string
+        studentId:
+          type: string
+        examId:
+          type: string
+        value:
+          type: number
+          format: double
+        changeReason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    GradeHistory:
+      type: object
+      properties:
+        id:
+          type: string
+        value:
+          type: number
+          format: double
+        changeReason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
     Semester:
       type: string
       enum:
