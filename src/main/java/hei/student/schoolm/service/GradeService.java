@@ -1,12 +1,14 @@
 package hei.student.schoolm.service;
 
 import hei.student.schoolm.dto.GradeDto;
+import hei.student.schoolm.dto.GradeHistoryDto;
 import hei.student.schoolm.dto.UpdateGradeRequest;
 import hei.student.schoolm.repository.GradeRepository;
 import hei.student.schoolm.repository.jpa.JGradeHistoryRepository;
 import hei.student.schoolm.repository.mapper.JGradeMapper;
 import hei.student.schoolm.repository.model.JGradeHistory;
 import hei.student.schoolm.validator.GradeValidator;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -43,5 +45,15 @@ public class GradeService {
     var updatedGrade = gradeRepository.save(grade);
 
     return jGradeMapper.toDto(updatedGrade);
+  }
+
+  @Transactional(readOnly = true)
+  public List<GradeHistoryDto> getGradeHistory(UUID gradeId) {
+
+    gradeValidator.checkGradeExists(gradeId);
+
+    var history = gradeHistoryRepository.findAllByGradeIdOrderByChangedAtDesc(gradeId);
+
+    return history.stream().map(jGradeMapper::toHistoryDto).toList();
   }
 }
