@@ -449,36 +449,18 @@ class StudentServiceTranscriptTest {
 
   @Test
   void should_throw_when_month_out_of_range() {
-    var cohort = createCohort(2024);
-    var group = createGroup(cohort, List.of());
-    var student = createStudent(group);
-    when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
-    when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(student.getGroup());
-
     assertThrows(
         BadRequestException.class, () -> studentService.getTranscript(STUDENT_ID, 13, 2026));
   }
 
   @Test
   void should_throw_when_month_zero() {
-    var cohort = createCohort(2024);
-    var group = createGroup(cohort, List.of());
-    var student = createStudent(group);
-    when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
-    when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(student.getGroup());
-
     assertThrows(
         BadRequestException.class, () -> studentService.getTranscript(STUDENT_ID, 0, 2026));
   }
 
   @Test
   void should_throw_when_month_negative() {
-    var cohort = createCohort(2024);
-    var group = createGroup(cohort, List.of());
-    var student = createStudent(group);
-    when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
-    when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(student.getGroup());
-
     assertThrows(
         BadRequestException.class, () -> studentService.getTranscript(STUDENT_ID, -1, 2026));
   }
