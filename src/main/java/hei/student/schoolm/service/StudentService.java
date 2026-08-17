@@ -4,9 +4,7 @@ import hei.student.schoolm.dto.SemesterValidationDto;
 import hei.student.schoolm.dto.TranscriptDto;
 import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.mapper.StudentMapper;
-import hei.student.schoolm.model.Course;
-import hei.student.schoolm.model.Group;
-import hei.student.schoolm.model.Semester;
+import hei.student.schoolm.model.*;
 import hei.student.schoolm.validator.GroupValidator;
 import hei.student.schoolm.validator.StudentValidator;
 import java.time.LocalDate;
@@ -54,13 +52,22 @@ public class StudentService {
     var group = groupValidator.checkGroupExists(student.getGroup().getId());
     var entryYear = group.getCohort().getEntryYear();
     var semester = resolveSemester(month, year, entryYear);
-    var courses = filterCourses(group.getCourses(), semester.pair());
-    return studentMapper.toTranscriptDto(student, group, semester, courses);
+    var pair = semester.pair();
+    var studentTrack = group.getTrack();
+
+    var filteredCourses = filterCourses(group.getCourses(), pair, studentTrack);
+
+    return studentMapper.toTranscriptDto(student, group, semester, filteredCourses);
   }
 
-  public List<Course> filterCourses(List<Course> courses, List<Semester> pair) {
+  public List<Course> filterCourses(List<Course> courses, List<Semester> pair, Track studentTrack) {
+    if (courses == null) {
+      return List.of();
+    }
+
     return courses.stream()
         .filter(course -> pair.contains(course.getSemester()))
+        .filter(course -> course.getTrack() == Track.COMMON || course.getTrack() == studentTrack)
         .sorted(
             Comparator.comparingInt((Course course) -> course.getSemester().ordinal())
                 .thenComparing(Course::getRef))

@@ -31,11 +31,7 @@ import hei.student.schoolm.dto.TranscriptStatus;
 import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.mapper.StudentMapper;
-import hei.student.schoolm.model.Course;
-import hei.student.schoolm.model.Grade;
-import hei.student.schoolm.model.Group;
-import hei.student.schoolm.model.Semester;
-import hei.student.schoolm.model.Student;
+import hei.student.schoolm.model.*;
 import hei.student.schoolm.util.Fraction;
 import hei.student.schoolm.validator.GroupValidator;
 import hei.student.schoolm.validator.StudentValidator;
@@ -108,12 +104,13 @@ class StudentServiceTranscriptTest {
         createGroup(
             cohort,
             List.of(
-                createCourse(COURSE_S1_ID, "S1C", Semester.S1, List.of(), List.of()),
-                createCourse(COURSE_S2_ID, "S2C", Semester.S2, List.of(), List.of()),
-                createCourse(COURSE_S3_ID, "S3C", Semester.S3, List.of(), List.of()),
-                createCourse(COURSE_S4_ID, "S4C", Semester.S4, List.of(), List.of()),
-                createCourse(COURSE_S5_ID, "S5C", Semester.S5, List.of(), List.of()),
-                createCourse(COURSE_S6_ID, "S6C", Semester.S6, List.of(), List.of())));
+                createCourse(COURSE_S1_ID, "S1C", Semester.S1, List.of(), List.of(), Track.COMMON),
+                createCourse(COURSE_S2_ID, "S2C", Semester.S2, List.of(), List.of(), Track.COMMON),
+                createCourse(COURSE_S3_ID, "S3C", Semester.S3, List.of(), List.of(), Track.COMMON),
+                createCourse(COURSE_S4_ID, "S4C", Semester.S4, List.of(), List.of(), Track.COMMON),
+                createCourse(COURSE_S5_ID, "S5C", Semester.S5, List.of(), List.of(), Track.COMMON),
+                createCourse(
+                    COURSE_S6_ID, "S6C", Semester.S6, List.of(), List.of(), Track.COMMON)));
     var student = createStudent(group);
 
     var today = LocalDate.now();
@@ -158,18 +155,19 @@ class StudentServiceTranscriptTest {
   void should_only_keep_courses_of_pair_semesters() {
     var courses =
         List.of(
-            createCourse(COURSE_S4_ID, "LV2", Semester.S4, List.of(), List.of()),
-            createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(), List.of()),
-            createCourse(COURSE_S1_ID, "THEORIE1", Semester.S1, List.of(), List.of()));
+            createCourse(COURSE_S4_ID, "LV2", Semester.S4, List.of(), List.of(), Track.COMMON),
+            createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(), List.of(), Track.EL),
+            createCourse(
+                COURSE_S1_ID, "THEORIE1", Semester.S1, List.of(), List.of(), Track.COMMON));
 
-    var result = studentService.filterCourses(courses, List.of(Semester.S3, Semester.S4));
+    var result = studentService.filterCourses(courses, List.of(Semester.S3, Semester.S4), Track.EL);
 
     assertEquals(List.of("PROG4", "LV2"), result.stream().map(Course::getRef).toList());
   }
 
   @Test
   void should_compute_weighted_sum() {
-    var course = createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(), List.of());
+    var course = createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(), List.of(), Track.EL);
     var exam1 = createExam(EXAM_1_ID, course, new Fraction(1, 2));
     var exam2 = createExam(EXAM_2_ID, course, new Fraction(1, 2));
     var student = createStudent(null);
@@ -177,7 +175,12 @@ class StudentServiceTranscriptTest {
     var grade2 = createGrade(GRADE_2_ID, student, exam2, new BigDecimal("12"));
     var fullCourse =
         createCourse(
-            COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam1, exam2), List.of(grade1, grade2));
+            COURSE_S3_ID,
+            "PROG4",
+            Semester.S3,
+            List.of(exam1, exam2),
+            List.of(grade1, grade2),
+            Track.EL);
 
     var result = fullCourse.finalGradeFor(student);
 
@@ -187,13 +190,14 @@ class StudentServiceTranscriptTest {
 
   @Test
   void should_count_missing_grade_as_zero() {
-    var course = createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(), List.of());
+    var course = createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(), List.of(), Track.EL);
     var exam1 = createExam(EXAM_1_ID, course, new Fraction(1, 2));
     var exam2 = createExam(EXAM_2_ID, course, new Fraction(1, 2));
     var student = createStudent(null);
     var grade1 = createGrade(GRADE_1_ID, student, exam1, new BigDecimal("14"));
     var fullCourse =
-        createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam1, exam2), List.of(grade1));
+        createCourse(
+            COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam1, exam2), List.of(grade1), Track.EL);
 
     var result = fullCourse.finalGradeFor(student);
 
@@ -203,7 +207,7 @@ class StudentServiceTranscriptTest {
 
   @Test
   void should_ignore_grade_change_reason() {
-    var course = createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(), List.of());
+    var course = createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(), List.of(), Track.EL);
     var exam = createExam(EXAM_1_ID, course, new Fraction(1, 1));
     var student = createStudent(null);
     var grade =
@@ -215,7 +219,7 @@ class StudentServiceTranscriptTest {
             .changeReason("correction")
             .build();
     var fullCourse =
-        createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam), List.of(grade));
+        createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam), List.of(grade), Track.EL);
 
     var result = fullCourse.finalGradeFor(student);
 
@@ -225,40 +229,43 @@ class StudentServiceTranscriptTest {
 
   @Test
   void should_be_COMPLET_when_coefficients_sum_to_one() {
-    var course = createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(), List.of());
+    var course = createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(), List.of(), Track.EL);
     var exam1 = createExam(EXAM_1_ID, course, new Fraction(1, 2));
     var exam2 = createExam(EXAM_2_ID, course, new Fraction(1, 2));
     var fullCourse =
-        createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam1, exam2), List.of());
+        createCourse(
+            COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam1, exam2), List.of(), Track.EL);
 
     assertTrue(fullCourse.isCompleteFor(Semester.S3));
   }
 
   @Test
   void should_be_INCOMPLET_when_coefficients_not_sum_to_one() {
-    var course = createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(), List.of());
+    var course = createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(), List.of(), Track.EL);
     var exam1 = createExam(EXAM_1_ID, course, new Fraction(1, 3));
     var exam2 = createExam(EXAM_2_ID, course, new Fraction(1, 3));
     var fullCourse =
-        createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam1, exam2), List.of());
+        createCourse(
+            COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam1, exam2), List.of(), Track.EL);
 
     assertFalse(fullCourse.isCompleteFor(Semester.S3));
   }
 
   @Test
   void should_be_INCOMPLET_for_future_semester_course() {
-    var course = createCourse(COURSE_S4_ID, "PROG4", Semester.S4, List.of(), List.of());
+    var course = createCourse(COURSE_S4_ID, "PROG4", Semester.S4, List.of(), List.of(), Track.EL);
     var exam1 = createExam(EXAM_1_ID, course, new Fraction(1, 2));
     var exam2 = createExam(EXAM_2_ID, course, new Fraction(1, 2));
     var fullCourse =
-        createCourse(COURSE_S4_ID, "PROG4", Semester.S4, List.of(exam1, exam2), List.of());
+        createCourse(
+            COURSE_S4_ID, "PROG4", Semester.S4, List.of(exam1, exam2), List.of(), Track.EL);
 
     assertFalse(fullCourse.isCompleteFor(Semester.S3));
   }
 
   @Test
   void should_be_INCOMPLET_for_course_without_exams() {
-    var course = createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(), List.of());
+    var course = createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(), List.of(), Track.EL);
     var student = createStudent(null);
 
     assertFalse(course.isCompleteFor(Semester.S3));
@@ -268,9 +275,11 @@ class StudentServiceTranscriptTest {
   @Test
   void should_return_COMPLET_global_when_all_courses_COMPLET() {
     var cohort = createCohort(2024);
-    var s1Course = createCourse(COURSE_S1_ID, "MATH1", Semester.S1, List.of(), List.of());
+    var s1Course =
+        createCourse(COURSE_S1_ID, "MATH1", Semester.S1, List.of(), List.of(), Track.COMMON);
     var s1Exam = createExam(EXAM_1_ID, s1Course, new Fraction(1, 1));
-    var s2Course = createCourse(COURSE_S2_ID, "PROG2", Semester.S2, List.of(), List.of());
+    var s2Course =
+        createCourse(COURSE_S2_ID, "PROG2", Semester.S2, List.of(), List.of(), Track.COMMON);
     var s2Exam = createExam(EXAM_2_ID, s2Course, new Fraction(1, 1));
     var student = createStudent(null);
     var s1Full =
@@ -279,14 +288,16 @@ class StudentServiceTranscriptTest {
             "MATH1",
             Semester.S1,
             List.of(s1Exam),
-            List.of(createGrade(GRADE_1_ID, student, s1Exam, new BigDecimal("15"))));
+            List.of(createGrade(GRADE_1_ID, student, s1Exam, new BigDecimal("15"))),
+            Track.COMMON);
     var s2Full =
         createCourse(
             COURSE_S2_ID,
             "PROG2",
             Semester.S2,
             List.of(s2Exam),
-            List.of(createGrade(GRADE_2_ID, student, s2Exam, new BigDecimal("16"))));
+            List.of(createGrade(GRADE_2_ID, student, s2Exam, new BigDecimal("16"))),
+            Track.COMMON);
     var group = createGroup(cohort, List.of(s1Full, s2Full));
     var fullStudent = createStudent(group);
 
@@ -299,21 +310,25 @@ class StudentServiceTranscriptTest {
   @Test
   void should_return_INCOMPLET_global_when_any_course_INCOMPLET() {
     var cohort = createCohort(2024);
-    var s1Course = createCourse(COURSE_S1_ID, "MATH1", Semester.S1, List.of(), List.of());
+    var s1Course =
+        createCourse(COURSE_S1_ID, "MATH1", Semester.S1, List.of(), List.of(), Track.COMMON);
     var s1Exam1 = createExam(EXAM_1_ID, s1Course, new Fraction(1, 3));
     var s1Exam2 = createExam(EXAM_2_ID, s1Course, new Fraction(1, 3));
-    var s2Course = createCourse(COURSE_S2_ID, "PROG2", Semester.S2, List.of(), List.of());
+    var s2Course =
+        createCourse(COURSE_S2_ID, "PROG2", Semester.S2, List.of(), List.of(), Track.COMMON);
     var s2Exam = createExam(EXAM_2_ID, s2Course, new Fraction(1, 1));
     var student = createStudent(null);
     var s1Full =
-        createCourse(COURSE_S1_ID, "MATH1", Semester.S1, List.of(s1Exam1, s1Exam2), List.of());
+        createCourse(
+            COURSE_S1_ID, "MATH1", Semester.S1, List.of(s1Exam1, s1Exam2), List.of(), Track.COMMON);
     var s2Full =
         createCourse(
             COURSE_S2_ID,
             "PROG2",
             Semester.S2,
             List.of(s2Exam),
-            List.of(createGrade(GRADE_2_ID, student, s2Exam, new BigDecimal("16"))));
+            List.of(createGrade(GRADE_2_ID, student, s2Exam, new BigDecimal("16"))),
+            Track.COMMON);
     var group = createGroup(cohort, List.of(s1Full, s2Full));
     var fullStudent = createStudent(group);
 
@@ -325,8 +340,9 @@ class StudentServiceTranscriptTest {
   @Test
   void should_return_empty_courses_when_group_has_no_matching_courses() {
     var cohort = createCohort(2024);
-    var s5Course = createCourse(COURSE_S5_ID, "ALGO5", Semester.S5, List.of(), List.of());
-    var s6Course = createCourse(COURSE_S6_ID, "THESE6", Semester.S6, List.of(), List.of());
+    var s5Course = createCourse(COURSE_S5_ID, "ALGO5", Semester.S5, List.of(), List.of(), Track.EL);
+    var s6Course =
+        createCourse(COURSE_S6_ID, "THESE6", Semester.S6, List.of(), List.of(), Track.COMMON);
     var group = createGroup(cohort, List.of(s5Course, s6Course));
     var student = createStudent(group);
 
@@ -339,9 +355,11 @@ class StudentServiceTranscriptTest {
   @Test
   void should_build_transcript_dto_with_student_group_cohort_info() {
     var cohort = createCohort(2024);
-    var s1Course = createCourse(COURSE_S1_ID, "MATH1", Semester.S1, List.of(), List.of());
+    var s1Course =
+        createCourse(COURSE_S1_ID, "MATH1", Semester.S1, List.of(), List.of(), Track.COMMON);
     var s1Exam = createExam(EXAM_1_ID, s1Course, new Fraction(1, 1));
-    var s2Course = createCourse(COURSE_S2_ID, "PROG2", Semester.S2, List.of(), List.of());
+    var s2Course =
+        createCourse(COURSE_S2_ID, "PROG2", Semester.S2, List.of(), List.of(), Track.COMMON);
     var s2Exam = createExam(EXAM_2_ID, s2Course, new Fraction(1, 1));
     var student = createStudent(null);
     var s1Full =
@@ -350,14 +368,16 @@ class StudentServiceTranscriptTest {
             "MATH1",
             Semester.S1,
             List.of(s1Exam),
-            List.of(createGrade(GRADE_1_ID, student, s1Exam, new BigDecimal("15"))));
+            List.of(createGrade(GRADE_1_ID, student, s1Exam, new BigDecimal("15"))),
+            Track.COMMON);
     var s2Full =
         createCourse(
             COURSE_S2_ID,
             "PROG2",
             Semester.S2,
             List.of(s2Exam),
-            List.of(createGrade(GRADE_2_ID, student, s2Exam, new BigDecimal("16"))));
+            List.of(createGrade(GRADE_2_ID, student, s2Exam, new BigDecimal("16"))),
+            Track.COMMON);
     var group = createGroup(cohort, List.of(s1Full, s2Full));
     var fullStudent = createStudent(group);
 
@@ -378,7 +398,8 @@ class StudentServiceTranscriptTest {
   @Test
   void should_expose_null_value_for_exam_without_grade() {
     var cohort = createCohort(2024);
-    var s2Course = createCourse(COURSE_S2_ID, "PROG2", Semester.S2, List.of(), List.of());
+    var s2Course =
+        createCourse(COURSE_S2_ID, "PROG2", Semester.S2, List.of(), List.of(), Track.COMMON);
     var exam1 = createExam(EXAM_1_ID, s2Course, new Fraction(1, 2));
     var exam2 = createExam(EXAM_2_ID, s2Course, new Fraction(1, 2));
     var student = createStudent(null);
@@ -388,7 +409,8 @@ class StudentServiceTranscriptTest {
             "PROG2",
             Semester.S2,
             List.of(exam1, exam2),
-            List.of(createGrade(GRADE_1_ID, student, exam1, new BigDecimal("14"))));
+            List.of(createGrade(GRADE_1_ID, student, exam1, new BigDecimal("14"))),
+            Track.COMMON);
     var group = createGroup(cohort, List.of(s2Full));
     var fullStudent = createStudent(group);
 
