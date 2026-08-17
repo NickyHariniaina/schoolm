@@ -1,4 +1,6 @@
-create table cohort
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+create table if not exists cohort
 (
     id         uuid primary key default gen_random_uuid(),
     ref        varchar not null,
@@ -7,7 +9,7 @@ create table cohort
     updated_at timestamptz
 );
 
-create table student_group
+create table if not exists student_group
 (
     id         uuid primary key default gen_random_uuid(),
     ref        varchar not null,
@@ -18,7 +20,7 @@ create table student_group
     updated_at timestamptz
 );
 
-create table student
+create table if not exists student
 (
     id         uuid primary key default gen_random_uuid(),
     reference  varchar not null
@@ -34,7 +36,7 @@ create table student
     updated_at timestamptz
 );
 
-create table teacher
+create table if not exists teacher
 (
     id         uuid primary key default gen_random_uuid(),
     email      varchar not null
@@ -46,7 +48,7 @@ create table teacher
     updated_at timestamptz
 );
 
-create table admin
+create table if not exists admin
 (
     id         uuid primary key default gen_random_uuid(),
     email      varchar not null
@@ -58,7 +60,7 @@ create table admin
     updated_at timestamptz
 );
 
-create table course
+create table if not exists course
 (
     id         uuid primary key default gen_random_uuid(),
     ref        varchar not null
@@ -71,7 +73,7 @@ create table course
     updated_at timestamptz
 );
 
-create table course_group
+create table if not exists course_group
 (
     course_id uuid not null
         constraint course_group_course_id_fk references course (id),
@@ -80,7 +82,7 @@ create table course_group
     primary key (course_id, group_id)
 );
 
-create table course_teacher
+create table if not exists course_teacher
 (
     course_id  uuid not null
         constraint course_teacher_course_id_fk references course (id),
@@ -89,7 +91,7 @@ create table course_teacher
     primary key (course_id, teacher_id)
 );
 
-create table exam
+create table if not exists exam
 (
     id               uuid primary key default gen_random_uuid(),
     course_id        uuid   not null
@@ -101,7 +103,7 @@ create table exam
     updated_at       timestamptz
 );
 
-create table grade
+create table if not exists grade
 (
     id            uuid primary key default gen_random_uuid(),
     student_id    uuid        not null
