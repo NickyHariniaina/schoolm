@@ -30,6 +30,7 @@ import hei.student.schoolm.dto.TranscriptDto;
 import hei.student.schoolm.dto.TranscriptStatus;
 import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.exception.NotFoundException;
+import hei.student.schoolm.mapper.StudentMapper;
 import hei.student.schoolm.model.Course;
 import hei.student.schoolm.model.Grade;
 import hei.student.schoolm.model.Group;
@@ -42,9 +43,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -52,7 +53,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class StudentServiceTranscriptTest {
   @Mock private StudentValidator studentValidator;
   @Mock private GroupValidator groupValidator;
-  @InjectMocks private StudentService studentService;
+  private StudentService studentService;
+
+  @BeforeEach
+  void setUp() {
+    studentService = new StudentService(studentValidator, groupValidator, new StudentMapper());
+  }
 
   private TranscriptDto getTranscript(Student student, Group group, Integer month, Integer year) {
     when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
@@ -87,14 +93,12 @@ class StudentServiceTranscriptTest {
 
   @Test
   void should_throw_when_date_before_cohort_start() {
-    assertThrows(
-        BadRequestException.class, () -> Semester.from(Year.of(2024), 3, 2024));
+    assertThrows(BadRequestException.class, () -> Semester.from(Year.of(2024), 3, 2024));
   }
 
   @Test
   void should_throw_when_date_in_future() {
-    assertThrows(
-        BadRequestException.class, () -> Semester.from(Year.of(2024), 1, 2028));
+    assertThrows(BadRequestException.class, () -> Semester.from(Year.of(2024), 1, 2028));
   }
 
   @Test
@@ -113,8 +117,7 @@ class StudentServiceTranscriptTest {
     var student = createStudent(group);
 
     var today = LocalDate.now();
-    var expectedPair =
-        Semester.from(Year.of(2024), today.getMonthValue(), today.getYear()).pair();
+    var expectedPair = Semester.from(Year.of(2024), today.getMonthValue(), today.getYear()).pair();
 
     var dto = getTranscript(student, group, null, null);
 
@@ -442,5 +445,41 @@ class StudentServiceTranscriptTest {
 
     assertThrows(
         BadRequestException.class, () -> studentService.getTranscript(STUDENT_ID, null, 2026));
+  }
+
+  @Test
+  void should_throw_when_month_out_of_range() {
+    var cohort = createCohort(2024);
+    var group = createGroup(cohort, List.of());
+    var student = createStudent(group);
+    when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
+    when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(student.getGroup());
+
+    assertThrows(
+        BadRequestException.class, () -> studentService.getTranscript(STUDENT_ID, 13, 2026));
+  }
+
+  @Test
+  void should_throw_when_month_zero() {
+    var cohort = createCohort(2024);
+    var group = createGroup(cohort, List.of());
+    var student = createStudent(group);
+    when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
+    when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(student.getGroup());
+
+    assertThrows(
+        BadRequestException.class, () -> studentService.getTranscript(STUDENT_ID, 0, 2026));
+  }
+
+  @Test
+  void should_throw_when_month_negative() {
+    var cohort = createCohort(2024);
+    var group = createGroup(cohort, List.of());
+    var student = createStudent(group);
+    when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
+    when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(student.getGroup());
+
+    assertThrows(
+        BadRequestException.class, () -> studentService.getTranscript(STUDENT_ID, -1, 2026));
   }
 }

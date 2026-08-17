@@ -61,16 +61,18 @@ public class Course {
     }
     var gradesByExam =
         grades == null
-            ? Map.<Exam, BigDecimal>of()
+            ? Map.<UUID, BigDecimal>of()
             : grades.stream()
                 .filter(
                     grade ->
                         grade.getStudent() != null
                             && grade.getStudent().getId().equals(student.getId()))
-                .collect(Collectors.toMap(Grade::getExam, Grade::getValue, (a, b) -> b));
+                .collect(
+                    Collectors.toMap(
+                        grade -> grade.getExam().getId(), Grade::getValue, (a, b) -> b));
     var total = BigDecimal.ZERO;
     for (var exam : exams) {
-      var value = gradesByExam.getOrDefault(exam, BigDecimal.ZERO);
+      var value = gradesByExam.getOrDefault(exam.getId(), BigDecimal.ZERO);
       total = total.add(BigDecimal.valueOf(value.doubleValue() * exam.getCoefficient().toDouble()));
     }
     return total;

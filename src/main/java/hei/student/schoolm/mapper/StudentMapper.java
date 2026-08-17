@@ -92,7 +92,9 @@ public class StudentMapper {
         .exams(
             course.getExams() == null
                 ? List.of()
-                : course.getExams().stream().map(exam -> toExamGradeDto(exam, course, student)).toList())
+                : course.getExams().stream()
+                    .map(exam -> toExamGradeDto(exam, course, student))
+                    .toList())
         .finalGrade(course.finalGradeFor(student))
         .status(
             course.isCompleteFor(currentSemester)

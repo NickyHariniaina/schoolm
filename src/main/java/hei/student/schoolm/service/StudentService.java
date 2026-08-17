@@ -7,7 +7,6 @@ import hei.student.schoolm.mapper.StudentMapper;
 import hei.student.schoolm.model.Course;
 import hei.student.schoolm.model.Group;
 import hei.student.schoolm.model.Semester;
-import hei.student.schoolm.model.Student;
 import hei.student.schoolm.validator.GroupValidator;
 import hei.student.schoolm.validator.StudentValidator;
 import java.time.LocalDate;
@@ -48,6 +47,9 @@ public class StudentService {
   }
 
   public TranscriptDto getTranscript(UUID studentId, Integer month, Integer year) {
+    if (month != null && (month < 1 || month > 12)) {
+      throw new BadRequestException("month must be between 1 and 12");
+    }
     var student = studentValidator.checkStudentExists(studentId);
     var group = groupValidator.checkGroupExists(student.getGroup().getId());
     var entryYear = group.getCohort().getEntryYear();
