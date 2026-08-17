@@ -2,7 +2,6 @@ package hei.student.schoolm.endpoint.rest.controller;
 
 import hei.student.schoolm.dto.SemesterValidationDto;
 import hei.student.schoolm.dto.TranscriptDto;
-import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.service.StudentService;
 import java.util.UUID;
@@ -30,9 +29,6 @@ public class StudentController {
       @PathVariable UUID id,
       @RequestParam(required = false) Integer month,
       @RequestParam(required = false) Integer year) {
-    if (month != null && (month < 1 || month > 12)) {
-      throw new BadRequestException("month must be between 1 and 12");
-    }
     return studentService.getTranscript(id, month, year);
   }
 }
