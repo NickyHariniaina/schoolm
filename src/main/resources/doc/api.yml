@@ -1,0 +1,265 @@
+openapi: 3.0.3
+info:
+  title: SchoolM API
+  description: School management API (HEI)
+  version: v1
+paths:
+  /courses:
+    get:
+      tags:
+        - Course
+      summary: List all courses
+      description: Returns the full list of courses.
+      operationId: getAllCourses
+      responses:
+        '200':
+          description: Courses retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
+  /courses/{courseId}:
+    get:
+      tags:
+        - Course
+      summary: Get a course by id
+      description: Returns a single course by its identifier.
+      operationId: getCourseById
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: Course identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Course retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /courses/{courseId}/teacher:
+    put:
+      tags:
+        - Course
+      summary: Assign teachers to a course
+      description: Replaces the full set of teachers assigned to the course.
+      operationId: assignTeachers
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: Course identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeacherIdsRequest'
+      responses:
+        '200':
+          description: Teachers assigned to the course successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /courses/{courseId}/group:
+    put:
+      tags:
+        - Course
+      summary: Assign groups to a course
+      description: Replaces the full set of groups that take the course.
+      operationId: assignGroups
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: Course identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupIdsRequest'
+      responses:
+        '200':
+          description: Groups assigned to the course successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /students/{id}/semester-validation:
+    get:
+      tags:
+        - Student
+      summary: Validate a semester for a student
+      description: >-
+        Returns whether a semester is validated for a student. A course is
+        acquired when its final grade is greater than or equal to 10, and the
+        semester is validated when every course of the semester is acquired.
+      operationId: getSemesterValidation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Student identifier
+          schema:
+            type: string
+        - name: semester
+          in: query
+          required: true
+          description: Semester to validate
+          schema:
+            type: string
+            enum:
+              - S1
+              - S2
+              - S3
+              - S4
+              - S5
+              - S6
+      responses:
+        '200':
+          description: Semester validation retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SemesterValidation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  schemas:
+    TeacherIdsRequest:
+      type: object
+      required:
+        - teacherIds
+      properties:
+        teacherIds:
+          type: array
+          minItems: 1
+          items:
+            type: string
+          description: List of teacher identifiers to assign to the course
+    GroupIdsRequest:
+      type: object
+      required:
+        - groupIds
+      properties:
+        groupIds:
+          type: array
+          minItems: 1
+          items:
+            type: string
+          description: List of group identifiers that take the course
+    Course:
+      type: object
+      properties:
+        id:
+          type: string
+        ref:
+          type: string
+        title:
+          type: string
+        credit:
+          type: integer
+        track:
+          type: string
+        semester:
+          type: string
+        teacherIds:
+          type: array
+          items:
+            type: string
+          description: Teachers assigned to the course
+        groupIds:
+          type: array
+          items:
+            type: string
+          description: Groups that take the course
+    SemesterValidation:
+      type: object
+      properties:
+        studentId:
+          type: string
+        studentRef:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        groupRef:
+          type: string
+        semester:
+          type: string
+        totalCredits:
+          type: integer
+        acquiredCredits:
+          type: integer
+        validated:
+          type: boolean
+        courses:
+          type: array
+          items:
+            $ref: '#/components/schemas/CourseValidation'
+    CourseValidation:
+      type: object
+      properties:
+        courseId:
+          type: string
+        ref:
+          type: string
+        title:
+          type: string
+        credit:
+          type: integer
+        finalGrade:
+          type: number
+          format: double
+        acquired:
+          type: boolean
+    ErrorBody:
+      type: object
+      properties:
+        status:
+          type: integer
+        reason:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'
