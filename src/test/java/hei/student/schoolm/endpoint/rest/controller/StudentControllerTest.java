@@ -120,36 +120,6 @@ class StudentControllerTest {
   }
 
   @Test
-  void should_return_400_when_month_out_of_range() throws Exception {
-    mockMvc
-        .perform(
-            get("/students/{id}/graduate-transcript", STUDENT_ID)
-                .param("month", "13")
-                .param("year", "2026"))
-        .andExpect(status().isBadRequest());
-  }
-
-  @Test
-  void should_return_400_when_month_zero() throws Exception {
-    mockMvc
-        .perform(
-            get("/students/{id}/graduate-transcript", STUDENT_ID)
-                .param("month", "0")
-                .param("year", "2026"))
-        .andExpect(status().isBadRequest());
-  }
-
-  @Test
-  void should_return_400_when_month_negative() throws Exception {
-    mockMvc
-        .perform(
-            get("/students/{id}/graduate-transcript", STUDENT_ID)
-                .param("month", "-1")
-                .param("year", "2026"))
-        .andExpect(status().isBadRequest());
-  }
-
-  @Test
   void should_return_400_when_year_not_a_number() throws Exception {
     mockMvc
         .perform(

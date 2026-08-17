@@ -19,6 +19,7 @@ import static hei.student.schoolm.utils.TranscriptTestUtils.createCourse;
 import static hei.student.schoolm.utils.TranscriptTestUtils.createExam;
 import static hei.student.schoolm.utils.TranscriptTestUtils.createGrade;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -29,6 +30,7 @@ import hei.student.schoolm.dto.TranscriptDto;
 import hei.student.schoolm.dto.TranscriptStatus;
 import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.exception.NotFoundException;
+import hei.student.schoolm.mapper.StudentMapper;
 import hei.student.schoolm.model.Course;
 import hei.student.schoolm.model.Grade;
 import hei.student.schoolm.model.Group;
@@ -41,9 +43,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -51,7 +53,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class StudentServiceTranscriptTest {
   @Mock private StudentValidator studentValidator;
   @Mock private GroupValidator groupValidator;
-  @InjectMocks private StudentService studentService;
+  private StudentService studentService;
+
+  @BeforeEach
+  void setUp() {
+    studentService = new StudentService(studentValidator, groupValidator, new StudentMapper());
+  }
 
   private TranscriptDto getTranscript(Student student, Group group, Integer month, Integer year) {
     when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
@@ -61,39 +68,37 @@ class StudentServiceTranscriptTest {
 
   @Test
   void should_return_S1_for_october_of_entry_year() {
-    assertEquals(Semester.S1, studentService.computeSemester(Year.of(2024), 10, 2024));
+    assertEquals(Semester.S1, Semester.from(Year.of(2024), 10, 2024));
   }
 
   @Test
   void should_return_S2_for_september() {
-    assertEquals(Semester.S2, studentService.computeSemester(Year.of(2024), 9, 2025));
+    assertEquals(Semester.S2, Semester.from(Year.of(2024), 9, 2025));
   }
 
   @Test
   void should_return_S3_for_march() {
-    assertEquals(Semester.S3, studentService.computeSemester(Year.of(2024), 3, 2026));
+    assertEquals(Semester.S3, Semester.from(Year.of(2024), 3, 2026));
   }
 
   @Test
   void should_return_S4_for_august() {
-    assertEquals(Semester.S4, studentService.computeSemester(Year.of(2024), 8, 2026));
+    assertEquals(Semester.S4, Semester.from(Year.of(2024), 8, 2026));
   }
 
   @Test
   void should_return_S6_for_april() {
-    assertEquals(Semester.S6, studentService.computeSemester(Year.of(2024), 4, 2027));
+    assertEquals(Semester.S6, Semester.from(Year.of(2024), 4, 2027));
   }
 
   @Test
   void should_throw_when_date_before_cohort_start() {
-    assertThrows(
-        BadRequestException.class, () -> studentService.computeSemester(Year.of(2024), 3, 2024));
+    assertThrows(BadRequestException.class, () -> Semester.from(Year.of(2024), 3, 2024));
   }
 
   @Test
   void should_throw_when_date_in_future() {
-    assertThrows(
-        BadRequestException.class, () -> studentService.computeSemester(Year.of(2024), 1, 2028));
+    assertThrows(BadRequestException.class, () -> Semester.from(Year.of(2024), 1, 2028));
   }
 
   @Test
@@ -112,9 +117,7 @@ class StudentServiceTranscriptTest {
     var student = createStudent(group);
 
     var today = LocalDate.now();
-    var expectedPair =
-        studentService.semesterPair(
-            studentService.computeSemester(Year.of(2024), today.getMonthValue(), today.getYear()));
+    var expectedPair = Semester.from(Year.of(2024), today.getMonthValue(), today.getYear()).pair();
 
     var dto = getTranscript(student, group, null, null);
 
@@ -123,32 +126,32 @@ class StudentServiceTranscriptTest {
 
   @Test
   void should_map_S1_to_S1_S2_pair() {
-    assertEquals(List.of(Semester.S1, Semester.S2), studentService.semesterPair(Semester.S1));
+    assertEquals(List.of(Semester.S1, Semester.S2), Semester.S1.pair());
   }
 
   @Test
   void should_map_S2_to_S1_S2_pair() {
-    assertEquals(List.of(Semester.S1, Semester.S2), studentService.semesterPair(Semester.S2));
+    assertEquals(List.of(Semester.S1, Semester.S2), Semester.S2.pair());
   }
 
   @Test
   void should_map_S3_to_S3_S4_pair() {
-    assertEquals(List.of(Semester.S3, Semester.S4), studentService.semesterPair(Semester.S3));
+    assertEquals(List.of(Semester.S3, Semester.S4), Semester.S3.pair());
   }
 
   @Test
   void should_map_S4_to_S3_S4_pair() {
-    assertEquals(List.of(Semester.S3, Semester.S4), studentService.semesterPair(Semester.S4));
+    assertEquals(List.of(Semester.S3, Semester.S4), Semester.S4.pair());
   }
 
   @Test
   void should_map_S5_to_S5_S6_pair() {
-    assertEquals(List.of(Semester.S5, Semester.S6), studentService.semesterPair(Semester.S5));
+    assertEquals(List.of(Semester.S5, Semester.S6), Semester.S5.pair());
   }
 
   @Test
   void should_map_S6_to_S5_S6_pair() {
-    assertEquals(List.of(Semester.S5, Semester.S6), studentService.semesterPair(Semester.S6));
+    assertEquals(List.of(Semester.S5, Semester.S6), Semester.S6.pair());
   }
 
   @Test
@@ -176,7 +179,7 @@ class StudentServiceTranscriptTest {
         createCourse(
             COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam1, exam2), List.of(grade1, grade2));
 
-    var result = studentService.computeFinalGrade(fullCourse, student);
+    var result = fullCourse.finalGradeFor(student);
 
     var expectedFinalGrade = new BigDecimal("13.0");
     assertTrue(result.compareTo(expectedFinalGrade) == 0);
@@ -192,7 +195,7 @@ class StudentServiceTranscriptTest {
     var fullCourse =
         createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam1, exam2), List.of(grade1));
 
-    var result = studentService.computeFinalGrade(fullCourse, student);
+    var result = fullCourse.finalGradeFor(student);
 
     var expectedFinalGrade = new BigDecimal("7.0");
     assertTrue(result.compareTo(expectedFinalGrade) == 0);
@@ -214,7 +217,7 @@ class StudentServiceTranscriptTest {
     var fullCourse =
         createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam), List.of(grade));
 
-    var result = studentService.computeFinalGrade(fullCourse, student);
+    var result = fullCourse.finalGradeFor(student);
 
     var expectedFinalGrade = new BigDecimal("15.0");
     assertTrue(result.compareTo(expectedFinalGrade) == 0);
@@ -228,8 +231,7 @@ class StudentServiceTranscriptTest {
     var fullCourse =
         createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam1, exam2), List.of());
 
-    var expectedStatus = TranscriptStatus.COMPLET;
-    assertEquals(expectedStatus, studentService.computeStatus(fullCourse, Semester.S3));
+    assertTrue(fullCourse.isCompleteFor(Semester.S3));
   }
 
   @Test
@@ -240,8 +242,7 @@ class StudentServiceTranscriptTest {
     var fullCourse =
         createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(exam1, exam2), List.of());
 
-    var expectedStatus = TranscriptStatus.INCOMPLET;
-    assertEquals(expectedStatus, studentService.computeStatus(fullCourse, Semester.S3));
+    assertFalse(fullCourse.isCompleteFor(Semester.S3));
   }
 
   @Test
@@ -252,8 +253,7 @@ class StudentServiceTranscriptTest {
     var fullCourse =
         createCourse(COURSE_S4_ID, "PROG4", Semester.S4, List.of(exam1, exam2), List.of());
 
-    var expectedStatus = TranscriptStatus.INCOMPLET;
-    assertEquals(expectedStatus, studentService.computeStatus(fullCourse, Semester.S3));
+    assertFalse(fullCourse.isCompleteFor(Semester.S3));
   }
 
   @Test
@@ -261,9 +261,8 @@ class StudentServiceTranscriptTest {
     var course = createCourse(COURSE_S3_ID, "PROG4", Semester.S3, List.of(), List.of());
     var student = createStudent(null);
 
-    var expectedStatus = TranscriptStatus.INCOMPLET;
-    assertEquals(expectedStatus, studentService.computeStatus(course, Semester.S3));
-    assertNull(studentService.computeFinalGrade(course, student));
+    assertFalse(course.isCompleteFor(Semester.S3));
+    assertNull(course.finalGradeFor(student));
   }
 
   @Test
@@ -446,5 +445,23 @@ class StudentServiceTranscriptTest {
 
     assertThrows(
         BadRequestException.class, () -> studentService.getTranscript(STUDENT_ID, null, 2026));
+  }
+
+  @Test
+  void should_throw_when_month_out_of_range() {
+    assertThrows(
+        BadRequestException.class, () -> studentService.getTranscript(STUDENT_ID, 13, 2026));
+  }
+
+  @Test
+  void should_throw_when_month_zero() {
+    assertThrows(
+        BadRequestException.class, () -> studentService.getTranscript(STUDENT_ID, 0, 2026));
+  }
+
+  @Test
+  void should_throw_when_month_negative() {
+    assertThrows(
+        BadRequestException.class, () -> studentService.getTranscript(STUDENT_ID, -1, 2026));
   }
 }
