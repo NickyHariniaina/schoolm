@@ -146,6 +146,54 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+  /students/{id}/graduate-transcript:
+    get:
+      tags:
+        - Student
+      summary: Get the graduate transcript of a student
+      description: >-
+        Returns the graduate transcript of a student. The transcript covers the
+        academic year of the current semester (or the one matching the given
+        month and year). A course is marked COMPLET when all its exams have been
+        taken (sum of coefficients equals one) and its semester has been reached;
+        otherwise it is INCOMPLET. The global status is COMPLET when every course
+        of the transcript is COMPLET.
+      operationId: getGraduateTranscript
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Student identifier
+          schema:
+            type: string
+        - name: month
+          in: query
+          required: false
+          description: >-
+            Month of the reference date. Defaults to the current month. Must be
+            between 1 and 12.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+        - name: year
+          in: query
+          required: false
+          description: >-
+            Year of the reference date. Defaults to the current year.
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Graduate transcript retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transcript'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
 components:
   schemas:
     TeacherIdsRequest:
@@ -236,6 +284,92 @@ components:
           format: double
         acquired:
           type: boolean
+    Transcript:
+      type: object
+      properties:
+        studentId:
+          type: string
+        studentRef:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        groupRef:
+          type: string
+        cohortRef:
+          type: string
+        academicYear:
+          type: string
+          description: Academic year of the transcript, e.g. 2024-2025
+        semesters:
+          type: array
+          items:
+            $ref: '#/components/schemas/Semester'
+          description: The pair of semesters covered by the transcript
+        courses:
+          type: array
+          items:
+            $ref: '#/components/schemas/CourseGrade'
+        status:
+          $ref: '#/components/schemas/TranscriptStatus'
+    CourseGrade:
+      type: object
+      properties:
+        courseId:
+          type: string
+        ref:
+          type: string
+        title:
+          type: string
+        semester:
+          $ref: '#/components/schemas/Semester'
+        credit:
+          type: integer
+        coefficientSum:
+          type: number
+          format: double
+          description: Sum of the coefficients of the exams of the course
+        exams:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExamGrade'
+        finalGrade:
+          type: number
+          format: double
+          description: Weighted sum of the exam grades
+        status:
+          $ref: '#/components/schemas/TranscriptStatus'
+    ExamGrade:
+      type: object
+      properties:
+        examId:
+          type: string
+        date:
+          type: string
+          description: Date of the exam
+        coefficient:
+          type: number
+          format: double
+        value:
+          type: number
+          format: double
+          nullable: true
+          description: Grade of the student, null when the exam has not been taken
+    Semester:
+      type: string
+      enum:
+        - S1
+        - S2
+        - S3
+        - S4
+        - S5
+        - S6
+    TranscriptStatus:
+      type: string
+      enum:
+        - COMPLET
+        - INCOMPLET
     ErrorBody:
       type: object
       properties:
