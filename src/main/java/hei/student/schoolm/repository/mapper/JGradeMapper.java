@@ -12,6 +12,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class JGradeMapper {
   public Grade toDomain(JGrade jGrade) {
+    if (jGrade == null) {
+      return null;
+    }
+
     return Grade.builder()
         .id(jGrade.getId())
         .student(

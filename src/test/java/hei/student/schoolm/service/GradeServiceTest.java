@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import hei.student.schoolm.dto.GradeDto;
+import hei.student.schoolm.dto.GradeHistoryDto;
 import hei.student.schoolm.dto.UpdateGradeRequest;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.model.Exam;
@@ -15,6 +17,7 @@ import hei.student.schoolm.repository.mapper.JGradeMapper;
 import hei.student.schoolm.repository.model.JGradeHistory;
 import hei.student.schoolm.validator.GradeValidator;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,6 +45,8 @@ public class GradeServiceTest {
   private UUID examId;
   private Grade grade;
   private UpdateGradeRequest request;
+  private GradeDto expectedDto;
+  private GradeHistoryDto expectedHistoryDto;
 
   @BeforeEach
   void setUp() {
@@ -59,18 +64,30 @@ public class GradeServiceTest {
             .build();
 
     request = new UpdateGradeRequest(new BigDecimal("18.5"), "Correction following a complaint");
+
+    expectedDto =
+        new GradeDto(
+            gradeId,
+            studentId,
+            examId,
+            new BigDecimal("18.5"),
+            "Correction following a complaint",
+            Instant.now(),
+            Instant.now());
   }
 
   @Test
   void should_update_grade_successfully() {
     when(gradeValidator.checkGradeExists(gradeId)).thenReturn(grade);
     when(gradeRepository.save(any(Grade.class))).thenReturn(grade);
+    when(jGradeMapper.toDto(any(Grade.class))).thenReturn(expectedDto);
 
     var result = gradeService.updateGrade(gradeId, request);
 
     assertNotNull(result);
     verify(gradeHistoryRepository).save(any(JGradeHistory.class));
     verify(gradeRepository).save(grade);
+    verify(jGradeMapper).toDto(any(Grade.class));
     assertEquals(request.value(), grade.getValue());
     assertEquals(request.changeReason(), grade.getChangeReason());
   }
@@ -83,6 +100,7 @@ public class GradeServiceTest {
     assertThrows(NotFoundException.class, () -> gradeService.updateGrade(gradeId, request));
     verify(gradeRepository, never()).save(any());
     verify(gradeHistoryRepository, never()).save(any());
+    verify(jGradeMapper, never()).toDto(any());
   }
 
   @Test
@@ -90,6 +108,7 @@ public class GradeServiceTest {
     var captor = ArgumentCaptor.forClass(JGradeHistory.class);
     when(gradeValidator.checkGradeExists(gradeId)).thenReturn(grade);
     when(gradeRepository.save(any(Grade.class))).thenReturn(grade);
+    when(jGradeMapper.toDto(any(Grade.class))).thenReturn(expectedDto);
 
     gradeService.updateGrade(gradeId, request);
 
@@ -106,6 +125,7 @@ public class GradeServiceTest {
   @Test
   void should_get_grade_history() {
     var now = java.time.Instant.now();
+    var historyId = UUID.randomUUID();
     var history =
         JGradeHistory.builder()
             .id(UUID.randomUUID())
@@ -118,18 +138,30 @@ public class GradeServiceTest {
             .changedAt(now)
             .build();
 
+    var expectedHistoryDto =
+        new GradeHistoryDto(
+            historyId,
+            gradeId,
+            studentId,
+            examId,
+            new BigDecimal("15.0"),
+            new BigDecimal("18.5"),
+            "Correction following a complaint",
+            now);
+
     when(gradeValidator.checkGradeExists(gradeId)).thenReturn(grade);
     when(gradeHistoryRepository.findAllByGradeIdOrderByChangedAtDesc(gradeId))
         .thenReturn(List.of(history));
+    when(jGradeMapper.toHistoryDto(any(JGradeHistory.class))).thenReturn(expectedHistoryDto);
 
     var result = gradeService.getGradeHistory(gradeId);
 
     assertNotNull(result);
     assertEquals(1, result.size());
-    assertEquals(gradeId, result.getFirst().getGradeId());
-    assertEquals(new BigDecimal("15.0"), result.getFirst().getOldValue());
-    assertEquals(new BigDecimal("18.5"), result.getFirst().getNewValue());
-    assertEquals("Correction following a complaint", result.getFirst().getChangeReason());
-    assertEquals(now, result.getFirst().getChangedAt());
+    assertEquals(gradeId, result.get(0).getGradeId());
+    assertEquals(new BigDecimal("15.0"), result.get(0).getOldValue());
+    assertEquals(new BigDecimal("18.5"), result.get(0).getNewValue());
+    assertEquals("Correction following a complaint", result.get(0).getChangeReason());
+    assertEquals(now, result.get(0).getChangedAt());
   }
 }
