@@ -12,9 +12,11 @@ import lombok.*;
 @Builder
 public class GradeHistoryDto {
   private UUID id;
+  private UUID gradeId;
   private UUID studentId;
   private UUID examId;
-  private BigDecimal value;
+  private BigDecimal oldValue;
+  private BigDecimal newValue;
   private String changeReason;
-  private Instant createdAt;
+  private Instant changedAt;
 }
