@@ -34,13 +34,13 @@ public final class TranscriptTestUtils {
   private TranscriptTestUtils() {}
 
   public static Course createCourse(
-      UUID id, String ref, Semester semester, List<Exam> exams, List<Grade> grades) {
+      UUID id, String ref, Semester semester, List<Exam> exams, List<Grade> grades, Track track) {
     return Course.builder()
         .id(id)
         .ref(ref)
         .title("Course " + ref)
         .credit(8)
-        .track(Track.EL)
+        .track(track)
         .semester(semester)
         .exams(exams)
         .grades(grades)
