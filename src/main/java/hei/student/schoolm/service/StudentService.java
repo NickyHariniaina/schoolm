@@ -5,7 +5,6 @@ import hei.student.schoolm.dto.TranscriptDto;
 import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.mapper.StudentMapper;
 import hei.student.schoolm.model.*;
-import hei.student.schoolm.util.Fraction;
 import hei.student.schoolm.validator.GroupValidator;
 import hei.student.schoolm.validator.StudentValidator;
 import java.time.LocalDate;
@@ -53,44 +52,12 @@ public class StudentService {
     var group = groupValidator.checkGroupExists(student.getGroup().getId());
     var entryYear = group.getCohort().getEntryYear();
     var semester = resolveSemester(month, year, entryYear);
-    var pair = semesterPair(semester);
+    var pair = semester.pair();
     var studentTrack = group.getTrack();
 
-    var courseDtos =
-        filterCourses(group.getCourses(), pair, studentTrack).stream()
-            .map(course -> toCourseGradeDto(course, student, semester))
-            .toList();
-    var status =
-        courseDtos.stream()
-                .anyMatch(courseDto -> courseDto.getStatus() == TranscriptStatus.INCOMPLET)
-            ? TranscriptStatus.INCOMPLET
-            : TranscriptStatus.COMPLET;
+    var filteredCourses = filterCourses(group.getCourses(), pair, studentTrack);
 
-    return TranscriptDto.builder()
-        .studentId(student.getId())
-        .studentRef(student.getReference())
-        .firstName(student.getFirstName())
-        .lastName(student.getLastName())
-        .groupRef(group.getRef())
-        .cohortRef(group.getCohort().getRef())
-        .academicYear(academicYear(semester, entryYear))
-        .semesters(pair)
-        .courses(courseDtos)
-        .status(status)
-        .build();
-  }
-
-  public Semester computeSemester(Year entryYear, int month, int year) {
-    int semesterNumber = ((year - entryYear.getValue()) * 12 + (month - 10)) / 6 + 1;
-    if (semesterNumber < 1 || semesterNumber > MAX_SEMESTER_NUMBER) {
-      throw new BadRequestException("Date is out of the valid semester range");
-    }
-    return Semester.values()[semesterNumber - 1];
-  }
-
-  public List<Semester> semesterPair(Semester semester) {
-    var firstIndex = semester.ordinal() / 2 * 2;
-    return List.of(Semester.values()[firstIndex], Semester.values()[firstIndex + 1]);
+    return studentMapper.toTranscriptDto(student, group, semester, filteredCourses);
   }
 
   public List<Course> filterCourses(List<Course> courses, List<Semester> pair, Track studentTrack) {
