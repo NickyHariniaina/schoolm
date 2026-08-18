@@ -158,9 +158,31 @@ class StudentServiceTest {
   @Test
   void should_filter_courses_by_track_and_semester_for_el() {
     var commonCourse =
-        createCourse(COURSE_S3_1_ID, "COMMON_COURSE", Semester.S1, 6, List.of(), List.of());
-    var elCourse = createCourse(COURSE_S3_2_ID, "EL_COURSE", Semester.S1, 6, List.of(), List.of());
-    var tnCourse = createCourse(COURSE_S4_ID, "TN_COURSE", Semester.S1, 6, List.of(), List.of());
+        Course.builder()
+            .id(COURSE_S3_1_ID)
+            .ref("COMMON_COURSE")
+            .semester(Semester.S1)
+            .credit(6)
+            .track(Track.COMMON)
+            .build();
+
+    var elCourse =
+        Course.builder()
+            .id(COURSE_S3_2_ID)
+            .ref("EL_COURSE")
+            .semester(Semester.S1)
+            .credit(6)
+            .track(Track.EL)
+            .build();
+
+    var tnCourse =
+        Course.builder()
+            .id(COURSE_S4_ID)
+            .ref("TN_COURSE")
+            .semester(Semester.S1)
+            .credit(6)
+            .track(Track.TN)
+            .build();
 
     var courses = List.of(commonCourse, elCourse, tnCourse);
     var pair = List.of(Semester.S1, Semester.S2);
@@ -176,9 +198,31 @@ class StudentServiceTest {
   @Test
   void should_filter_courses_by_track_and_semester_for_tn() {
     var commonCourse =
-        createCourse(COURSE_S3_1_ID, "COMMON_COURSE", Semester.S1, 6, List.of(), List.of());
-    var elCourse = createCourse(COURSE_S3_2_ID, "EL_COURSE", Semester.S1, 6, List.of(), List.of());
-    var tnCourse = createCourse(COURSE_S4_ID, "TN_COURSE", Semester.S1, 6, List.of(), List.of());
+        Course.builder()
+            .id(COURSE_S3_1_ID)
+            .ref("COMMON_COURSE")
+            .semester(Semester.S1)
+            .credit(6)
+            .track(Track.COMMON)
+            .build();
+
+    var elCourse =
+        Course.builder()
+            .id(COURSE_S3_2_ID)
+            .ref("EL_COURSE")
+            .semester(Semester.S1)
+            .credit(6)
+            .track(Track.EL)
+            .build();
+
+    var tnCourse =
+        Course.builder()
+            .id(COURSE_S4_ID)
+            .ref("TN_COURSE")
+            .semester(Semester.S1)
+            .credit(6)
+            .track(Track.TN)
+            .build();
 
     var courses = List.of(commonCourse, elCourse, tnCourse);
     var pair = List.of(Semester.S1, Semester.S2);
@@ -225,15 +269,6 @@ class StudentServiceTest {
 
   @Test
   void should_throw_bad_request_when_month_invalid() {
-    var student = createStudent();
-    var group = createGroup(List.of());
-    var cohort = Cohort.builder().id(UUID.randomUUID()).ref("K").entryYear(Year.of(2024)).build();
-    group.setCohort(cohort);
-    student.setGroup(group);
-
-    when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
-    when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(group);
-
     assertThrows(
         BadRequestException.class, () -> studentService.getTranscript(STUDENT_ID, 13, 2025));
   }
