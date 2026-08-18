@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import hei.student.schoolm.dto.SemesterValidationDto;
 import hei.student.schoolm.model.Course;
 import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.util.Fraction;
@@ -26,7 +27,7 @@ import org.junit.jupiter.api.Test;
 class StudentMapperTest {
   private final StudentMapper studentMapper = new StudentMapper();
 
-  private hei.student.schoolm.dto.SemesterValidationDto map(Course... courses) {
+  private SemesterValidationDto map(Course... courses) {
     return studentMapper.toSemesterValidationDto(
         createStudent(), createGroup(List.of(courses)), Semester.S3, List.of(courses));
   }

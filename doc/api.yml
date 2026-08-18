@@ -250,6 +250,79 @@ paths:
                   $ref: '#/components/schemas/GradeHistory'
         '404':
           $ref: '#/components/responses/NotFound'
+  /cohorts:
+    get:
+      tags:
+        - Cohort
+      summary: List all cohorts
+      description: Returns the list of cohorts (promotions), newest first.
+      operationId: getCohorts
+      responses:
+        '200':
+          description: Cohorts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cohort'
+  /cohorts/{ref}/graduates:
+    get:
+      tags:
+        - Cohort
+      summary: Generate the graduate list of a cohort as an XLSX file on S3
+      description: >-
+        Computes the graduates of the cohort for the given track (EL or TN) and
+        uploads the result as an XLSX file on S3. A student graduates when every
+        course of its group with exams (up to the current semester, or the one
+        matching the given month and year) has a final grade greater than or
+        equal to 10. Students are ranked by their credit-weighted average grade.
+        The response contains a presigned URL to download the file.
+      operationId: getGraduates
+      parameters:
+        - name: ref
+          in: path
+          required: true
+          description: Cohort reference (promotion)
+          schema:
+            type: string
+        - name: track
+          in: query
+          required: true
+          description: Track to generate the graduate list for
+          schema:
+            type: string
+            enum:
+              - EL
+              - TN
+        - name: month
+          in: query
+          required: false
+          description: >-
+            Month of the reference date. Defaults to the current month. Must be
+            between 1 and 12.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+        - name: year
+          in: query
+          required: false
+          description: >-
+            Year of the reference date. Defaults to the current year.
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Graduate list generated and uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GraduateFile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
 components:
   schemas:
     TeacherIdsRequest:
@@ -470,6 +543,28 @@ components:
         - S4
         - S5
         - S6
+    Cohort:
+      type: object
+      properties:
+        ref:
+          type: string
+          description: Cohort reference (promotion)
+        entryYear:
+          type: integer
+          description: Entry year of the cohort
+    GraduateFile:
+      type: object
+      properties:
+        fileName:
+          type: string
+          description: Name of the generated XLSX file
+        url:
+          type: string
+          description: Presigned URL to download the file from S3
+        expiresAt:
+          type: string
+          format: date-time
+          description: Expiration date of the presigned URL
     TranscriptStatus:
       type: string
       enum:
