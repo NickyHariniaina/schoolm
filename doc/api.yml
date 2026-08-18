@@ -194,6 +194,34 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+  /students/{id}/transcript/email:
+    post:
+      tags:
+        - Student
+      summary: Email a student's transcript for a specific academic year
+      description: >-
+        Generates the transcript for the pair of semesters containing the
+        given semester (S1/S2 = L1, S3/S4 = L2, S5/S6 = L3), uploads it as a
+        PDF file on S3, and emails it to the student.
+      operationId: emailTranscript
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: semester
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Semester'
+      responses:
+        '202':
+          description: Transcript email requested successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /grades/{gradeId}:
     put:
       tags:

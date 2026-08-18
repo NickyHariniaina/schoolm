@@ -60,6 +60,17 @@ public class StudentService {
     return studentMapper.toTranscriptDto(student, group, semester, filteredCourses);
   }
 
+  public TranscriptDto getTranscriptForSemester(UUID studentId, Semester targetSemester) {
+    var student = studentValidator.checkStudentExists(studentId);
+    var group = groupValidator.checkGroupExists(student.getGroup().getId());
+    return buildTranscript(student, group, targetSemester);
+  }
+
+  private TranscriptDto buildTranscript(Student student, Group group, Semester semester) {
+    var filteredCourses = filterCourses(group.getCourses(), semester.pair(), group.getTrack());
+    return studentMapper.toTranscriptDto(student, group, semester, filteredCourses);
+  }
+
   public List<Course> filterCourses(List<Course> courses, List<Semester> pair, Track studentTrack) {
     if (courses == null) {
       return List.of();

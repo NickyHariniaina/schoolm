@@ -1,0 +1,20 @@
+package hei.student.schoolm.endpoint.rest.controller;
+
+import hei.student.schoolm.endpoint.event.EventProducer;
+import hei.student.schoolm.endpoint.event.model.TranscriptEmailRequested;
+import hei.student.schoolm.model.Semester;
+import java.util.List;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequiredArgsConstructor
+public class StudentTranscriptController {
+  private final EventProducer<TranscriptEmailRequested> eventProducer;
+
+  @PostMapping("/students/{id}/transcript/email")
+  public void emailTranscript(@PathVariable UUID id, @RequestParam Semester semester) {
+    eventProducer.accept(List.of(new TranscriptEmailRequested(id, semester)));
+  }
+}
