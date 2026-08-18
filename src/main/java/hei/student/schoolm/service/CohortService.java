@@ -22,7 +22,10 @@ public class CohortService {
                 .thenComparing(hei.student.schoolm.model.Cohort::getRef))
         .map(
             cohort ->
-                CohortDto.builder().ref(cohort.getRef()).entryYear(cohort.getEntryYear()).build())
+                CohortDto.builder()
+                    .ref(cohort.getRef())
+                    .entryYear(cohort.getEntryYear().getValue())
+                    .build())
         .toList();
   }
 }

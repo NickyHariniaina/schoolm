@@ -14,7 +14,6 @@ import hei.student.schoolm.model.Track;
 import hei.student.schoolm.service.CohortService;
 import hei.student.schoolm.service.GraduateService;
 import java.time.Instant;
-import java.time.Year;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +32,8 @@ class CohortControllerTest {
     when(cohortService.getCohorts())
         .thenReturn(
             List.of(
-                CohortDto.builder().ref("J").entryYear(Year.of(2023)).build(),
-                CohortDto.builder().ref("K").entryYear(Year.of(2024)).build()));
+                CohortDto.builder().ref("J").entryYear(2023).build(),
+                CohortDto.builder().ref("K").entryYear(2024).build()));
 
     mockMvc
         .perform(get("/cohorts"))
