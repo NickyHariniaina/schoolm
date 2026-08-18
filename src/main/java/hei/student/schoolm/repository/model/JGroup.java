@@ -29,7 +29,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
-@Table(name = "group")
+@Table(name = "\"group\"")
 public class JGroup {
   @Id private UUID id;
 
