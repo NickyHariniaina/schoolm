@@ -1,11 +1,6 @@
 package hei.student.schoolm.mapper;
 
-import hei.student.schoolm.dto.CourseGradeDto;
-import hei.student.schoolm.dto.CourseValidationDto;
-import hei.student.schoolm.dto.ExamGradeDto;
-import hei.student.schoolm.dto.SemesterValidationDto;
-import hei.student.schoolm.dto.TranscriptDto;
-import hei.student.schoolm.dto.TranscriptStatus;
+import hei.student.schoolm.dto.*;
 import hei.student.schoolm.model.Course;
 import hei.student.schoolm.model.Exam;
 import hei.student.schoolm.model.Group;
@@ -77,6 +72,56 @@ public class StudentMapper {
         .semesters(currentSemester.pair())
         .courses(courseDtos)
         .status(status)
+        .build();
+  }
+
+  public TranscriptPdfDto toPdfDto(
+      Student student, Group group, Semester currentSemester, List<Course> courses) {
+
+    var courseDtos =
+        courses.stream().map(course -> toCourseGradeDto(course, student, currentSemester)).toList();
+
+    var status =
+        courseDtos.stream()
+                .anyMatch(courseDto -> courseDto.getStatus() == TranscriptStatus.INCOMPLET)
+            ? TranscriptStatus.INCOMPLET
+            : TranscriptStatus.COMPLET;
+
+    var entryYear = group.getCohort().getEntryYear();
+
+    double sum = 0.0;
+    int totalCredits = 0;
+    int acquiredCredits = 0;
+
+    for (var courseDto : courseDtos) {
+      var grade = courseDto.getFinalGrade();
+      var credit = courseDto.getCredit();
+      totalCredits += credit;
+
+      if (grade != null) {
+        sum += grade.doubleValue() * credit;
+        if (grade.doubleValue() >= 10.0) {
+          acquiredCredits += credit;
+        }
+      }
+    }
+
+    Double average = totalCredits > 0 ? sum / totalCredits : null;
+
+    return TranscriptPdfDto.builder()
+        .studentId(student.getId())
+        .studentRef(student.getReference())
+        .firstName(student.getFirstName())
+        .lastName(student.getLastName())
+        .groupRef(group.getRef())
+        .cohortRef(group.getCohort().getRef())
+        .academicYear(currentSemester.academicYear(entryYear))
+        .semesters(currentSemester.pair())
+        .courses(courseDtos)
+        .status(status)
+        .average(average)
+        .totalCredits(totalCredits)
+        .acquiredCredits(acquiredCredits)
         .build();
   }
 
