@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Liste des promotions</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 2rem;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 0.5rem;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      .download {
+        color: white;
+        background-color: #1a73e8;
+        padding: 0.4rem 0.8rem;
+        text-decoration: none;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Liste des promotions</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Référence</th>
+          <th>Année d'entrée</th>
+          <th>Liste des diplômés</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="cohort : ${cohorts}">
+          <td th:text="${cohort.ref}"></td>
+          <td th:text="${cohort.entryYear}"></td>
+          <td>
+            <a
+              class="download"
+              th:href="@{/cohorts/{ref}/graduates/download(ref=${cohort.ref}, track='EL')}"
+            >
+              Télécharger (EL)
+            </a>
+            <a
+              class="download"
+              th:href="@{/cohorts/{ref}/graduates/download(ref=${cohort.ref}, track='TN')}"
+            >
+              Télécharger (TN)
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>
