@@ -32,7 +32,7 @@ class CohortServiceTest {
 
     var result = cohortService.getCohorts();
 
-    assertEquals(List.of("K", "J", "P23"), result.stream().map(dto -> dto.getRef()).toList());
+    assertEquals(List.of("J", "K", "P23"), result.stream().map(dto -> dto.getRef()).toList());
     assertEquals(
         List.of(2024, 2024, 2023), result.stream().map(dto -> dto.getEntryYear()).toList());
   }
