@@ -1,6 +1,7 @@
 package hei.student.schoolm.service;
 
 import hei.student.schoolm.dto.CohortDto;
+import hei.student.schoolm.model.Cohort;
 import hei.student.schoolm.repository.CohortRepository;
 import java.util.Comparator;
 import java.util.List;
@@ -17,9 +18,9 @@ public class CohortService {
   public List<CohortDto> getCohorts() {
     return cohortRepository.findAll().stream()
         .sorted(
-            Comparator.comparing((hei.student.schoolm.model.Cohort cohort) -> cohort.getEntryYear())
+            Comparator.comparing((Cohort cohort) -> cohort.getEntryYear())
                 .reversed()
-                .thenComparing(hei.student.schoolm.model.Cohort::getRef))
+                .thenComparing(Cohort::getRef))
         .map(
             cohort ->
                 CohortDto.builder()

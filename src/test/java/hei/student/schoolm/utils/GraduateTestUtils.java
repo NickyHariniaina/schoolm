@@ -11,6 +11,7 @@ import hei.student.schoolm.model.Track;
 import hei.student.schoolm.util.Fraction;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Year;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -31,11 +32,7 @@ public final class GraduateTestUtils {
   private GraduateTestUtils() {}
 
   public static Cohort cohort(int entryYear) {
-    return Cohort.builder()
-        .id(COHORT_ID)
-        .ref("P24")
-        .entryYear(java.time.Year.of(entryYear))
-        .build();
+    return Cohort.builder().id(COHORT_ID).ref("P24").entryYear(Year.of(entryYear)).build();
   }
 
   public static Group group(UUID id, String ref, Track track, Cohort cohort, List<Course> courses) {

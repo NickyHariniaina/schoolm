@@ -2,6 +2,8 @@ package hei.student.schoolm.repository.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import hei.student.schoolm.model.Group;
+import hei.student.schoolm.model.Student;
 import hei.student.schoolm.model.User.Role;
 import hei.student.schoolm.repository.model.JGroup;
 import hei.student.schoolm.repository.model.JStudent;
@@ -44,14 +46,14 @@ class JStudentMapperTest {
   @Test
   void toEntity_maps_all_fields_and_group() {
     var student =
-        hei.student.schoolm.model.Student.builder()
+        Student.builder()
             .id(STUDENT_ID)
             .reference("STD26001")
             .email("toky@hei.school")
             .firstName("Tokyo")
             .lastName("Watt")
             .role(Role.STUDENT)
-            .group(hei.student.schoolm.model.Group.builder().id(GROUP_ID).ref("L1-EL-01").build())
+            .group(Group.builder().id(GROUP_ID).ref("L1-EL-01").build())
             .build();
 
     var jStudent = jStudentMapper.toEntity(student);
