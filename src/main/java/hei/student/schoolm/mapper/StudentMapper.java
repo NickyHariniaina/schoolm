@@ -76,10 +76,7 @@ public class StudentMapper {
   }
 
   public TranscriptPdfDto toPdfDto(
-      Student student, Group group, Semester currentSemester, List<Course> courses) {
-
-    var courseDtos =
-        courses.stream().map(course -> toCourseGradeDto(course, student, currentSemester)).toList();
+      Student student, Group group, Semester currentSemester, List<CourseGradeDto> courseDtos) {
 
     var status =
         courseDtos.stream()
