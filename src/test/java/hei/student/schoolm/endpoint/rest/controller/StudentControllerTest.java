@@ -3,6 +3,7 @@ package hei.student.schoolm.endpoint.rest.controller;
 import static hei.student.schoolm.utils.TranscriptTestUtils.createTranscriptDto;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -71,8 +72,7 @@ class StudentControllerTest {
         .andExpect(jsonPath("$.courses[0].finalGrade").value(14.5))
         .andExpect(jsonPath("$.courses[0].acquired").value(true));
 
-    org.mockito.Mockito.verify(studentService)
-        .getStudentSemesterValidation(STUDENT_ID, Semester.S3);
+    verify(studentService).getStudentSemesterValidation(STUDENT_ID, Semester.S3);
   }
 
   @Test
