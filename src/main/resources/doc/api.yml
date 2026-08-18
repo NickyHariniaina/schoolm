@@ -194,6 +194,163 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+  /students/{id}/transcript/email:
+    post:
+      tags:
+        - Student
+      summary: Email a student's transcript for a specific academic year
+      description: >-
+        Generates the transcript for the pair of semesters containing the
+        given semester (S1/S2 = L1, S3/S4 = L2, S5/S6 = L3), uploads it as a
+        PDF file on S3, and emails it to the student.
+      operationId: emailTranscript
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: semester
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/Semester'
+      responses:
+        '202':
+          description: Transcript email requested successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /grades/{gradeId}:
+    put:
+      tags:
+        - Grade
+      summary: Update a grade with change reason
+      description: Updates a grade value and records the reason for the change. Keeps history of all changes.
+      operationId: updateGrade
+      parameters:
+        - name: gradeId
+          in: path
+          required: true
+          description: Grade identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGradeRequest'
+      responses:
+        '200':
+          description: Grade updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grade'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /grades/{gradeId}/history:
+    get:
+      tags:
+        - Grade
+      summary: Get grade change history
+      description: Returns all historical versions of a grade with timestamps and change reasons
+      operationId: getGradeHistory
+      parameters:
+        - name: gradeId
+          in: path
+          required: true
+          description: Grade identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Grade history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GradeHistory'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /cohorts:
+    get:
+      tags:
+        - Cohort
+      summary: List all cohorts
+      description: Returns the list of cohorts (promotions), newest first.
+      operationId: getCohorts
+      responses:
+        '200':
+          description: Cohorts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cohort'
+  /cohorts/{ref}/graduates:
+    get:
+      tags:
+        - Cohort
+      summary: Generate the graduate list of a cohort as an XLSX file on S3
+      description: >-
+        Computes the graduates of the cohort for the given track (EL or TN) and
+        uploads the result as an XLSX file on S3. A student graduates when every
+        course of its group with exams (up to the current semester, or the one
+        matching the given month and year) has a final grade greater than or
+        equal to 10. Students are ranked by their credit-weighted average grade.
+        The response contains a presigned URL to download the file.
+      operationId: getGraduates
+      parameters:
+        - name: ref
+          in: path
+          required: true
+          description: Cohort reference (promotion)
+          schema:
+            type: string
+        - name: track
+          in: query
+          required: true
+          description: Track to generate the graduate list for
+          schema:
+            type: string
+            enum:
+              - EL
+              - TN
+        - name: month
+          in: query
+          required: false
+          description: >-
+            Month of the reference date. Defaults to the current month. Must be
+            between 1 and 12.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+        - name: year
+          in: query
+          required: false
+          description: >-
+            Year of the reference date. Defaults to the current year.
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Graduate list generated and uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GraduateFile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
 components:
   schemas:
     TeacherIdsRequest:
@@ -218,6 +375,22 @@ components:
           items:
             type: string
           description: List of group identifiers that take the course
+    UpdateGradeRequest:
+      type: object
+      required:
+        - value
+        - changeReason
+      properties:
+        value:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 20
+          description: New grade value (0-20)
+        changeReason:
+          type: string
+          minLength: 1
+          description: Reason for the grade change
     Course:
       type: object
       properties:
@@ -356,6 +529,39 @@ components:
           format: double
           nullable: true
           description: Grade of the student, null when the exam has not been taken
+    Grade:
+      type: object
+      properties:
+        id:
+          type: string
+        studentId:
+          type: string
+        examId:
+          type: string
+        value:
+          type: number
+          format: double
+        changeReason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    GradeHistory:
+      type: object
+      properties:
+        id:
+          type: string
+        value:
+          type: number
+          format: double
+        changeReason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
     Semester:
       type: string
       enum:
@@ -365,6 +571,28 @@ components:
         - S4
         - S5
         - S6
+    Cohort:
+      type: object
+      properties:
+        ref:
+          type: string
+          description: Cohort reference (promotion)
+        entryYear:
+          type: integer
+          description: Entry year of the cohort
+    GraduateFile:
+      type: object
+      properties:
+        fileName:
+          type: string
+          description: Name of the generated XLSX file
+        url:
+          type: string
+          description: Presigned URL to download the file from S3
+        expiresAt:
+          type: string
+          format: date-time
+          description: Expiration date of the presigned URL
     TranscriptStatus:
       type: string
       enum:
