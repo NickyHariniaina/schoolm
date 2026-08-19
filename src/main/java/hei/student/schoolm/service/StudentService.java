@@ -5,12 +5,11 @@ import hei.student.schoolm.dto.TranscriptDto;
 import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.mapper.StudentMapper;
 import hei.student.schoolm.model.*;
-import hei.student.schoolm.repository.GroupRepository;
+import hei.student.schoolm.repository.CourseAssignmentRepository;
 import hei.student.schoolm.validator.StudentValidator;
 import java.time.LocalDate;
 import java.time.Year;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class StudentService {
   private final StudentValidator studentValidator;
   private final GroupFlowService groupFlowService;
-  private final GroupRepository groupRepository;
+  private final CourseAssignmentRepository courseAssignmentRepository;
   private final StudentMapper studentMapper;
 
   @Transactional(readOnly = true)
@@ -68,20 +67,8 @@ public class StudentService {
   }
 
   private List<Course> coursesForStudent(UUID studentId, List<Semester> semesters) {
-    var groups =
-        groupRepository.findAllByIdWithCourses(groupFlowService.studentGroupIds(studentId));
-    var coursesById = new LinkedHashMap<UUID, Course>();
-    for (var group : groups) {
-      if (group.getCourses() == null) {
-        continue;
-      }
-      for (var course : group.getCourses()) {
-        if (semesters.contains(course.getSemester())) {
-          coursesById.put(course.getId(), course);
-        }
-      }
-    }
-    return coursesById.values().stream()
+    var groupIds = groupFlowService.studentGroupIds(studentId);
+    return courseAssignmentRepository.findCurriculumCourses(groupIds, semesters).stream()
         .sorted(
             Comparator.comparingInt((Course course) -> course.getSemester().ordinal())
                 .thenComparing(Course::getRef))
