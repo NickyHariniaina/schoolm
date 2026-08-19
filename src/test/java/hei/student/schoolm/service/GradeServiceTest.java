@@ -15,6 +15,7 @@ import hei.student.schoolm.repository.GradeRepository;
 import hei.student.schoolm.repository.jpa.JGradeHistoryRepository;
 import hei.student.schoolm.repository.mapper.JGradeMapper;
 import hei.student.schoolm.repository.model.JGradeHistory;
+import hei.student.schoolm.util.SecurityUtil;
 import hei.student.schoolm.validator.GradeValidator;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -37,6 +38,8 @@ public class GradeServiceTest {
   @Mock private JGradeHistoryRepository gradeHistoryRepository;
 
   @Mock private JGradeMapper jGradeMapper;
+
+  @Mock private SecurityUtil securityUtil;
 
   @InjectMocks private GradeService gradeService;
 

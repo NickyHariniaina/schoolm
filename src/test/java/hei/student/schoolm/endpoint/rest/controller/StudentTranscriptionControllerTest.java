@@ -6,8 +6,10 @@ import static org.mockito.Mockito.verify;
 import hei.student.schoolm.endpoint.event.EventProducer;
 import hei.student.schoolm.endpoint.event.model.TranscriptEmailRequested;
 import hei.student.schoolm.model.Semester;
+import hei.student.schoolm.util.SecurityUtil;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -19,7 +21,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class StudentTranscriptControllerTest {
   @Mock private EventProducer<TranscriptEmailRequested> eventProducer;
 
+  @Mock private SecurityUtil securityUtil;
+
   @InjectMocks private StudentTranscriptController controller;
+
+  @BeforeEach
+  void setUp() {
+    org.mockito.Mockito.lenient().when(securityUtil.isAdmin()).thenReturn(true);
+  }
 
   @Test
   void should_send_transcript_email_request_for_s1() {

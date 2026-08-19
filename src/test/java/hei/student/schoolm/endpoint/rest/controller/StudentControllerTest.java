@@ -16,6 +16,7 @@ import hei.student.schoolm.dto.CourseValidationDto;
 import hei.student.schoolm.dto.GroupFlowDto;
 import hei.student.schoolm.dto.MoveStudentGroupRequest;
 import hei.student.schoolm.dto.SemesterValidationDto;
+import hei.student.schoolm.endpoint.rest.security.JwtAuthenticationFilter;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.model.GroupFlowType;
 import hei.student.schoolm.model.Semester;
@@ -27,12 +28,21 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(StudentController.class)
+@WebMvcTest(
+    value = StudentController.class,
+    excludeFilters =
+        @ComponentScan.Filter(
+            type = FilterType.ASSIGNABLE_TYPE,
+            classes = JwtAuthenticationFilter.class))
+@AutoConfigureMockMvc(addFilters = false)
 class StudentControllerTest {
   @Autowired MockMvc mockMvc;
   @MockBean StudentService studentService;

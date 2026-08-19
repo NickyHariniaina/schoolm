@@ -21,6 +21,8 @@ import hei.student.schoolm.model.Group;
 import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.model.Track;
 import hei.student.schoolm.repository.CourseAssignmentRepository;
+import hei.student.schoolm.repository.StudentRepository;
+import hei.student.schoolm.util.SecurityUtil;
 import hei.student.schoolm.validator.CourseAssignmentValidator;
 import hei.student.schoolm.validator.CourseValidator;
 import hei.student.schoolm.validator.GroupValidator;
@@ -28,6 +30,7 @@ import hei.student.schoolm.validator.TeacherValidator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -46,12 +49,19 @@ class CourseAssignmentServiceTest {
   @Mock private CourseAssignmentMapper courseAssignmentMapper;
   @Mock private CourseMapper courseMapper;
   @Mock private CourseAssignmentValidator validator;
+  @Mock private SecurityUtil securityUtil;
+  @Mock private StudentRepository studentRepository;
   @InjectMocks private CourseAssignmentService courseAssignmentService;
 
   private static final UUID COURSE_ID = UUID.fromString("00000000-0000-0000-0000-000000000901");
   private static final UUID GROUP_ID = UUID.fromString("00000000-0000-0000-0000-000000000902");
   private static final UUID TEACHER_ID = UUID.fromString("00000000-0000-0000-0000-000000000903");
   private static final UUID ASSIGNMENT_ID = UUID.fromString("00000000-0000-0000-0000-000000000904");
+
+  @BeforeEach
+  void setUp() {
+    org.mockito.Mockito.lenient().when(securityUtil.isAdmin()).thenReturn(true);
+  }
 
   private Course course(Semester semester) {
     return Course.builder()

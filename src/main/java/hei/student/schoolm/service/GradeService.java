@@ -7,6 +7,7 @@ import hei.student.schoolm.repository.GradeRepository;
 import hei.student.schoolm.repository.jpa.JGradeHistoryRepository;
 import hei.student.schoolm.repository.mapper.JGradeMapper;
 import hei.student.schoolm.repository.model.JGradeHistory;
+import hei.student.schoolm.util.SecurityUtil;
 import hei.student.schoolm.validator.GradeValidator;
 import java.util.List;
 import java.util.UUID;
@@ -21,11 +22,12 @@ public class GradeService {
   private final GradeValidator gradeValidator;
   private final JGradeHistoryRepository gradeHistoryRepository;
   private final JGradeMapper jGradeMapper;
+  private final SecurityUtil securityUtil;
 
   @Transactional
   public GradeDto updateGrade(UUID gradeId, UpdateGradeRequest request) {
-
     var grade = gradeValidator.checkGradeExists(gradeId);
+    requireTeacherTeaches(grade);
     var oldValue = grade.getValue();
 
     var history =
@@ -50,10 +52,22 @@ public class GradeService {
   @Transactional(readOnly = true)
   public List<GradeHistoryDto> getGradeHistory(UUID gradeId) {
 
-    gradeValidator.checkGradeExists(gradeId);
+    var grade = gradeValidator.checkGradeExists(gradeId);
+    requireTeacherTeaches(grade);
 
     var history = gradeHistoryRepository.findAllByGradeIdOrderByChangedAtDesc(gradeId);
 
     return history.stream().map(jGradeMapper::toHistoryDto).toList();
+  }
+
+  private void requireTeacherTeaches(hei.student.schoolm.model.Grade grade) {
+    if (securityUtil.isTeacher()) {
+      var teacherId = securityUtil.getCurrentUserIdOrThrow();
+      var teaches = grade.getExam().getCourse().teacherIds().contains(teacherId);
+      if (!teaches) {
+        throw new hei.student.schoolm.exception.ForbiddenException(
+            "You may only manage grades for courses you teach");
+      }
+    }
   }
 }

@@ -6,6 +6,7 @@ import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.mapper.StudentMapper;
 import hei.student.schoolm.model.*;
 import hei.student.schoolm.repository.CourseAssignmentRepository;
+import hei.student.schoolm.util.SecurityUtil;
 import hei.student.schoolm.validator.StudentValidator;
 import java.time.LocalDate;
 import java.time.Year;
@@ -23,9 +24,11 @@ public class StudentService {
   private final GroupFlowService groupFlowService;
   private final CourseAssignmentRepository courseAssignmentRepository;
   private final StudentMapper studentMapper;
+  private final SecurityUtil securityUtil;
 
   @Transactional(readOnly = true)
   public SemesterValidationDto getStudentSemesterValidation(UUID studentId, Semester semester) {
+    securityUtil.requireSelfOrAdmin(studentId);
     var student = studentValidator.checkStudentExists(studentId);
     var courses = coursesForStudent(studentId, List.of(semester));
     var group = student.getGroup();
@@ -38,6 +41,7 @@ public class StudentService {
   }
 
   public TranscriptDto getTranscript(UUID studentId, Integer month, Integer year) {
+    securityUtil.requireSelfOrAdmin(studentId);
     if (month != null && (month < 1 || month > 12)) {
       throw new BadRequestException("month must be between 1 and 12");
     }

@@ -23,10 +23,12 @@ import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.mapper.StudentMapper;
 import hei.student.schoolm.model.*;
 import hei.student.schoolm.repository.CourseAssignmentRepository;
+import hei.student.schoolm.util.SecurityUtil;
 import hei.student.schoolm.validator.StudentValidator;
 import java.time.Year;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -39,9 +41,15 @@ class StudentServiceTest {
   @Mock GroupFlowService groupFlowService;
   @Mock CourseAssignmentRepository courseAssignmentRepository;
   @Mock StudentMapper studentMapper;
+  @Mock SecurityUtil securityUtil;
   @InjectMocks StudentService studentService;
 
   private final SemesterValidationDto anyDto = SemesterValidationDto.builder().build();
+
+  @BeforeEach
+  void setUp() {
+    org.mockito.Mockito.lenient().when(securityUtil.isAdmin()).thenReturn(true);
+  }
 
   @Test
   void should_only_keep_courses_of_requested_semester() {

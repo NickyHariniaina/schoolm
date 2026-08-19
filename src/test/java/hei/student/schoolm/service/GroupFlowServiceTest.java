@@ -14,11 +14,13 @@ import hei.student.schoolm.model.GroupFlowType;
 import hei.student.schoolm.model.Student;
 import hei.student.schoolm.repository.GroupFlowRepository;
 import hei.student.schoolm.repository.StudentRepository;
+import hei.student.schoolm.util.SecurityUtil;
 import hei.student.schoolm.validator.GroupValidator;
 import hei.student.schoolm.validator.StudentValidator;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,11 +33,17 @@ class GroupFlowServiceTest {
   @Mock private StudentRepository studentRepository;
   @Mock private StudentValidator studentValidator;
   @Mock private GroupValidator groupValidator;
+  @Mock private SecurityUtil securityUtil;
   @InjectMocks private GroupFlowService groupFlowService;
 
   private static final UUID STUDENT_ID = UUID.fromString("00000000-0000-0000-0000-000000000701");
   private static final UUID GROUP_OLD_ID = UUID.fromString("00000000-0000-0000-0000-000000000702");
   private static final UUID GROUP_NEW_ID = UUID.fromString("00000000-0000-0000-0000-000000000703");
+
+  @BeforeEach
+  void setUp() {
+    org.mockito.Mockito.lenient().when(securityUtil.isAdmin()).thenReturn(true);
+  }
 
   private Student student() {
     return Student.builder()

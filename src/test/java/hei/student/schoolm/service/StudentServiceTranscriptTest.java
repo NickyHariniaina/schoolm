@@ -34,6 +34,7 @@ import hei.student.schoolm.mapper.StudentMapper;
 import hei.student.schoolm.model.*;
 import hei.student.schoolm.repository.CourseAssignmentRepository;
 import hei.student.schoolm.util.Fraction;
+import hei.student.schoolm.util.SecurityUtil;
 import hei.student.schoolm.validator.StudentValidator;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -50,13 +51,19 @@ class StudentServiceTranscriptTest {
   @Mock private StudentValidator studentValidator;
   @Mock private GroupFlowService groupFlowService;
   @Mock private CourseAssignmentRepository courseAssignmentRepository;
+  @Mock private SecurityUtil securityUtil;
   private StudentService studentService;
 
   @BeforeEach
   void setUp() {
     studentService =
         new StudentService(
-            studentValidator, groupFlowService, courseAssignmentRepository, new StudentMapper());
+            studentValidator,
+            groupFlowService,
+            courseAssignmentRepository,
+            new StudentMapper(),
+            securityUtil);
+    org.mockito.Mockito.lenient().when(securityUtil.isAdmin()).thenReturn(true);
   }
 
   private TranscriptDto getTranscript(Student student, Group group, Integer month, Integer year) {

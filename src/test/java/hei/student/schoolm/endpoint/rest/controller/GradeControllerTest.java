@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import hei.student.schoolm.dto.GradeDto;
 import hei.student.schoolm.dto.GradeHistoryDto;
 import hei.student.schoolm.dto.UpdateGradeRequest;
+import hei.student.schoolm.endpoint.rest.security.JwtAuthenticationFilter;
 import hei.student.schoolm.service.GradeService;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -18,12 +19,21 @@ import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(GradeController.class)
+@WebMvcTest(
+    value = GradeController.class,
+    excludeFilters =
+        @ComponentScan.Filter(
+            type = FilterType.ASSIGNABLE_TYPE,
+            classes = JwtAuthenticationFilter.class))
+@AutoConfigureMockMvc(addFilters = false)
 public class GradeControllerTest {
   @Autowired private MockMvc mockMvc;
 
