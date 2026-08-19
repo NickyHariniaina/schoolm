@@ -96,8 +96,13 @@ public class TranscriptEmailRequestedService implements Consumer<TranscriptEmail
       var avg = BigDecimal.valueOf(transcript.getAverage()).setScale(2, RoundingMode.HALF_UP);
       statsHtml += "<p><strong>Moyenne générale :</strong> " + avg + "</p>";
     }
-    statsHtml += "<p><strong>Crédits totaux :</strong> " + transcript.getTotalCredits() + "</p>";
-    statsHtml += "<p><strong>Crédits acquis :</strong> " + transcript.getAcquiredCredits() + "</p>";
+    var creditsDisplay = transcript.getAcquiredCredits() + "/" + transcript.getTotalCredits();
+    statsHtml += "<p><strong>Crédits acquis :</strong> " + creditsDisplay + "</p>";
+
+    var coursesMessage =
+        transcript.getCourses().isEmpty()
+            ? "<p><em>Aucun cours trouvé pour ce niveau.</em></p>"
+            : "";
 
     return """
            <html><body>
@@ -119,18 +124,22 @@ public class TranscriptEmailRequestedService implements Consumer<TranscriptEmail
             transcript.getFirstName(),
             transcript.getAcademicYear(),
             statusMessage(transcript),
+            coursesMessage,
             statsHtml,
             rows,
             downloadUrl);
   }
 
   private String statusMessage(TranscriptPdfDto transcript) {
+    if (transcript.getCourses().isEmpty()) {
+      return "Aucun cours disponible pour ce niveau";
+    }
     var hasAnyGrade = transcript.getCourses().stream().anyMatch(c -> c.getFinalGrade() != null);
     if (!hasAnyGrade) {
       return "Aucune note disponible pour le moment";
     }
     return transcript.getStatus() == TranscriptStatus.COMPLET
-        ? "Relevé avec note des UE complet"
+        ? "Relevé complet"
         : "Relevé incomplet (en cours)";
   }
 }
