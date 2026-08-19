@@ -29,9 +29,8 @@ public class CourseAssignmentValidator {
               + semester);
     }
     if (course.getTrack() != null
-        && group.getTrack() != null
-        && course.getTrack() != group.getTrack()
-        && course.getTrack() != hei.student.schoolm.model.Track.COMMON) {
+        && course.getTrack() != hei.student.schoolm.model.Track.COMMON
+        && course.getTrack() != group.getTrack()) {
       throw new BadRequestException(
           "Course "
               + course.getRef()

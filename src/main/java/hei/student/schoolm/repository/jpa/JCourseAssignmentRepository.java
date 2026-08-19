@@ -1,12 +1,14 @@
 package hei.student.schoolm.repository.jpa;
 
 import hei.student.schoolm.model.Semester;
+import hei.student.schoolm.repository.model.JCourse;
 import hei.student.schoolm.repository.model.JCourseAssignment;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -31,9 +33,22 @@ public interface JCourseAssignmentRepository extends JpaRepository<JCourseAssign
   List<JCourseAssignment> findByGroupIdAndAcademicYearAndSemester(
       UUID groupId, int academicYear, Semester semester);
 
+  @EntityGraph(attributePaths = {"course"})
   List<JCourseAssignment> findByGroupIdInAndSemesterIn(
       Collection<UUID> groupIds, Collection<Semester> semesters);
 
   boolean existsByCourseIdAndGroupIdAndAcademicYearAndSemester(
       UUID courseId, UUID groupId, int academicYear, Semester semester);
+
+  boolean existsByCourseId(UUID courseId);
+
+  @Query(
+      """
+      select distinct a.course from JCourseAssignment a
+      where a.group.id in :groupIds
+        and a.semester in :semesters
+      """)
+  List<JCourse> findCurriculumCourses(
+      @Param("groupIds") Collection<UUID> groupIds,
+      @Param("semesters") Collection<Semester> semesters);
 }

@@ -60,6 +60,14 @@ class CourseAssignmentValidatorTest {
   }
 
   @Test
+  void should_accept_common_course_for_null_track_group() {
+    var course = course(Semester.S3, Track.COMMON);
+    var group = group(null);
+
+    assertDoesNotThrow(() -> validator.validateCurriculum(course, group, Semester.S3));
+  }
+
+  @Test
   void should_reject_course_of_wrong_semester() {
     var course = course(Semester.S4, Track.COMMON);
     var group = group(Track.EL);
@@ -72,6 +80,15 @@ class CourseAssignmentValidatorTest {
   void should_reject_track_specific_course_assigned_to_other_track() {
     var course = course(Semester.S5, Track.TN);
     var group = group(Track.EL);
+
+    assertThrows(
+        BadRequestException.class, () -> validator.validateCurriculum(course, group, Semester.S5));
+  }
+
+  @Test
+  void should_reject_track_specific_course_assigned_to_null_track_group() {
+    var course = course(Semester.S5, Track.TN);
+    var group = group(null);
 
     assertThrows(
         BadRequestException.class, () -> validator.validateCurriculum(course, group, Semester.S5));
