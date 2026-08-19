@@ -1,6 +1,6 @@
 package hei.student.schoolm.endpoint.event.model;
 
-import hei.student.schoolm.model.Semester;
+import hei.student.schoolm.dto.LevelRequest;
 import java.time.Duration;
 import java.util.UUID;
 import lombok.*;
@@ -13,7 +13,7 @@ import lombok.*;
 @ToString
 public class TranscriptEmailRequested extends PojaEvent {
   private UUID studentId;
-  private Semester semester;
+  private LevelRequest level;
 
   @Override
   public Duration maxConsumerDuration() {

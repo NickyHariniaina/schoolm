@@ -1,5 +1,6 @@
 package hei.student.schoolm.service;
 
+import hei.student.schoolm.dto.LevelRequest;
 import hei.student.schoolm.dto.SemesterValidationDto;
 import hei.student.schoolm.dto.TranscriptDto;
 import hei.student.schoolm.exception.BadRequestException;
@@ -7,6 +8,7 @@ import hei.student.schoolm.mapper.StudentMapper;
 import hei.student.schoolm.model.*;
 import hei.student.schoolm.repository.CourseAssignmentRepository;
 import hei.student.schoolm.util.SecurityUtil;
+import hei.student.schoolm.validator.GroupValidator;
 import hei.student.schoolm.validator.StudentValidator;
 import java.time.LocalDate;
 import java.time.Year;
@@ -25,6 +27,7 @@ public class StudentService {
   private final CourseAssignmentRepository courseAssignmentRepository;
   private final StudentMapper studentMapper;
   private final SecurityUtil securityUtil;
+  private final GroupValidator groupValidator;
 
   @Transactional(readOnly = true)
   public SemesterValidationDto getStudentSemesterValidation(UUID studentId, Semester semester) {
@@ -57,17 +60,26 @@ public class StudentService {
     return studentMapper.toTranscriptDto(student, group, semester, filteredCourses);
   }
 
-  public TranscriptDto getTranscriptForSemester(UUID studentId, Semester targetSemester) {
+  public TranscriptDto getTranscriptForLevel(UUID studentId, LevelRequest level) {
     var student = studentValidator.checkStudentExists(studentId);
-    var group = student.getGroup();
-    return buildTranscript(student, group, targetSemester);
+    var group = groupValidator.checkGroupExists(student.getGroup().getId());
+    return buildTranscriptForLevel(student, group, level);
   }
 
-  private TranscriptDto buildTranscript(Student student, Group group, Semester semester) {
-    var filteredCourses =
-        filterCourses(
-            coursesForStudent(student.getId(), semester.pair()), semester.pair(), group.getTrack());
+  private TranscriptDto buildTranscriptForLevel(Student student, Group group, LevelRequest level) {
+    var semesters = getSemestersForLevel(level);
+    var filteredCourses = filterCourses(group.getCourses(), semesters, group.getTrack());
+
+    var semester = semesters.get(0);
     return studentMapper.toTranscriptDto(student, group, semester, filteredCourses);
+  }
+
+  private List<Semester> getSemestersForLevel(LevelRequest level) {
+    return switch (level) {
+      case L1 -> List.of(Semester.S1, Semester.S2);
+      case L2 -> List.of(Semester.S3, Semester.S4);
+      case L3 -> List.of(Semester.S5, Semester.S6);
+    };
   }
 
   private List<Course> coursesForStudent(UUID studentId, List<Semester> semesters) {

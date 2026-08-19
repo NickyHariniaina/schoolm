@@ -34,6 +34,9 @@ public class TranscriptPdfGenerator {
       var grade = course.getFinalGrade();
       rows.append("<tr>")
           .append("<td>")
+          .append(course.getRef())
+          .append("</td>")
+          .append("<td>")
           .append(course.getTitle())
           .append("</td>")
           .append("<td style='text-align:center'>")
@@ -50,8 +53,12 @@ public class TranscriptPdfGenerator {
       var avg = BigDecimal.valueOf(transcript.getAverage()).setScale(2, RoundingMode.HALF_UP);
       statsHtml += "<p><b>Moyenne générale :</b> " + avg + "</p>";
     }
-    statsHtml += "<p><b>Crédits totaux :</b> " + transcript.getTotalCredits() + "</p>";
-    statsHtml += "<p><b>Crédits acquis :</b> " + transcript.getAcquiredCredits() + "</p>";
+    statsHtml +=
+        "<p><b>Crédits acquis :</b> "
+            + transcript.getAcquiredCredits()
+            + "/"
+            + transcript.getTotalCredits()
+            + "</p>";
 
     var statusText =
         transcript.getStatus() == TranscriptStatus.COMPLET ? "COMPLET" : "INCOMPLET (en cours)";
@@ -102,7 +109,8 @@ public class TranscriptPdfGenerator {
     html.append("<table>");
     html.append("<thead>");
     html.append("<tr>");
-    html.append("<th>Cours</th>");
+    html.append("<th>Code UE</th>");
+    html.append("<th>Intitulé UE</th>");
     html.append("<th style='text-align:center'>Crédits</th>");
     html.append("<th style='text-align:center'>Note finale</th>");
     html.append("</tr>");

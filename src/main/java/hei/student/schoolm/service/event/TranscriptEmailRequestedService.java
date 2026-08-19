@@ -8,6 +8,7 @@ import hei.student.schoolm.file.pdf.TranscriptPdfGenerator;
 import hei.student.schoolm.mail.Email;
 import hei.student.schoolm.mail.Mailer;
 import hei.student.schoolm.mapper.StudentMapper;
+import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.service.StudentService;
 import hei.student.schoolm.validator.StudentValidator;
 import jakarta.mail.internet.InternetAddress;
@@ -38,14 +39,14 @@ public class TranscriptEmailRequestedService implements Consumer<TranscriptEmail
   @SneakyThrows
   @Override
   public void accept(TranscriptEmailRequested event) {
-    var transcript =
-        studentService.getTranscriptForSemester(event.getStudentId(), event.getSemester());
+    var transcript = studentService.getTranscriptForLevel(event.getStudentId(), event.getLevel());
     var student = studentValidator.checkStudentExists(event.getStudentId());
 
     var group = studentService.getGroup(event.getStudentId());
 
-    var pdfDto =
-        studentMapper.toPdfDto(student, group, event.getSemester(), transcript.getCourses());
+    var semester = getSemesterForLevel(event.getLevel());
+
+    var pdfDto = studentMapper.toPdfDto(student, group, semester, transcript.getCourses());
 
     var bucketKey =
         PDF_KEY_PREFIX + "/" + student.getReference() + "_" + transcript.getAcademicYear() + ".pdf";
@@ -68,6 +69,14 @@ public class TranscriptEmailRequestedService implements Consumer<TranscriptEmail
             "Votre relevé de notes - " + transcript.getAcademicYear(),
             buildHtmlBody(pdfDto, presignedUrl),
             List.of()));
+  }
+
+  private Semester getSemesterForLevel(hei.student.schoolm.dto.LevelRequest level) {
+    return switch (level) {
+      case L1 -> Semester.S1;
+      case L2 -> Semester.S3;
+      case L3 -> Semester.S5;
+    };
   }
 
   private String buildHtmlBody(TranscriptPdfDto transcript, URL downloadUrl) {
