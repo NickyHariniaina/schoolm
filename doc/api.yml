@@ -290,7 +290,7 @@ paths:
       summary: Email a student's transcript for a specific academic year
       description: >-
         Generates the transcript for the pair of semesters containing the
-        given semester (S1/S2 = L1, S3/S4 = L2, S5/S6 = L3), uploads it as a
+        given level (S1/S2 = L1, S3/S4 = L2, S5/S6 = L3), uploads it as a
         PDF file on S3, and emails it to the student.
       operationId: emailTranscript
       parameters:
@@ -299,11 +299,11 @@ paths:
           required: true
           schema:
             type: string
-        - name: semester
+        - name: level
           in: query
           required: true
           schema:
-            $ref: '#/components/schemas/Semester'
+            $ref: '#/components/schemas/LevelRequest'
       responses:
         '202':
           description: Transcript email requested successfully
@@ -964,6 +964,12 @@ components:
         - S4
         - S5
         - S6
+    LevelRequest:
+      type: string
+      enum:
+        - L1
+        - L2
+        - L3
     Cohort:
       type: object
       properties:
