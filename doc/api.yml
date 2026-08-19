@@ -485,6 +485,100 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+  /groups:
+    get:
+      tags:
+        - Group
+      summary: List groups
+      description: >-
+        Returns all groups, optionally filtered by cohort identifier.
+      operationId: getGroups
+      parameters:
+        - name: cohortId
+          in: query
+          required: false
+          description: Filter by cohort identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Groups retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+    put:
+      tags:
+        - Group
+      summary: Create or update a group
+      description: >-
+        Creates a new group or updates an existing one. If the request body
+        contains an id, the existing group is updated. Otherwise, a new group
+        is created.
+      operationId: upsertGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupRequest'
+      responses:
+        '200':
+          description: Group created or updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+  /groups/{id}:
+    get:
+      tags:
+        - Group
+      summary: Get a group by id
+      description: Returns a single group by its identifier.
+      operationId: getGroupById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Group identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Group retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /groups/{id}/students:
+    get:
+      tags:
+        - Group
+      summary: List the students of a group
+      description: Returns the students currently in the given group.
+      operationId: getGroupStudents
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Group identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Students retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Student'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /course-assignments:
     get:
       tags:
@@ -1036,6 +1130,73 @@ components:
         entryYear:
           type: integer
           description: Entry year of the cohort
+    Group:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Group identifier
+        cohortId:
+          type: string
+          description: Cohort (promotion) identifier
+        cohortRef:
+          type: string
+          description: Cohort (promotion) reference
+        ref:
+          type: string
+          description: Group reference
+        track:
+          type: string
+          enum:
+            - COMMON
+            - EL
+            - TN
+          description: Track of the group
+    GroupRequest:
+      type: object
+      required:
+        - cohortId
+        - ref
+        - track
+      properties:
+        id:
+          type: string
+          description: Identifier, present when updating an existing group
+        cohortId:
+          type: string
+          description: Cohort (promotion) identifier
+        ref:
+          type: string
+          description: Group reference
+        track:
+          type: string
+          enum:
+            - COMMON
+            - EL
+            - TN
+          description: Track of the group
+    Student:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Student identifier
+        reference:
+          type: string
+          description: Student reference (matricule)
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        groupId:
+          type: string
+          description: Identifier of the student's current group
+        groupRef:
+          type: string
+          description: Reference of the student's current group
     GraduateFile:
       type: object
       properties:
