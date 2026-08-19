@@ -11,4 +11,6 @@ public interface JGradeRepository extends JpaRepository<JGrade, UUID> {
   List<JGrade> findAllByExamId(UUID examId);
 
   void deleteAllByStudentId(UUID studentId);
+
+  void deleteAllByExamId(UUID examId);
 }

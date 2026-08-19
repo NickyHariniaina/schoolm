@@ -1,6 +1,7 @@
 package hei.student.schoolm.endpoint.rest.controller;
 
 import hei.student.schoolm.dto.CourseDto;
+import hei.student.schoolm.dto.CourseRequest;
 import hei.student.schoolm.dto.GroupIdsRequest;
 import hei.student.schoolm.dto.TeacherIdsRequest;
 import hei.student.schoolm.mapper.CourseMapper;
@@ -9,6 +10,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -28,6 +30,18 @@ public class CourseController {
   public CourseDto getCourseById(@PathVariable UUID courseId) {
     var course = courseService.getCourseById(courseId);
     return courseMapper.toDto(course);
+  }
+
+  @PutMapping
+  public CourseDto upsertCourse(@Valid @RequestBody CourseRequest request) {
+    var course = courseService.upsert(request);
+    return courseMapper.toDto(course);
+  }
+
+  @DeleteMapping("/{courseId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteCourse(@PathVariable UUID courseId) {
+    courseService.delete(courseId);
   }
 
   @PutMapping("/{courseId}/teacher")

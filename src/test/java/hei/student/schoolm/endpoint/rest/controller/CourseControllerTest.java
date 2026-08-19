@@ -1,14 +1,17 @@
 package hei.student.schoolm.endpoint.rest.controller;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import hei.student.schoolm.dto.CourseRequest;
 import hei.student.schoolm.endpoint.rest.security.JwtAuthenticationFilter;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.mapper.CourseMapper;
@@ -248,5 +251,61 @@ class CourseControllerTest {
                 .contentType(APPLICATION_JSON)
                 .content("{\"groupIds\":[\"\"]}"))
         .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void should_create_course() throws Exception {
+    var course = createCourse(COURSE_ID, List.of());
+    when(courseService.upsert(any(CourseRequest.class))).thenReturn(course);
+
+    mockMvc
+        .perform(
+            put("/courses")
+                .contentType(APPLICATION_JSON)
+                .content(
+                    "{\"ref\":\"PROG4\",\"title\":\"Exploitation dans le cloud\","
+                        + "\"credit\":8,\"track\":\"EL\",\"semester\":\"S3\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(COURSE_ID.toString()))
+        .andExpect(jsonPath("$.ref").value("PROG4"))
+        .andExpect(jsonPath("$.track").value("EL"))
+        .andExpect(jsonPath("$.semester").value("S3"));
+
+    verify(courseService).upsert(any(CourseRequest.class));
+  }
+
+  @Test
+  void should_update_course() throws Exception {
+    var course = createCourse(COURSE_ID, List.of());
+    when(courseService.upsert(any(CourseRequest.class))).thenReturn(course);
+
+    mockMvc
+        .perform(
+            put("/courses")
+                .contentType(APPLICATION_JSON)
+                .content(
+                    "{\"id\":\""
+                        + COURSE_ID
+                        + "\",\"ref\":\"PROG4\",\"title\":\"New\","
+                        + "\"credit\":6,\"track\":\"EL\",\"semester\":\"S3\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(COURSE_ID.toString()))
+        .andExpect(jsonPath("$.credit").value(6));
+
+    verify(courseService).upsert(any(CourseRequest.class));
+  }
+
+  @Test
+  void should_return_400_when_course_body_invalid() throws Exception {
+    mockMvc
+        .perform(put("/courses").contentType(APPLICATION_JSON).content("{}"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void should_delete_course() throws Exception {
+    mockMvc.perform(delete("/courses/{courseId}", COURSE_ID)).andExpect(status().isNoContent());
+
+    verify(courseService).delete(COURSE_ID);
   }
 }

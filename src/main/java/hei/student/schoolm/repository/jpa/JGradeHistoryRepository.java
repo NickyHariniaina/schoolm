@@ -9,4 +9,6 @@ public interface JGradeHistoryRepository extends JpaRepository<JGradeHistory, UU
   List<JGradeHistory> findAllByGradeIdOrderByChangedAtDesc(UUID gradeId);
 
   void deleteAllByStudentId(UUID studentId);
+
+  void deleteAllByExamId(UUID examId);
 }

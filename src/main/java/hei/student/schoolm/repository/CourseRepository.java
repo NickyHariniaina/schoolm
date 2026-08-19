@@ -35,4 +35,9 @@ public class CourseRepository {
   public boolean existsByTeacherId(UUID teacherId) {
     return jCourseRepository.existsByTeachersId(teacherId);
   }
+
+  @Transactional
+  public void deleteById(UUID id) {
+    jCourseRepository.deleteById(id);
+  }
 }

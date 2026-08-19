@@ -49,6 +49,30 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Course'
+    put:
+      tags:
+        - Course
+      summary: Create or update a course
+      description: >-
+        Creates a new course or updates an existing one. If the request body
+        contains an id, the existing course is updated. Otherwise, a new
+        course is created.
+      operationId: upsertCourse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseRequest'
+      responses:
+        '200':
+          description: Course created or updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /courses/{courseId}:
     get:
       tags:
@@ -70,6 +94,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Course'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Course
+      summary: Delete a course
+      description: >-
+        Deletes a course along with its exams and their grades and grade
+        history.
+      operationId: deleteCourse
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: Course identifier
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Course deleted successfully
         '404':
           $ref: '#/components/responses/NotFound'
   /courses/{courseId}/teacher:
@@ -1117,6 +1161,30 @@ components:
           items:
             type: string
           description: Groups that take the course
+    CourseRequest:
+      type: object
+      required:
+        - ref
+        - title
+        - credit
+        - track
+        - semester
+      properties:
+        id:
+          type: string
+          description: Identifier, present when updating an existing course
+        ref:
+          type: string
+        title:
+          type: string
+        credit:
+          type: integer
+        track:
+          type: string
+          description: Track of the course (COMMON, EL or TN)
+        semester:
+          type: string
+          description: Semester of the course (S1 to S6)
     SemesterValidation:
       type: object
       properties:
