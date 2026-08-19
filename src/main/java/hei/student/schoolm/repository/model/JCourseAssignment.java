@@ -18,11 +18,14 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import lombok.Builder.Default;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.UpdateTimestamp;
 
 @Getter
@@ -30,6 +33,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 @NoArgsConstructor
 @SuperBuilder
 @Entity
+@SQLDelete(sql = "update course_assignment set is_deleted = true where id = ?")
+@SQLRestriction("is_deleted = false")
 @Table(
     name = "course_assignment",
     uniqueConstraints =
@@ -54,7 +59,7 @@ public class JCourseAssignment {
       name = "course_assignment_teacher",
       joinColumns = @JoinColumn(name = "course_assignment_id"),
       inverseJoinColumns = @JoinColumn(name = "teacher_id"))
-  @lombok.Builder.Default
+  @Default
   private List<JTeacher> teachers = new ArrayList<>();
 
   @NotNull
@@ -69,6 +74,10 @@ public class JCourseAssignment {
   @Positive
   @Column(nullable = false)
   private Integer credits;
+
+  @Default
+  @Column(name = "is_deleted")
+  private boolean isDeleted = false;
 
   @CreationTimestamp
   @Column(updatable = false)
