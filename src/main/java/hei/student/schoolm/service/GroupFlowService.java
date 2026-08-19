@@ -6,6 +6,7 @@ import hei.student.schoolm.model.GroupFlow;
 import hei.student.schoolm.model.GroupFlowType;
 import hei.student.schoolm.repository.GroupFlowRepository;
 import hei.student.schoolm.repository.StudentRepository;
+import hei.student.schoolm.util.SecurityUtil;
 import hei.student.schoolm.validator.GroupValidator;
 import hei.student.schoolm.validator.StudentValidator;
 import java.util.List;
@@ -21,9 +22,11 @@ public class GroupFlowService {
   private final StudentRepository studentRepository;
   private final StudentValidator studentValidator;
   private final GroupValidator groupValidator;
+  private final SecurityUtil securityUtil;
 
   @Transactional(readOnly = true)
   public List<GroupFlowDto> getHistory(UUID studentId) {
+    securityUtil.requireSelfOrAdmin(studentId);
     studentValidator.checkStudentExists(studentId);
     return groupFlowRepository.findByStudentId(studentId).stream().map(this::toDto).toList();
   }

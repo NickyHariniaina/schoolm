@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Connexion</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 2rem;
+        max-width: 24rem;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .auth-box {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 2rem;
+      }
+      label {
+        display: block;
+        margin-top: 1rem;
+      }
+      input {
+        width: 100%;
+        padding: 0.5rem;
+        margin-top: 0.25rem;
+        box-sizing: border-box;
+      }
+      button {
+        margin-top: 1.5rem;
+        width: 100%;
+        padding: 0.6rem;
+        background-color: #1a73e8;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .alert {
+        color: #b00020;
+        background-color: #fdeaea;
+        padding: 0.6rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="auth-box">
+      <h1>Connexion</h1>
+      <p th:if="${error}" class="alert" th:text="${error}">Invalid credentials</p>
+      <form method="post" action="/ui/login">
+        <label for="email">Email</label>
+        <input type="email" name="email" id="email" required autofocus placeholder="you@hei.school" />
+        <label for="password">Mot de passe</label>
+        <input type="password" name="password" id="password" required placeholder="••••••••" />
+        <button type="submit">Se connecter</button>
+      </form>
+    </div>
+  </body>
+</html>

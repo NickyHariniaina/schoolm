@@ -9,6 +9,8 @@ import hei.student.schoolm.mapper.CourseMapper;
 import hei.student.schoolm.model.CourseAssignment;
 import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.repository.CourseAssignmentRepository;
+import hei.student.schoolm.repository.StudentRepository;
+import hei.student.schoolm.util.SecurityUtil;
 import hei.student.schoolm.validator.CourseAssignmentValidator;
 import hei.student.schoolm.validator.CourseValidator;
 import hei.student.schoolm.validator.GroupValidator;
@@ -31,10 +33,23 @@ public class CourseAssignmentService {
   private final CourseAssignmentMapper courseAssignmentMapper;
   private final CourseMapper courseMapper;
   private final CourseAssignmentValidator validator;
+  private final SecurityUtil securityUtil;
+  private final StudentRepository studentRepository;
 
   @Transactional(readOnly = true)
   public Page<CourseAssignmentResponse> getByFilter(
       UUID groupId, UUID teacherId, UUID courseId, Integer academicYear, Pageable pageable) {
+    if (securityUtil.isTeacher()) {
+      teacherId = securityUtil.getCurrentUserIdOrThrow();
+    }
+    if (securityUtil.isStudent()) {
+      var student =
+          studentRepository
+              .findById(securityUtil.getCurrentUserIdOrThrow())
+              .orElseThrow(
+                  () -> new hei.student.schoolm.exception.NotFoundException("Student not found"));
+      groupId = student.getGroup() == null ? null : student.getGroup().getId();
+    }
     return courseAssignmentRepository
         .findFilterPaged(groupId, teacherId, courseId, academicYear, pageable)
         .map(courseAssignmentMapper::toResponse);
@@ -42,7 +57,27 @@ public class CourseAssignmentService {
 
   @Transactional(readOnly = true)
   public CourseAssignmentResponse getById(UUID id) {
-    return courseAssignmentMapper.toResponse(findEntityOrThrow(id));
+    var entity = findEntityOrThrow(id);
+    if (securityUtil.isTeacher()) {
+      var teacherId = securityUtil.getCurrentUserIdOrThrow();
+      if (!entity.teacherIds().contains(teacherId)) {
+        throw new hei.student.schoolm.exception.ForbiddenException(
+            "You may only access course assignments you teach");
+      }
+    }
+    if (securityUtil.isStudent()) {
+      var student =
+          studentRepository
+              .findById(securityUtil.getCurrentUserIdOrThrow())
+              .orElseThrow(
+                  () -> new hei.student.schoolm.exception.NotFoundException("Student not found"));
+      var currentGroupId = student.getGroup() == null ? null : student.getGroup().getId();
+      if (!entity.getGroup().getId().equals(currentGroupId)) {
+        throw new hei.student.schoolm.exception.ForbiddenException(
+            "This course assignment is not part of your curriculum");
+      }
+    }
+    return courseAssignmentMapper.toResponse(entity);
   }
 
   @Transactional
@@ -98,6 +133,10 @@ public class CourseAssignmentService {
 
   @Transactional
   public void delete(UUID id) {
+    if (!securityUtil.isAdmin()) {
+      throw new hei.student.schoolm.exception.ForbiddenException(
+          "Only an admin can delete a course assignment");
+    }
     var entity = findEntityOrThrow(id);
     courseAssignmentRepository.delete(entity);
   }

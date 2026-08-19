@@ -40,6 +40,9 @@ public abstract class JUser {
   @Column(nullable = false)
   private Role role;
 
+  @Column(name = "password")
+  private String password;
+
   @CreationTimestamp
   @Column(updatable = false)
   private Instant createdAt;

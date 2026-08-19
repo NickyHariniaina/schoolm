@@ -35,7 +35,7 @@ with_emails as (
     row_number() over (partition by first_name order by reference) as dup
   from with_names
 )
-insert into student (reference, group_id, email, first_name, last_name, role)
+insert into student (reference, group_id, email, first_name, last_name, role, password)
 select reference,
        group_id,
        case
@@ -44,5 +44,6 @@ select reference,
        end || '@mail.hei.school' as email,
        first_name,
        last_name,
-       'STUDENT' as role
+       'STUDENT' as role,
+       '$2a$10$vQ.M0zvBtLJuyrSadV0q8uarFVF8LIMCct7Jeq9xBhLPOzhyEDtae' as password
 from with_emails;
