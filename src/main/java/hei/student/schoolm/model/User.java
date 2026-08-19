@@ -25,6 +25,7 @@ public abstract sealed class User permits Student, Teacher, Admin {
   private String firstName;
   private String lastName;
   private Role role;
+  private String password;
   private Instant createdAt;
   private Instant updatedAt;
 }

@@ -579,6 +579,91 @@ paths:
                   $ref: '#/components/schemas/Student'
         '404':
           $ref: '#/components/responses/NotFound'
+  /teachers:
+    get:
+      tags:
+        - Teacher
+      summary: List all teachers
+      description: Returns the list of teachers.
+      operationId: getTeachers
+      responses:
+        '200':
+          description: Teachers retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Teacher'
+    put:
+      tags:
+        - Teacher
+      summary: Create or update a teacher
+      description: >-
+        Creates a new teacher or updates an existing one. If the request body
+        contains an id, the existing teacher is updated. Otherwise, a new
+        teacher is created and a password is required.
+      operationId: upsertTeacher
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeacherRequest'
+      responses:
+        '200':
+          description: Teacher created or updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Teacher'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /teachers/{id}:
+    get:
+      tags:
+        - Teacher
+      summary: Get a teacher by id
+      description: Returns a single teacher by its identifier.
+      operationId: getTeacherById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Teacher identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Teacher retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Teacher'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Teacher
+      summary: Delete a teacher
+      description: >-
+        Deletes a teacher. Fails with 409 if the teacher is still assigned to
+        a course.
+      operationId: deleteTeacher
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Teacher identifier
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Teacher deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Teacher is still assigned to a course
   /course-assignments:
     get:
       tags:
@@ -1197,6 +1282,39 @@ components:
         groupRef:
           type: string
           description: Reference of the student's current group
+    Teacher:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Teacher identifier
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+    TeacherRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+      properties:
+        id:
+          type: string
+          description: Identifier, present when updating an existing teacher
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          description: Required when creating, optional when updating
     GraduateFile:
       type: object
       properties:

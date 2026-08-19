@@ -30,4 +30,9 @@ public class CourseRepository {
   public Course save(Course course) {
     return jCourseMapper.toDomain(jCourseRepository.save(jCourseMapper.toEntity(course)));
   }
+
+  @Transactional(readOnly = true)
+  public boolean existsByTeacherId(UUID teacherId) {
+    return jCourseRepository.existsByTeachersId(teacherId);
+  }
 }
