@@ -411,8 +411,246 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+  /course-assignments:
+    get:
+      tags:
+        - CourseAssignment
+      summary: List course assignments by filter
+      description: >-
+        Returns a paged list of course assignments (course + group + teachers for
+        a given academic year and semester). Each filter is optional.
+      operationId: getCourseAssignments
+      parameters:
+        - name: groupId
+          in: query
+          required: false
+          description: Filter by group identifier
+          schema:
+            type: string
+        - name: teacherId
+          in: query
+          required: false
+          description: Filter by teacher identifier
+          schema:
+            type: string
+        - name: courseId
+          in: query
+          required: false
+          description: Filter by course identifier
+          schema:
+            type: string
+        - name: academicYear
+          in: query
+          required: false
+          description: Filter by academic year
+          schema:
+            type: integer
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Course assignments retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CourseAssignment'
+                  totalElements:
+                    type: integer
+    put:
+      tags:
+        - CourseAssignment
+      summary: Create or update course assignments
+      description: >-
+        Creates new course assignments or updates existing ones in batch. An
+        assignment is identified by the unique combination of course, group,
+        academic year and semester.
+      operationId: upsertCourseAssignments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CourseAssignmentRequest'
+      responses:
+        '200':
+          description: Course assignments saved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CourseAssignment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /course-assignments/{id}:
+    get:
+      tags:
+        - CourseAssignment
+      summary: Get a course assignment by id
+      operationId: getCourseAssignmentById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Course assignment identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Course assignment retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseAssignment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - CourseAssignment
+      summary: Delete a course assignment
+      operationId: deleteCourseAssignment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Course assignment identifier
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Course assignment deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /course-assignments/curriculum-status:
+    get:
+      tags:
+        - CourseAssignment
+      summary: Get the curriculum status of a group for a semester
+      description: >-
+        Compares the credits assigned to a group for a given academic year and
+        semester against the target (30 credits) and lists the courses of the
+        curriculum that are not yet assigned.
+      operationId: getCurriculumStatus
+      parameters:
+        - name: groupId
+          in: query
+          required: true
+          description: Group identifier
+          schema:
+            type: string
+        - name: academicYear
+          in: query
+          required: true
+          description: Academic year
+          schema:
+            type: integer
+        - name: semester
+          in: query
+          required: true
+          description: Semester to check
+          schema:
+            $ref: '#/components/schemas/Semester'
+      responses:
+        '200':
+          description: Curriculum status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurriculumStatus'
+        '404':
+          $ref: '#/components/responses/NotFound'
 components:
   schemas:
+    CourseAssignmentRequest:
+      type: object
+      required:
+        - courseId
+        - groupId
+        - teacherIds
+        - academicYear
+        - semester
+        - credits
+      properties:
+        id:
+          type: string
+          description: Identifier, present when updating an existing assignment
+        courseId:
+          type: string
+        groupId:
+          type: string
+        teacherIds:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        academicYear:
+          type: integer
+          minimum: 2000
+          maximum: 2100
+        semester:
+          $ref: '#/components/schemas/Semester'
+        credits:
+          type: integer
+          minimum: 1
+    CourseAssignment:
+      type: object
+      properties:
+        id:
+          type: string
+        courseId:
+          type: string
+        courseRef:
+          type: string
+        courseTitle:
+          type: string
+        groupId:
+          type: string
+        groupRef:
+          type: string
+        teacherIds:
+          type: array
+          items:
+            type: string
+        academicYear:
+          type: integer
+        semester:
+          $ref: '#/components/schemas/Semester'
+        credits:
+          type: integer
+    CurriculumStatus:
+      type: object
+      properties:
+        semester:
+          $ref: '#/components/schemas/Semester'
+        assignedCredits:
+          type: integer
+        targetCredits:
+          type: integer
+        complete:
+          type: boolean
+        missingCourses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Course'
+        assignments:
+          type: array
+          items:
+            $ref: '#/components/schemas/CourseAssignment'
     TeacherIdsRequest:
       type: object
       required:
