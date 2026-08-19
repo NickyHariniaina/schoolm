@@ -16,12 +16,14 @@ import hei.student.schoolm.model.Group;
 import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.model.Student;
 import hei.student.schoolm.model.Track;
+import hei.student.schoolm.repository.CourseAssignmentRepository;
 import hei.student.schoolm.repository.GroupRepository;
 import hei.student.schoolm.repository.StudentRepository;
 import hei.student.schoolm.validator.CohortValidator;
 import java.io.File;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +38,7 @@ class GraduateServiceTest {
   @Mock private GroupRepository groupRepository;
   @Mock private StudentRepository studentRepository;
   @Mock private GroupFlowService groupFlowService;
+  @Mock private CourseAssignmentRepository courseAssignmentRepository;
   @Mock private GraduateXlsxWriter graduateXlsxWriter;
   @Mock private BucketComponent bucketComponent;
 
@@ -49,6 +52,7 @@ class GraduateServiceTest {
             groupRepository,
             studentRepository,
             groupFlowService,
+            courseAssignmentRepository,
             graduateXlsxWriter,
             bucketComponent);
   }
@@ -57,12 +61,30 @@ class GraduateServiceTest {
     when(cohortValidator.checkCohortExists("P24")).thenReturn(cohort(2024));
   }
 
-  private void mockStudentGroups(Student student, Group group) {
-    when(groupFlowService.studentGroupIds(student.getId())).thenReturn(List.of(group.getId()));
-    when(groupRepository.findAllByIdWithCourses(List.of(group.getId()))).thenReturn(List.of(group));
+  private List<Semester> semestersUpTo(Semester current) {
+    var result = new ArrayList<Semester>();
+    for (var s : Semester.values()) {
+      if (s.ordinal() <= current.ordinal()) {
+        result.add(s);
+      }
+    }
+    return result;
   }
 
-  private void mockElGroup() {
+  private void mockStudentCourses(Student student, Group group, Semester currentSemester) {
+    when(groupFlowService.studentGroupIds(student.getId())).thenReturn(List.of(group.getId()));
+    var courses =
+        group.getCourses() == null
+            ? List.<hei.student.schoolm.model.Course>of()
+            : group.getCourses().stream()
+                .filter(c -> c.getSemester().ordinal() <= currentSemester.ordinal())
+                .toList();
+    when(courseAssignmentRepository.findCurriculumCourses(
+            List.of(group.getId()), semestersUpTo(currentSemester)))
+        .thenReturn(courses);
+  }
+
+  private void mockElGroup(Semester currentSemester) {
     var studentPass = student(STUDENT_PASS_ID, "STD24001", "Alice", "Durand");
     var studentFail = student(STUDENT_FAIL_ID, "STD24002", "Bob", "Martin");
     var prog4 =
@@ -85,14 +107,14 @@ class GraduateServiceTest {
     when(groupRepository.findAllByCohortId(COHORT_ID)).thenReturn(List.of(group));
     when(studentRepository.findAllByGroupId(GROUP_EL_ID))
         .thenReturn(List.of(studentPass, studentFail));
-    mockStudentGroups(studentPass, group);
-    mockStudentGroups(studentFail, group);
+    mockStudentCourses(studentPass, group, currentSemester);
+    mockStudentCourses(studentFail, group, currentSemester);
   }
 
   @Test
   void should_rank_graduates_by_average_and_skip_failing_student() throws Exception {
     mockCohort();
-    mockElGroup();
+    mockElGroup(Semester.S6);
     var file = File.createTempFile("graduate", ".xlsx");
     var url = new URL("https://bucket.s3.amazonaws.com/graduates/P24_EL.xlsx");
     when(graduateXlsxWriter.write(anyList(), eq("Diplomes EL"))).thenReturn(file);
@@ -117,7 +139,7 @@ class GraduateServiceTest {
   @Test
   void should_exclude_courses_from_future_semesters() throws Exception {
     mockCohort();
-    mockElGroup();
+    mockElGroup(Semester.S4);
 
     var result = graduateService.computeGraduates("P24", Track.EL, 8, 2026);
 
@@ -138,7 +160,7 @@ class GraduateServiceTest {
     var tnGroup = group(GROUP_TN_ID, "P24-TN", Track.TN, cohort(2024), List.of(tnCourse));
     when(groupRepository.findAllByCohortId(COHORT_ID)).thenReturn(List.of(elGroup, tnGroup));
     when(studentRepository.findAllByGroupId(GROUP_EL_ID)).thenReturn(List.of(studentPass));
-    mockStudentGroups(studentPass, elGroup);
+    mockStudentCourses(studentPass, elGroup, Semester.S4);
 
     var result = graduateService.computeGraduates("P24", Track.EL, 8, 2026);
 

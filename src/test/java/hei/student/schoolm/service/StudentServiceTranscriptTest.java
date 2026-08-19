@@ -32,7 +32,7 @@ import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.mapper.StudentMapper;
 import hei.student.schoolm.model.*;
-import hei.student.schoolm.repository.GroupRepository;
+import hei.student.schoolm.repository.CourseAssignmentRepository;
 import hei.student.schoolm.util.Fraction;
 import hei.student.schoolm.validator.StudentValidator;
 import java.math.BigDecimal;
@@ -49,21 +49,31 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class StudentServiceTranscriptTest {
   @Mock private StudentValidator studentValidator;
   @Mock private GroupFlowService groupFlowService;
-  @Mock private GroupRepository groupRepository;
+  @Mock private CourseAssignmentRepository courseAssignmentRepository;
   private StudentService studentService;
 
   @BeforeEach
   void setUp() {
     studentService =
         new StudentService(
-            studentValidator, groupFlowService, groupRepository, new StudentMapper());
+            studentValidator, groupFlowService, courseAssignmentRepository, new StudentMapper());
   }
 
   private TranscriptDto getTranscript(Student student, Group group, Integer month, Integer year) {
     when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
     when(groupFlowService.studentGroupIds(STUDENT_ID)).thenReturn(List.of(GROUP_ID));
-    when(groupRepository.findAllByIdWithCourses(List.of(GROUP_ID))).thenReturn(List.of(group));
+    var pair = semesterFor(month, year, group.getCohort().getEntryYear()).pair();
+    when(courseAssignmentRepository.findCurriculumCourses(List.of(GROUP_ID), pair))
+        .thenReturn(group.getCourses() == null ? List.of() : group.getCourses());
     return studentService.getTranscript(STUDENT_ID, month, year);
+  }
+
+  private Semester semesterFor(Integer month, Integer year, Year entryYear) {
+    if (month == null && year == null) {
+      var today = LocalDate.now();
+      return Semester.from(entryYear, today.getMonthValue(), today.getYear());
+    }
+    return Semester.from(entryYear, month, year);
   }
 
   @Test
