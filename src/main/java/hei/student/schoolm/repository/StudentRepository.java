@@ -27,4 +27,9 @@ public class StudentRepository {
         .map(jStudentMapper::toDomain)
         .toList();
   }
+
+  @Transactional
+  public Student save(Student student) {
+    return jStudentMapper.toDomain(jStudentRepository.save(jStudentMapper.toEntity(student)));
+  }
 }

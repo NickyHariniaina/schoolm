@@ -6,10 +6,10 @@ import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.file.bucket.BucketComponent;
 import hei.student.schoolm.file.xlsx.GraduateXlsxWriter;
 import hei.student.schoolm.model.Course;
-import hei.student.schoolm.model.Group;
 import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.model.Student;
 import hei.student.schoolm.model.Track;
+import hei.student.schoolm.repository.CourseAssignmentRepository;
 import hei.student.schoolm.repository.GroupRepository;
 import hei.student.schoolm.repository.StudentRepository;
 import hei.student.schoolm.validator.CohortValidator;
@@ -34,6 +34,8 @@ public class GraduateService {
   private final CohortValidator cohortValidator;
   private final GroupRepository groupRepository;
   private final StudentRepository studentRepository;
+  private final GroupFlowService groupFlowService;
+  private final CourseAssignmentRepository courseAssignmentRepository;
   private final GraduateXlsxWriter graduateXlsxWriter;
   private final BucketComponent bucketComponent;
 
@@ -71,7 +73,7 @@ public class GraduateService {
             .toList();
     for (var group : groups) {
       for (var student : studentRepository.findAllByGroupId(group.getId())) {
-        var completedCourses = completedCourses(group, student, currentSemester);
+        var completedCourses = completedCourses(student, currentSemester);
         if (completedCourses.isEmpty()
             || completedCourses.stream().anyMatch(course -> !student.validate(course))) {
           continue;
@@ -97,12 +99,15 @@ public class GraduateService {
     return ranked;
   }
 
-  private List<Course> completedCourses(Group group, Student student, Semester currentSemester) {
-    if (group.getCourses() == null) {
-      return List.of();
+  private List<Course> completedCourses(Student student, Semester currentSemester) {
+    var groupIds = groupFlowService.studentGroupIds(student.getId());
+    var semesters = new java.util.ArrayList<Semester>();
+    for (var semester : Semester.values()) {
+      if (semester.ordinal() <= currentSemester.ordinal()) {
+        semesters.add(semester);
+      }
     }
-    return group.getCourses().stream()
-        .filter(course -> course.getSemester().ordinal() <= currentSemester.ordinal())
+    return courseAssignmentRepository.findCurriculumCourses(groupIds, semesters).stream()
         .filter(course -> course.finalGradeFor(student) != null)
         .toList();
   }

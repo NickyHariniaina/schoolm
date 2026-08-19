@@ -3,6 +3,7 @@ package hei.student.schoolm.validator;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.model.Course;
 import hei.student.schoolm.repository.CourseRepository;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -16,5 +17,9 @@ public class CourseValidator {
     return courseRepository
         .findById(courseId)
         .orElseThrow(() -> new NotFoundException("Course " + courseId + " not found"));
+  }
+
+  public List<Course> getAllCourses() {
+    return courseRepository.findAll();
   }
 }

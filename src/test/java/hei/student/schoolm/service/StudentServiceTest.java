@@ -22,7 +22,7 @@ import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.mapper.StudentMapper;
 import hei.student.schoolm.model.*;
-import hei.student.schoolm.validator.GroupValidator;
+import hei.student.schoolm.repository.CourseAssignmentRepository;
 import hei.student.schoolm.validator.StudentValidator;
 import java.time.Year;
 import java.util.List;
@@ -36,7 +36,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class StudentServiceTest {
   @Mock StudentValidator studentValidator;
-  @Mock GroupValidator groupValidator;
+  @Mock GroupFlowService groupFlowService;
+  @Mock CourseAssignmentRepository courseAssignmentRepository;
   @Mock StudentMapper studentMapper;
   @InjectMocks StudentService studentService;
 
@@ -47,15 +48,17 @@ class StudentServiceTest {
     var student = createStudent();
     var courseS3 = createCourse(COURSE_S3_1_ID, "PROG4", Semester.S3, 8, List.of(), List.of());
     var courseS4 = createCourse(COURSE_S4_ID, "PROG5", Semester.S4, 8, List.of(), List.of());
-    var group = createGroup(List.of(courseS3, courseS4));
     when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
-    when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(group);
+    when(groupFlowService.studentGroupIds(STUDENT_ID)).thenReturn(List.of(GROUP_ID));
+    when(courseAssignmentRepository.findCurriculumCourses(List.of(GROUP_ID), List.of(Semester.S3)))
+        .thenReturn(List.of(courseS3));
     when(studentMapper.toSemesterValidationDto(any(), any(), any(), any())).thenReturn(anyDto);
 
     studentService.getStudentSemesterValidation(STUDENT_ID, Semester.S3);
 
     verify(studentMapper)
-        .toSemesterValidationDto(eq(student), eq(group), eq(Semester.S3), eq(List.of(courseS3)));
+        .toSemesterValidationDto(
+            eq(student), eq(student.getGroup()), eq(Semester.S3), eq(List.of(courseS3)));
   }
 
   @Test
@@ -63,30 +66,36 @@ class StudentServiceTest {
     var student = createStudent();
     var courseWeb1 = createCourse(COURSE_S3_1_ID, "WEB1", Semester.S3, 7, List.of(), List.of());
     var courseProg4 = createCourse(COURSE_S3_2_ID, "PROG4", Semester.S3, 8, List.of(), List.of());
-    var group = createGroup(List.of(courseWeb1, courseProg4));
     when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
-    when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(group);
+    when(groupFlowService.studentGroupIds(STUDENT_ID)).thenReturn(List.of(GROUP_ID));
+    when(courseAssignmentRepository.findCurriculumCourses(List.of(GROUP_ID), List.of(Semester.S3)))
+        .thenReturn(List.of(courseProg4, courseWeb1));
     when(studentMapper.toSemesterValidationDto(any(), any(), any(), any())).thenReturn(anyDto);
 
     studentService.getStudentSemesterValidation(STUDENT_ID, Semester.S3);
 
     verify(studentMapper)
         .toSemesterValidationDto(
-            eq(student), eq(group), eq(Semester.S3), eq(List.of(courseProg4, courseWeb1)));
+            eq(student),
+            eq(student.getGroup()),
+            eq(Semester.S3),
+            eq(List.of(courseProg4, courseWeb1)));
   }
 
   @Test
-  void should_pass_empty_courses_when_group_has_no_courses() {
+  void should_pass_empty_courses_when_no_assignments() {
     var student = createStudent();
-    var group = createGroup(null);
     when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
-    when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(group);
+    when(groupFlowService.studentGroupIds(STUDENT_ID)).thenReturn(List.of(GROUP_ID));
+    when(courseAssignmentRepository.findCurriculumCourses(List.of(GROUP_ID), List.of(Semester.S3)))
+        .thenReturn(List.of());
     when(studentMapper.toSemesterValidationDto(any(), any(), any(), any())).thenReturn(anyDto);
 
     var result = studentService.getStudentSemesterValidation(STUDENT_ID, Semester.S3);
 
     verify(studentMapper)
-        .toSemesterValidationDto(eq(student), eq(group), eq(Semester.S3), eq(List.of()));
+        .toSemesterValidationDto(
+            eq(student), eq(student.getGroup()), eq(Semester.S3), eq(List.of()));
     assertEquals(anyDto, result);
   }
 
@@ -101,21 +110,6 @@ class StudentServiceTest {
             () -> studentService.getStudentSemesterValidation(STUDENT_ID, Semester.S3));
 
     assertTrue(exception.getMessage().contains(STUDENT_ID.toString()));
-  }
-
-  @Test
-  void should_throw_not_found_when_group_missing() {
-    var student = createStudent();
-    when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
-    when(groupValidator.checkGroupExists(GROUP_ID))
-        .thenThrow(new NotFoundException("Group " + GROUP_ID + " not found"));
-
-    var exception =
-        assertThrows(
-            NotFoundException.class,
-            () -> studentService.getStudentSemesterValidation(STUDENT_ID, Semester.S3));
-
-    assertTrue(exception.getMessage().contains(GROUP_ID.toString()));
   }
 
   @Test
@@ -146,7 +140,10 @@ class StudentServiceTest {
             .build();
 
     when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
-    when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(group);
+    when(groupFlowService.studentGroupIds(STUDENT_ID)).thenReturn(List.of(GROUP_ID));
+    when(courseAssignmentRepository.findCurriculumCourses(
+            List.of(GROUP_ID), List.of(Semester.S1, Semester.S2)))
+        .thenReturn(List.of());
     when(studentMapper.toTranscriptDto(any(), any(), any(), any())).thenReturn(expectedTranscript);
 
     var result = studentService.getTranscriptForSemester(STUDENT_ID, Semester.S1);
@@ -282,7 +279,10 @@ class StudentServiceTest {
     student.setGroup(group);
 
     when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
-    when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(group);
+    when(groupFlowService.studentGroupIds(STUDENT_ID)).thenReturn(List.of(GROUP_ID));
+    when(courseAssignmentRepository.findCurriculumCourses(
+            List.of(GROUP_ID), List.of(Semester.S1, Semester.S2)))
+        .thenReturn(List.of());
     when(studentMapper.toTranscriptDto(any(), any(), any(), any()))
         .thenReturn(TranscriptDto.builder().build());
 

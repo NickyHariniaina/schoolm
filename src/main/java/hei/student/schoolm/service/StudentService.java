@@ -5,7 +5,7 @@ import hei.student.schoolm.dto.TranscriptDto;
 import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.mapper.StudentMapper;
 import hei.student.schoolm.model.*;
-import hei.student.schoolm.validator.GroupValidator;
+import hei.student.schoolm.repository.CourseAssignmentRepository;
 import hei.student.schoolm.validator.StudentValidator;
 import java.time.LocalDate;
 import java.time.Year;
@@ -20,22 +20,15 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class StudentService {
   private final StudentValidator studentValidator;
-  private final GroupValidator groupValidator;
+  private final GroupFlowService groupFlowService;
+  private final CourseAssignmentRepository courseAssignmentRepository;
   private final StudentMapper studentMapper;
 
   @Transactional(readOnly = true)
   public SemesterValidationDto getStudentSemesterValidation(UUID studentId, Semester semester) {
     var student = studentValidator.checkStudentExists(studentId);
-    var group = groupValidator.checkGroupExists(student.getGroup().getId());
-    var courses =
-        group.getCourses() == null
-            ? List.<Course>of()
-            : group.getCourses().stream()
-                .filter(course -> course.getSemester() == semester)
-                .sorted(
-                    Comparator.comparingInt((Course course) -> course.getSemester().ordinal())
-                        .thenComparing(Course::getRef))
-                .toList();
+    var courses = coursesForStudent(studentId, List.of(semester));
+    var group = student.getGroup();
     return studentMapper.toSemesterValidationDto(student, group, semester, courses);
   }
 
@@ -49,26 +42,37 @@ public class StudentService {
       throw new BadRequestException("month must be between 1 and 12");
     }
     var student = studentValidator.checkStudentExists(studentId);
-    var group = groupValidator.checkGroupExists(student.getGroup().getId());
+    var group = student.getGroup();
     var entryYear = group.getCohort().getEntryYear();
     var semester = resolveSemester(month, year, entryYear);
     var pair = semester.pair();
     var studentTrack = group.getTrack();
 
-    var filteredCourses = filterCourses(group.getCourses(), pair, studentTrack);
+    var filteredCourses = filterCourses(coursesForStudent(studentId, pair), pair, studentTrack);
 
     return studentMapper.toTranscriptDto(student, group, semester, filteredCourses);
   }
 
   public TranscriptDto getTranscriptForSemester(UUID studentId, Semester targetSemester) {
     var student = studentValidator.checkStudentExists(studentId);
-    var group = groupValidator.checkGroupExists(student.getGroup().getId());
+    var group = student.getGroup();
     return buildTranscript(student, group, targetSemester);
   }
 
   private TranscriptDto buildTranscript(Student student, Group group, Semester semester) {
-    var filteredCourses = filterCourses(group.getCourses(), semester.pair(), group.getTrack());
+    var filteredCourses =
+        filterCourses(
+            coursesForStudent(student.getId(), semester.pair()), semester.pair(), group.getTrack());
     return studentMapper.toTranscriptDto(student, group, semester, filteredCourses);
+  }
+
+  private List<Course> coursesForStudent(UUID studentId, List<Semester> semesters) {
+    var groupIds = groupFlowService.studentGroupIds(studentId);
+    return courseAssignmentRepository.findCurriculumCourses(groupIds, semesters).stream()
+        .sorted(
+            Comparator.comparingInt((Course course) -> course.getSemester().ordinal())
+                .thenComparing(Course::getRef))
+        .toList();
   }
 
   public List<Course> filterCourses(List<Course> courses, List<Semester> pair, Track studentTrack) {
