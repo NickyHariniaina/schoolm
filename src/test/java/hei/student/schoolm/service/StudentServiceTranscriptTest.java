@@ -35,6 +35,7 @@ import hei.student.schoolm.model.*;
 import hei.student.schoolm.repository.CourseAssignmentRepository;
 import hei.student.schoolm.util.Fraction;
 import hei.student.schoolm.util.SecurityUtil;
+import hei.student.schoolm.validator.GroupValidator;
 import hei.student.schoolm.validator.StudentValidator;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -49,6 +50,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class StudentServiceTranscriptTest {
   @Mock private StudentValidator studentValidator;
+  @Mock private GroupValidator groupValidator;
   @Mock private GroupFlowService groupFlowService;
   @Mock private CourseAssignmentRepository courseAssignmentRepository;
   @Mock private SecurityUtil securityUtil;
@@ -62,7 +64,8 @@ class StudentServiceTranscriptTest {
             groupFlowService,
             courseAssignmentRepository,
             new StudentMapper(),
-            securityUtil);
+            securityUtil,
+            groupValidator);
     org.mockito.Mockito.lenient().when(securityUtil.isAdmin()).thenReturn(true);
   }
 

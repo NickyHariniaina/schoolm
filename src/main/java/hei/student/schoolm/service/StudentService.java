@@ -1,12 +1,15 @@
 package hei.student.schoolm.service;
 
+import hei.student.schoolm.dto.LevelRequest;
 import hei.student.schoolm.dto.SemesterValidationDto;
 import hei.student.schoolm.dto.TranscriptDto;
+import hei.student.schoolm.dto.TranscriptStatus;
 import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.mapper.StudentMapper;
 import hei.student.schoolm.model.*;
 import hei.student.schoolm.repository.CourseAssignmentRepository;
 import hei.student.schoolm.util.SecurityUtil;
+import hei.student.schoolm.validator.GroupValidator;
 import hei.student.schoolm.validator.StudentValidator;
 import java.time.LocalDate;
 import java.time.Year;
@@ -25,6 +28,7 @@ public class StudentService {
   private final CourseAssignmentRepository courseAssignmentRepository;
   private final StudentMapper studentMapper;
   private final SecurityUtil securityUtil;
+  private final GroupValidator groupValidator;
 
   @Transactional(readOnly = true)
   public SemesterValidationDto getStudentSemesterValidation(UUID studentId, Semester semester) {
@@ -57,17 +61,50 @@ public class StudentService {
     return studentMapper.toTranscriptDto(student, group, semester, filteredCourses);
   }
 
-  public TranscriptDto getTranscriptForSemester(UUID studentId, Semester targetSemester) {
+  public TranscriptDto getTranscriptForLevel(UUID studentId, LevelRequest level) {
     var student = studentValidator.checkStudentExists(studentId);
-    var group = student.getGroup();
-    return buildTranscript(student, group, targetSemester);
+    var group = groupValidator.checkGroupExists(student.getGroup().getId());
+    return buildTranscriptForLevel(student, group, level);
   }
 
-  private TranscriptDto buildTranscript(Student student, Group group, Semester semester) {
+  private TranscriptDto buildTranscriptForLevel(Student student, Group group, LevelRequest level) {
+    var semesters = getSemestersForLevel(level);
     var filteredCourses =
-        filterCourses(
-            coursesForStudent(student.getId(), semester.pair()), semester.pair(), group.getTrack());
+        filterCourses(coursesForStudent(student.getId(), semesters), semesters, group.getTrack());
+
+    var currentSemester = getCurrentSemester(group.getCohort().getEntryYear());
+    var levelHasStarted = hasLevelStarted(level, currentSemester);
+
+    var semester = semesters.get(0);
+
+    if (!levelHasStarted || filteredCourses.isEmpty()) {
+      return buildEmptyTranscriptDto(student, group, semesters);
+    }
+
     return studentMapper.toTranscriptDto(student, group, semester, filteredCourses);
+  }
+
+  private boolean hasLevelStarted(LevelRequest level, Semester currentSemester) {
+    var levelStartSemester =
+        switch (level) {
+          case L1 -> Semester.S1;
+          case L2 -> Semester.S3;
+          case L3 -> Semester.S5;
+        };
+    return currentSemester.ordinal() >= levelStartSemester.ordinal();
+  }
+
+  private Semester getCurrentSemester(Year entryYear) {
+    var today = LocalDate.now();
+    return Semester.from(entryYear, today.getMonthValue(), today.getYear());
+  }
+
+  private List<Semester> getSemestersForLevel(LevelRequest level) {
+    return switch (level) {
+      case L1 -> List.of(Semester.S1, Semester.S2);
+      case L2 -> List.of(Semester.S3, Semester.S4);
+      case L3 -> List.of(Semester.S5, Semester.S6);
+    };
   }
 
   private List<Course> coursesForStudent(UUID studentId, List<Semester> semesters) {
@@ -102,5 +139,22 @@ public class StudentService {
       throw new BadRequestException("month and year must both be provided");
     }
     return Semester.from(entryYear, month, year);
+  }
+
+  private TranscriptDto buildEmptyTranscriptDto(
+      Student student, Group group, List<Semester> semesters) {
+    var semester = semesters.get(0);
+    return TranscriptDto.builder()
+        .studentId(student.getId())
+        .studentRef(student.getReference())
+        .firstName(student.getFirstName())
+        .lastName(student.getLastName())
+        .groupRef(group.getRef())
+        .cohortRef(group.getCohort().getRef())
+        .academicYear(semester.academicYear(group.getCohort().getEntryYear()))
+        .semesters(semesters)
+        .courses(List.of())
+        .status(TranscriptStatus.NOT_STARTED)
+        .build();
   }
 }

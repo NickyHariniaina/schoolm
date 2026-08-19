@@ -2,5 +2,6 @@ package hei.student.schoolm.dto;
 
 public enum TranscriptStatus {
   COMPLET,
-  INCOMPLET
+  INCOMPLET,
+  NOT_STARTED,
 }

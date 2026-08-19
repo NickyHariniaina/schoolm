@@ -2,7 +2,7 @@ package hei.student.schoolm.endpoint.event.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import hei.student.schoolm.model.Semester;
+import hei.student.schoolm.dto.LevelRequest;
 import java.time.Duration;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -11,12 +11,12 @@ class TranscriptEmailRequestedTest {
   @Test
   void should_create_transcript_email_requested() {
     var studentId = UUID.randomUUID();
-    var semester = Semester.S1;
+    var level = LevelRequest.L1;
 
-    var event = TranscriptEmailRequested.builder().studentId(studentId).semester(semester).build();
+    var event = TranscriptEmailRequested.builder().studentId(studentId).level(level).build();
 
     assertEquals(studentId, event.getStudentId());
-    assertEquals(semester, event.getSemester());
+    assertEquals(level, event.getLevel());
   }
 
   @Test

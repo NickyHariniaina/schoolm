@@ -5,10 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import hei.student.schoolm.dto.CourseGradeDto;
-import hei.student.schoolm.dto.TranscriptDto;
-import hei.student.schoolm.dto.TranscriptPdfDto;
-import hei.student.schoolm.dto.TranscriptStatus;
+import hei.student.schoolm.dto.*;
 import hei.student.schoolm.endpoint.event.model.TranscriptEmailRequested;
 import hei.student.schoolm.file.bucket.BucketComponent;
 import hei.student.schoolm.file.pdf.TranscriptPdfGenerator;
@@ -16,7 +13,6 @@ import hei.student.schoolm.mail.Email;
 import hei.student.schoolm.mail.Mailer;
 import hei.student.schoolm.mapper.StudentMapper;
 import hei.student.schoolm.model.Group;
-import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.model.Student;
 import hei.student.schoolm.service.StudentService;
 import hei.student.schoolm.validator.StudentValidator;
@@ -112,10 +108,11 @@ class TranscriptEmailRequestedServiceTest {
 
   @Test
   void should_send_transcript_email() throws Exception {
-    var event = new TranscriptEmailRequested(studentId, Semester.S1);
+    var event = new TranscriptEmailRequested(studentId, LevelRequest.L1);
     var presignedUrl = new URL("https://s3.amazonaws.com/transcript.pdf");
 
-    when(studentService.getTranscriptForSemester(studentId, Semester.S1)).thenReturn(transcriptDto);
+    when(studentService.getTranscriptForLevel(studentId, LevelRequest.L1))
+        .thenReturn(transcriptDto);
     when(studentValidator.checkStudentExists(studentId)).thenReturn(student);
     when(studentService.getGroup(studentId)).thenReturn(group);
     when(studentMapper.toPdfDto(any(), any(), any(), any())).thenReturn(pdfDto);
@@ -124,7 +121,7 @@ class TranscriptEmailRequestedServiceTest {
 
     service.accept(event);
 
-    verify(studentService).getTranscriptForSemester(studentId, Semester.S1);
+    verify(studentService).getTranscriptForLevel(studentId, LevelRequest.L1);
     verify(studentValidator).checkStudentExists(studentId);
     verify(studentService).getGroup(studentId);
     verify(studentMapper).toPdfDto(any(), any(), any(), any());
@@ -136,11 +133,12 @@ class TranscriptEmailRequestedServiceTest {
 
   @Test
   void should_delete_file_after_upload() throws Exception {
-    var event = new TranscriptEmailRequested(studentId, Semester.S1);
+    var event = new TranscriptEmailRequested(studentId, LevelRequest.L1);
     var presignedUrl = new URL("https://s3.amazonaws.com/transcript.pdf");
     var spyFile = spy(pdfFile);
 
-    when(studentService.getTranscriptForSemester(studentId, Semester.S1)).thenReturn(transcriptDto);
+    when(studentService.getTranscriptForLevel(studentId, LevelRequest.L1))
+        .thenReturn(transcriptDto);
     when(studentValidator.checkStudentExists(studentId)).thenReturn(student);
     when(studentService.getGroup(studentId)).thenReturn(group);
     when(studentMapper.toPdfDto(any(), any(), any(), any())).thenReturn(pdfDto);
@@ -154,10 +152,11 @@ class TranscriptEmailRequestedServiceTest {
 
   @Test
   void should_build_html_body_with_stats() throws Exception {
-    var event = new TranscriptEmailRequested(studentId, Semester.S1);
+    var event = new TranscriptEmailRequested(studentId, LevelRequest.L1);
     var presignedUrl = new URL("https://s3.amazonaws.com/transcript.pdf");
 
-    when(studentService.getTranscriptForSemester(studentId, Semester.S1)).thenReturn(transcriptDto);
+    when(studentService.getTranscriptForLevel(studentId, LevelRequest.L1))
+        .thenReturn(transcriptDto);
     when(studentValidator.checkStudentExists(studentId)).thenReturn(student);
     when(studentService.getGroup(studentId)).thenReturn(group);
     when(studentMapper.toPdfDto(any(), any(), any(), any())).thenReturn(pdfDto);
@@ -173,7 +172,8 @@ class TranscriptEmailRequestedServiceTest {
     assertNotNull(email);
     assertEquals("Votre relevé de notes - 2024-2025", email.subject());
     assertTrue(email.htmlBody().contains("Moyenne générale"));
-    assertTrue(email.htmlBody().contains("Crédits totaux"));
     assertTrue(email.htmlBody().contains("Crédits acquis"));
+    assertTrue(email.htmlBody().contains("15.5"));
+    assertTrue(email.htmlBody().contains("30/30"));
   }
 }
