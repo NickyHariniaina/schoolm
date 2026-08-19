@@ -11,4 +11,6 @@ public interface JGradeHistoryRepository extends JpaRepository<JGradeHistory, UU
   void deleteAllByStudentId(UUID studentId);
 
   void deleteAllByExamId(UUID examId);
+
+  void deleteAllByGradeId(UUID gradeId);
 }

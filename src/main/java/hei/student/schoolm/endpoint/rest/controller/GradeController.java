@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,10 +17,21 @@ import org.springframework.web.bind.annotation.*;
 public class GradeController {
   private final GradeService gradeService;
 
+  @GetMapping("/{gradeId}")
+  public GradeDto getGradeById(@PathVariable UUID gradeId) {
+    return gradeService.getGradeById(gradeId);
+  }
+
   @PutMapping("/{gradeId}")
   public GradeDto updateGrade(
       @PathVariable UUID gradeId, @Valid @RequestBody UpdateGradeRequest request) {
     return gradeService.updateGrade(gradeId, request);
+  }
+
+  @DeleteMapping("/{gradeId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteGrade(@PathVariable UUID gradeId) {
+    gradeService.delete(gradeId);
   }
 
   @GetMapping("/{gradeId}/history")

@@ -245,6 +245,69 @@ paths:
           description: Exam deleted successfully
         '404':
           $ref: '#/components/responses/NotFound'
+  /exams/{examId}/grades:
+    get:
+      tags:
+        - Grade
+      summary: List grades of an exam
+      description: Returns the grades of the given exam.
+      operationId: getExamGrades
+      parameters:
+        - name: examId
+          in: path
+          required: true
+          description: Exam identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Grades retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Grade'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Grade
+      summary: Create or update grades of an exam
+      description: >-
+        Creates new grades or updates existing ones of the given exam. When a
+        request item contains an id, the existing grade is updated and a
+        change reason is required. Otherwise, a new grade is created for the
+        given student.
+      operationId: upsertExamGrades
+      parameters:
+        - name: examId
+          in: path
+          required: true
+          description: Exam identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/GradeRequest'
+      responses:
+        '200':
+          description: Grades created or updated successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Grade'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /exams:
     put:
       tags:
@@ -533,6 +596,28 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
   /grades/{gradeId}:
+    get:
+      tags:
+        - Grade
+      summary: Get a grade by id
+      description: Returns a single grade by its identifier.
+      operationId: getGradeById
+      parameters:
+        - name: gradeId
+          in: path
+          required: true
+          description: Grade identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Grade retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grade'
+        '404':
+          $ref: '#/components/responses/NotFound'
     put:
       tags:
         - Grade
@@ -561,6 +646,24 @@ paths:
                 $ref: '#/components/schemas/Grade'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Grade
+      summary: Delete a grade
+      description: Deletes a grade along with its grade history.
+      operationId: deleteGrade
+      parameters:
+        - name: gradeId
+          in: path
+          required: true
+          description: Grade identifier
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Grade deleted successfully
         '404':
           $ref: '#/components/responses/NotFound'
   /grades/{gradeId}/history:
@@ -1452,6 +1555,24 @@ components:
         updatedAt:
           type: string
           format: date-time
+    GradeRequest:
+      type: object
+      required:
+        - studentId
+        - value
+      properties:
+        id:
+          type: string
+          description: Identifier, present when updating an existing grade
+        studentId:
+          type: string
+          description: Identifier of the graded student
+        value:
+          type: number
+          format: double
+        changeReason:
+          type: string
+          description: Required when updating an existing grade
     GradeHistory:
       type: object
       properties:

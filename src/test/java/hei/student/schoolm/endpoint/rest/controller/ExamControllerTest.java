@@ -14,6 +14,7 @@ import hei.student.schoolm.dto.ExamDto;
 import hei.student.schoolm.dto.ExamRequest;
 import hei.student.schoolm.endpoint.rest.security.JwtAuthenticationFilter;
 import hei.student.schoolm.service.ExamService;
+import hei.student.schoolm.service.GradeService;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -37,6 +38,7 @@ import org.springframework.test.web.servlet.MockMvc;
 class ExamControllerTest {
   @Autowired MockMvc mockMvc;
   @MockBean ExamService examService;
+  @MockBean GradeService gradeService;
 
   private static final UUID COURSE_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
   private static final UUID EXAM_ID = UUID.fromString("00000000-0000-0000-0000-000000000002");

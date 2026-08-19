@@ -70,4 +70,9 @@ public class GradeRepository {
   public void deleteAllByExamId(UUID examId) {
     jGradeRepository.deleteAllByExamId(examId);
   }
+
+  @Transactional
+  public void deleteById(UUID id) {
+    jGradeRepository.deleteById(id);
+  }
 }
