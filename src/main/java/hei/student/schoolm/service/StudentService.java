@@ -69,7 +69,8 @@ public class StudentService {
 
   private TranscriptDto buildTranscriptForLevel(Student student, Group group, LevelRequest level) {
     var semesters = getSemestersForLevel(level);
-    var filteredCourses = filterCourses(group.getCourses(), semesters, group.getTrack());
+    var filteredCourses =
+        filterCourses(coursesForStudent(student.getId(), semesters), semesters, group.getTrack());
 
     var currentSemester = getCurrentSemester(group.getCohort().getEntryYear());
     var levelHasStarted = hasLevelStarted(level, currentSemester);

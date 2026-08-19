@@ -293,7 +293,6 @@ class StudentServiceTest {
     student.setGroup(group);
 
     when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
-    when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(group);
     when(studentMapper.toTranscriptDto(any(), any(), any(), any()))
         .thenReturn(TranscriptDto.builder().build());
 
