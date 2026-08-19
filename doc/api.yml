@@ -1151,6 +1151,59 @@ paths:
                 $ref: '#/components/schemas/CurriculumStatus'
         '404':
           $ref: '#/components/responses/NotFound'
+  /admins/{id}:
+    get:
+      tags:
+        - Admin
+      summary: Get the current admin profile
+      description: Returns the profile of the given admin. An admin may only access their own profile.
+      operationId: getAdminById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Admin identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Admin retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Admin'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Admin
+      summary: Update the current admin profile
+      description: Updates the profile of the given admin. An admin may only update their own profile.
+      operationId: updateAdmin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Admin identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminRequest'
+      responses:
+        '200':
+          description: Admin updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Admin'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
 components:
   securitySchemes:
     bearerAuth:
@@ -1158,6 +1211,32 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    Admin:
+      type: object
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+    AdminRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
     LoginRequest:
       type: object
       required:

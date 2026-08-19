@@ -117,6 +117,10 @@ public class SecurityConfig {
                         "/course-assignments/*",
                         "/students/*/group-flows")
                     .hasAnyRole("ADMIN", "TEACHER", "STUDENT")
+                    .requestMatchers(GET, "/admins/*")
+                    .authenticated()
+                    .requestMatchers(PUT, "/admins/*")
+                    .authenticated()
                     .requestMatchers(
                         GET, "/students/*/semester-validation", "/students/*/graduate-transcript")
                     .authenticated()
