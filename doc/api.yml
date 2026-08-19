@@ -178,6 +178,99 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+  /courses/{courseId}/exams:
+    get:
+      tags:
+        - Exam
+      summary: List exams of a course
+      description: Returns the exams of the given course.
+      operationId: getCourseExams
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: Course identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Exams retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exam'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /exams/{id}:
+    get:
+      tags:
+        - Exam
+      summary: Get an exam by id
+      description: Returns a single exam by its identifier.
+      operationId: getExamById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Exam identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Exam retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exam'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Exam
+      summary: Delete an exam
+      description: >-
+        Deletes an exam along with its grades and grade history.
+      operationId: deleteExam
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Exam identifier
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Exam deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /exams:
+    put:
+      tags:
+        - Exam
+      summary: Create or update an exam
+      description: >-
+        Creates a new exam or updates an existing one. If the request body
+        contains an id, the existing exam is updated.
+      operationId: upsertExam
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExamRequest'
+      responses:
+        '200':
+          description: Exam created or updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exam'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /students:
     get:
       tags:
@@ -1298,6 +1391,47 @@ components:
           format: double
           nullable: true
           description: Grade of the student, null when the exam has not been taken
+    Exam:
+      type: object
+      properties:
+        id:
+          type: string
+        courseId:
+          type: string
+        dateExam:
+          type: string
+          format: date
+        coefNumerator:
+          type: integer
+        coefDenominator:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ExamRequest:
+      type: object
+      required:
+        - courseId
+        - dateExam
+        - coefNumerator
+        - coefDenominator
+      properties:
+        id:
+          type: string
+          description: Identifier, present when updating an existing exam
+        courseId:
+          type: string
+          description: Identifier of the course the exam belongs to
+        dateExam:
+          type: string
+          format: date
+        coefNumerator:
+          type: integer
+        coefDenominator:
+          type: integer
     Grade:
       type: object
       properties:

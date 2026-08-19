@@ -20,6 +20,7 @@ import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.model.Teacher;
 import hei.student.schoolm.model.Track;
 import hei.student.schoolm.service.CourseService;
+import hei.student.schoolm.service.ExamService;
 import hei.student.schoolm.utils.GroupTestUtils;
 import java.util.List;
 import java.util.UUID;
@@ -44,6 +45,7 @@ import org.springframework.test.web.servlet.MockMvc;
 class CourseControllerTest {
   @Autowired MockMvc mockMvc;
   @MockBean CourseService courseService;
+  @MockBean ExamService examService;
 
   private static final UUID COURSE_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
   private static final UUID TEACHER_TOKY = UUID.fromString("00000000-0000-0000-0000-000000000002");
