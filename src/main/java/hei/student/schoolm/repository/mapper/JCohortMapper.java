@@ -16,4 +16,12 @@ public class JCohortMapper {
         .updatedAt(jCohort.getUpdatedAt())
         .build();
   }
+
+  public JCohort toEntity(Cohort cohort) {
+    return JCohort.builder()
+        .id(cohort.getId())
+        .ref(cohort.getRef())
+        .entryYear(cohort.getEntryYear().getValue())
+        .build();
+  }
 }

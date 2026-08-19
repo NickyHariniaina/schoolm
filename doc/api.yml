@@ -383,6 +383,51 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Cohort'
+    put:
+      tags:
+        - Cohort
+      summary: Create or update a cohort
+      description: >-
+        Creates a new cohort or updates an existing one. If the request body
+        contains an id, the existing cohort is updated. Otherwise, a new cohort
+        is created.
+      operationId: upsertCohort
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CohortRequest'
+      responses:
+        '200':
+          description: Cohort created or updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cohort'
+  /cohorts/{id}:
+    get:
+      tags:
+        - Cohort
+      summary: Get a cohort by id
+      description: Returns a single cohort by its identifier.
+      operationId: getCohortById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Cohort identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cohort retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cohort'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /cohorts/{ref}/graduates:
     get:
       tags:
@@ -967,6 +1012,24 @@ components:
     Cohort:
       type: object
       properties:
+        id:
+          type: string
+          description: Cohort identifier
+        ref:
+          type: string
+          description: Cohort reference (promotion)
+        entryYear:
+          type: integer
+          description: Entry year of the cohort
+    CohortRequest:
+      type: object
+      required:
+        - ref
+        - entryYear
+      properties:
+        id:
+          type: string
+          description: Identifier, present when updating an existing cohort
         ref:
           type: string
           description: Cohort reference (promotion)

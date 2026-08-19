@@ -5,6 +5,7 @@ import hei.student.schoolm.repository.jpa.JCohortRepository;
 import hei.student.schoolm.repository.mapper.JCohortMapper;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +22,17 @@ public class CohortRepository {
   }
 
   @Transactional(readOnly = true)
+  public Optional<Cohort> findById(UUID id) {
+    return jCohortRepository.findById(id).map(jCohortMapper::toDomain);
+  }
+
+  @Transactional(readOnly = true)
   public Optional<Cohort> findByRef(String ref) {
     return jCohortRepository.findByRef(ref).map(jCohortMapper::toDomain);
+  }
+
+  @Transactional
+  public Cohort save(Cohort cohort) {
+    return jCohortMapper.toDomain(jCohortRepository.save(jCohortMapper.toEntity(cohort)));
   }
 }

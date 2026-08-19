@@ -55,7 +55,11 @@ public class SecurityConfig {
                     .hasRole("ADMIN")
                     .requestMatchers(GET, "/cohorts/{ref}/graduates")
                     .hasRole("ADMIN")
+                    .requestMatchers(GET, "/cohorts/*/graduates")
+                    .hasRole("ADMIN")
                     .requestMatchers(GET, "/course-assignments/curriculum-status")
+                    .hasRole("ADMIN")
+                    .requestMatchers(PUT, "/cohorts")
                     .hasRole("ADMIN")
                     .requestMatchers(PUT, "/course-assignments/**")
                     .hasRole("ADMIN")
@@ -74,6 +78,7 @@ public class SecurityConfig {
                     .requestMatchers(
                         GET,
                         "/cohorts",
+                        "/cohorts/*",
                         "/course-assignments",
                         "/course-assignments/*",
                         "/students/*/group-flows")
