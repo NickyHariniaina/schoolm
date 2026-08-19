@@ -79,6 +79,19 @@ public class TranscriptEmailRequestedService implements Consumer<TranscriptEmail
     };
   }
 
+  private String getLevelName(TranscriptPdfDto transcript) {
+    var semesters = transcript.getSemesters();
+    if (semesters == null || semesters.isEmpty()) {
+      return "Niveau inconnu";
+    }
+    var firstSemester = semesters.get(0);
+    return switch (firstSemester) {
+      case S1, S2 -> "L1";
+      case S3, S4 -> "L2";
+      case S5, S6 -> "L3";
+    };
+  }
+
   private String buildHtmlBody(TranscriptPdfDto transcript, URL downloadUrl) {
     var rows =
         transcript.getCourses().stream()
@@ -90,6 +103,26 @@ public class TranscriptEmailRequestedService implements Consumer<TranscriptEmail
                             c.getCredit(),
                             c.getFinalGrade() == null ? "-" : c.getFinalGrade()))
             .collect(Collectors.joining());
+
+    if (transcript.getStatus() == TranscriptStatus.NOT_STARTED
+        || transcript.getCourses().isEmpty()) {
+      var levelName = getLevelName(transcript);
+      var message =
+          transcript.getStatus() == TranscriptStatus.NOT_STARTED
+              ? "Le niveau "
+                  + levelName
+                  + " n'a pas encore commencé. Aucun cours n'est disponible pour le moment."
+              : "Aucun cours trouvé pour ce niveau.";
+
+      return """
+             <html><body>
+             <p>Bonjour %s,</p>
+             <p>%s</p>
+             <p><em>Relevé non disponible - niveau non commencé</em></p>
+             </body></html>
+             """
+          .formatted(transcript.getFirstName(), message);
+    }
 
     var statsHtml = "";
     if (transcript.getAverage() != null) {
@@ -131,6 +164,10 @@ public class TranscriptEmailRequestedService implements Consumer<TranscriptEmail
   }
 
   private String statusMessage(TranscriptPdfDto transcript) {
+    if (transcript.getStatus() == TranscriptStatus.NOT_STARTED) {
+      return "Niveau non commencé - Aucun cours disponible";
+    }
+
     if (transcript.getCourses().isEmpty()) {
       return "Aucun cours disponible pour ce niveau";
     }
