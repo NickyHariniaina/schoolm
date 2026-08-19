@@ -32,8 +32,8 @@ import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.mapper.StudentMapper;
 import hei.student.schoolm.model.*;
+import hei.student.schoolm.repository.GroupRepository;
 import hei.student.schoolm.util.Fraction;
-import hei.student.schoolm.validator.GroupValidator;
 import hei.student.schoolm.validator.StudentValidator;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -48,17 +48,21 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class StudentServiceTranscriptTest {
   @Mock private StudentValidator studentValidator;
-  @Mock private GroupValidator groupValidator;
+  @Mock private GroupFlowService groupFlowService;
+  @Mock private GroupRepository groupRepository;
   private StudentService studentService;
 
   @BeforeEach
   void setUp() {
-    studentService = new StudentService(studentValidator, groupValidator, new StudentMapper());
+    studentService =
+        new StudentService(
+            studentValidator, groupFlowService, groupRepository, new StudentMapper());
   }
 
   private TranscriptDto getTranscript(Student student, Group group, Integer month, Integer year) {
     when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
-    when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(group);
+    when(groupFlowService.studentGroupIds(STUDENT_ID)).thenReturn(List.of(GROUP_ID));
+    when(groupRepository.findAllByIdWithCourses(List.of(GROUP_ID))).thenReturn(List.of(group));
     return studentService.getTranscript(STUDENT_ID, month, year);
   }
 
@@ -434,24 +438,11 @@ class StudentServiceTranscriptTest {
   }
 
   @Test
-  void should_throw_not_found_when_group_unknown() {
-    var cohort = createCohort(2024);
-    var group = createGroup(cohort, List.of());
-    var student = createStudent(group);
-    when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
-    when(groupValidator.checkGroupExists(GROUP_ID))
-        .thenThrow(new NotFoundException("Group " + GROUP_ID + " not found"));
-
-    assertThrows(NotFoundException.class, () -> studentService.getTranscript(STUDENT_ID, 3, 2026));
-  }
-
-  @Test
   void should_throw_when_month_without_year() {
     var cohort = createCohort(2024);
     var group = createGroup(cohort, List.of());
     var student = createStudent(group);
     when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
-    when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(student.getGroup());
 
     assertThrows(
         BadRequestException.class, () -> studentService.getTranscript(STUDENT_ID, 3, null));
@@ -463,7 +454,6 @@ class StudentServiceTranscriptTest {
     var group = createGroup(cohort, List.of());
     var student = createStudent(group);
     when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
-    when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(student.getGroup());
 
     assertThrows(
         BadRequestException.class, () -> studentService.getTranscript(STUDENT_ID, null, 2026));

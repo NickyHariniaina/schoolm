@@ -21,6 +21,13 @@ public class GroupRepository {
   }
 
   @Transactional(readOnly = true)
+  public List<Group> findAllByIdWithCourses(List<UUID> ids) {
+    return jGroupRepository.findAllById(ids).stream()
+        .map(jGroupMapper::toDomainWithCourses)
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
   public List<Group> findAllByCohortId(UUID cohortId) {
     return jGroupRepository.findAllByCohortId(cohortId).stream()
         .map(jGroupMapper::toDomainWithCourses)

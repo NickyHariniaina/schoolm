@@ -6,7 +6,6 @@ import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.file.bucket.BucketComponent;
 import hei.student.schoolm.file.xlsx.GraduateXlsxWriter;
 import hei.student.schoolm.model.Course;
-import hei.student.schoolm.model.Group;
 import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.model.Student;
 import hei.student.schoolm.model.Track;
@@ -21,7 +20,9 @@ import java.time.LocalDate;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +35,7 @@ public class GraduateService {
   private final CohortValidator cohortValidator;
   private final GroupRepository groupRepository;
   private final StudentRepository studentRepository;
+  private final GroupFlowService groupFlowService;
   private final GraduateXlsxWriter graduateXlsxWriter;
   private final BucketComponent bucketComponent;
 
@@ -71,7 +73,7 @@ public class GraduateService {
             .toList();
     for (var group : groups) {
       for (var student : studentRepository.findAllByGroupId(group.getId())) {
-        var completedCourses = completedCourses(group, student, currentSemester);
+        var completedCourses = completedCourses(student, currentSemester);
         if (completedCourses.isEmpty()
             || completedCourses.stream().anyMatch(course -> !student.validate(course))) {
           continue;
@@ -97,14 +99,22 @@ public class GraduateService {
     return ranked;
   }
 
-  private List<Course> completedCourses(Group group, Student student, Semester currentSemester) {
-    if (group.getCourses() == null) {
-      return List.of();
+  private List<Course> completedCourses(Student student, Semester currentSemester) {
+    var groups =
+        groupRepository.findAllByIdWithCourses(groupFlowService.studentGroupIds(student.getId()));
+    var coursesById = new LinkedHashMap<UUID, Course>();
+    for (var group : groups) {
+      if (group.getCourses() == null) {
+        continue;
+      }
+      for (var course : group.getCourses()) {
+        if (course.getSemester().ordinal() <= currentSemester.ordinal()
+            && course.finalGradeFor(student) != null) {
+          coursesById.put(course.getId(), course);
+        }
+      }
     }
-    return group.getCourses().stream()
-        .filter(course -> course.getSemester().ordinal() <= currentSemester.ordinal())
-        .filter(course -> course.finalGradeFor(student) != null)
-        .toList();
+    return List.copyOf(coursesById.values());
   }
 
   private BigDecimal average(List<Course> courses, Student student) {

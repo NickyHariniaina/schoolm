@@ -194,6 +194,66 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+  /students/{id}/group-flows:
+    get:
+      tags:
+        - Student
+      summary: Get the group history of a student
+      description: >-
+        Returns the history of group changes of a student (JOIN events), ordered
+        by creation date descending. Grades are kept when a student changes
+        group, since they are attached to the student, not the group.
+      operationId: getGroupFlows
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Student identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Group flow history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GroupFlow'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Student
+      summary: Move a student to another group
+      description: >-
+        Moves a student to the given group. Records a JOIN group flow and
+        updates the student's current group. The student's grades are kept.
+      operationId: moveStudentToGroup
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Student identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MoveStudentGroupRequest'
+      responses:
+        '200':
+          description: Student moved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupFlow'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /students/{id}/transcript/email:
     post:
       tags:
@@ -375,6 +435,31 @@ components:
           items:
             type: string
           description: List of group identifiers that take the course
+    MoveStudentGroupRequest:
+      type: object
+      required:
+        - groupId
+      properties:
+        groupId:
+          type: string
+          description: Identifier of the group the student moves to
+    GroupFlow:
+      type: object
+      properties:
+        id:
+          type: string
+        studentId:
+          type: string
+        groupId:
+          type: string
+        groupFlowType:
+          type: string
+          enum:
+            - JOIN
+            - LEAVE
+        createdAt:
+          type: string
+          format: date-time
     UpdateGradeRequest:
       type: object
       required:

@@ -12,7 +12,9 @@ import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.file.bucket.BucketComponent;
 import hei.student.schoolm.file.xlsx.GraduateXlsxWriter;
+import hei.student.schoolm.model.Group;
 import hei.student.schoolm.model.Semester;
+import hei.student.schoolm.model.Student;
 import hei.student.schoolm.model.Track;
 import hei.student.schoolm.repository.GroupRepository;
 import hei.student.schoolm.repository.StudentRepository;
@@ -33,6 +35,7 @@ class GraduateServiceTest {
   @Mock private CohortValidator cohortValidator;
   @Mock private GroupRepository groupRepository;
   @Mock private StudentRepository studentRepository;
+  @Mock private GroupFlowService groupFlowService;
   @Mock private GraduateXlsxWriter graduateXlsxWriter;
   @Mock private BucketComponent bucketComponent;
 
@@ -45,12 +48,18 @@ class GraduateServiceTest {
             cohortValidator,
             groupRepository,
             studentRepository,
+            groupFlowService,
             graduateXlsxWriter,
             bucketComponent);
   }
 
   private void mockCohort() {
     when(cohortValidator.checkCohortExists("P24")).thenReturn(cohort(2024));
+  }
+
+  private void mockStudentGroups(Student student, Group group) {
+    when(groupFlowService.studentGroupIds(student.getId())).thenReturn(List.of(group.getId()));
+    when(groupRepository.findAllByIdWithCourses(List.of(group.getId()))).thenReturn(List.of(group));
   }
 
   private void mockElGroup() {
@@ -76,6 +85,8 @@ class GraduateServiceTest {
     when(groupRepository.findAllByCohortId(COHORT_ID)).thenReturn(List.of(group));
     when(studentRepository.findAllByGroupId(GROUP_EL_ID))
         .thenReturn(List.of(studentPass, studentFail));
+    mockStudentGroups(studentPass, group);
+    mockStudentGroups(studentFail, group);
   }
 
   @Test
@@ -127,6 +138,7 @@ class GraduateServiceTest {
     var tnGroup = group(GROUP_TN_ID, "P24-TN", Track.TN, cohort(2024), List.of(tnCourse));
     when(groupRepository.findAllByCohortId(COHORT_ID)).thenReturn(List.of(elGroup, tnGroup));
     when(studentRepository.findAllByGroupId(GROUP_EL_ID)).thenReturn(List.of(studentPass));
+    mockStudentGroups(studentPass, elGroup);
 
     var result = graduateService.computeGraduates("P24", Track.EL, 8, 2026);
 

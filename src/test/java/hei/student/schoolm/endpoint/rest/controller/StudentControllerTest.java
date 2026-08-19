@@ -2,31 +2,41 @@ package hei.student.schoolm.endpoint.rest.controller;
 
 import static hei.student.schoolm.utils.TranscriptTestUtils.createTranscriptDto;
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import hei.student.schoolm.dto.CourseValidationDto;
+import hei.student.schoolm.dto.GroupFlowDto;
+import hei.student.schoolm.dto.MoveStudentGroupRequest;
 import hei.student.schoolm.dto.SemesterValidationDto;
 import hei.student.schoolm.exception.NotFoundException;
+import hei.student.schoolm.model.GroupFlowType;
 import hei.student.schoolm.model.Semester;
+import hei.student.schoolm.service.GroupFlowService;
 import hei.student.schoolm.service.StudentService;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(StudentController.class)
 class StudentControllerTest {
   @Autowired MockMvc mockMvc;
   @MockBean StudentService studentService;
+  @MockBean GroupFlowService groupFlowService;
 
   private static final UUID STUDENT_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
   private static final UUID COURSE_ID = UUID.fromString("00000000-0000-0000-0000-000000000011");
@@ -140,5 +150,48 @@ class StudentControllerTest {
                 .param("month", "3")
                 .param("year", "2026"))
         .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void should_return_group_flow_history() throws Exception {
+    var groupId = UUID.randomUUID();
+    var flow =
+        new GroupFlowDto(UUID.randomUUID(), STUDENT_ID, groupId, GroupFlowType.JOIN, Instant.now());
+    when(groupFlowService.getHistory(STUDENT_ID)).thenReturn(List.of(flow));
+
+    mockMvc
+        .perform(get("/students/{id}/group-flows", STUDENT_ID))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].studentId").value(STUDENT_ID.toString()))
+        .andExpect(jsonPath("$[0].groupId").value(groupId.toString()))
+        .andExpect(jsonPath("$[0].groupFlowType").value("JOIN"));
+  }
+
+  @Test
+  void should_move_student_to_group() throws Exception {
+    var groupId = UUID.randomUUID();
+    var flow =
+        new GroupFlowDto(UUID.randomUUID(), STUDENT_ID, groupId, GroupFlowType.JOIN, Instant.now());
+    when(groupFlowService.move(eq(STUDENT_ID), any(MoveStudentGroupRequest.class)))
+        .thenReturn(flow);
+
+    mockMvc
+        .perform(
+            put("/students/{id}/group-flows", STUDENT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"groupId\":\"" + groupId + "\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.groupId").value(groupId.toString()))
+        .andExpect(jsonPath("$.groupFlowType").value("JOIN"));
+  }
+
+  @Test
+  void should_return_400_when_group_id_missing() throws Exception {
+    mockMvc
+        .perform(
+            put("/students/{id}/group-flows", STUDENT_ID)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+        .andExpect(status().isBadRequest());
   }
 }
