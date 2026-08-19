@@ -10,4 +10,6 @@ public interface JStudentRepository extends JpaRepository<JStudent, UUID> {
   List<JStudent> findAllByGroupId(UUID groupId);
 
   Optional<JStudent> findByEmailIgnoreCase(String email);
+
+  Optional<JStudent> findTopByReferenceStartingWithOrderByReferenceDesc(String prefix);
 }

@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -16,6 +17,8 @@ import hei.student.schoolm.dto.CourseValidationDto;
 import hei.student.schoolm.dto.GroupFlowDto;
 import hei.student.schoolm.dto.MoveStudentGroupRequest;
 import hei.student.schoolm.dto.SemesterValidationDto;
+import hei.student.schoolm.dto.StudentRequest;
+import hei.student.schoolm.dto.StudentResponse;
 import hei.student.schoolm.endpoint.rest.security.JwtAuthenticationFilter;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.model.GroupFlowType;
@@ -203,5 +206,95 @@ class StudentControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
         .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void should_list_students() throws Exception {
+    var response =
+        new StudentResponse(
+            STUDENT_ID,
+            "STD26001",
+            "Tokyo",
+            "Watt",
+            "t@hei.school",
+            UUID.fromString("00000000-0000-0000-0000-000000000021"),
+            "L1-EL-01");
+    when(studentService.getAll()).thenReturn(List.of(response));
+
+    mockMvc
+        .perform(get("/students"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].id").value(STUDENT_ID.toString()))
+        .andExpect(jsonPath("$[0].reference").value("STD26001"))
+        .andExpect(jsonPath("$[0].firstName").value("Tokyo"))
+        .andExpect(jsonPath("$[0].lastName").value("Watt"));
+
+    verify(studentService).getAll();
+  }
+
+  @Test
+  void should_get_student_by_id() throws Exception {
+    var response =
+        new StudentResponse(
+            STUDENT_ID,
+            "STD26001",
+            "Tokyo",
+            "Watt",
+            "t@hei.school",
+            UUID.fromString("00000000-0000-0000-0000-000000000021"),
+            "L1-EL-01");
+    when(studentService.getById(STUDENT_ID)).thenReturn(response);
+
+    mockMvc
+        .perform(get("/students/{id}", STUDENT_ID))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(STUDENT_ID.toString()))
+        .andExpect(jsonPath("$.reference").value("STD26001"));
+
+    verify(studentService).getById(STUDENT_ID);
+  }
+
+  @Test
+  void should_create_student() throws Exception {
+    var response =
+        new StudentResponse(
+            STUDENT_ID,
+            "STD26001",
+            "Tokyo",
+            "Watt",
+            "t@hei.school",
+            UUID.fromString("00000000-0000-0000-0000-000000000021"),
+            "L1-EL-01");
+    when(studentService.upsert(any(StudentRequest.class))).thenReturn(response);
+
+    mockMvc
+        .perform(
+            put("/students")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{\"firstName\":\"Tokyo\",\"lastName\":\"Watt\",\"email\":\"t@hei.school\","
+                        + "\"password\":\"secret\",\"groupId\":\"00000000-0000-0000-0000-000000000021\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(STUDENT_ID.toString()))
+        .andExpect(jsonPath("$.reference").value("STD26001"));
+
+    verify(studentService).upsert(any(StudentRequest.class));
+  }
+
+  @Test
+  void should_return_400_when_creating_student_without_email() throws Exception {
+    mockMvc
+        .perform(
+            put("/students")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"firstName\":\"Tokyo\",\"lastName\":\"Watt\"}"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void should_delete_student() throws Exception {
+    mockMvc.perform(delete("/students/{id}", STUDENT_ID)).andExpect(status().isNoContent());
+
+    verify(studentService).delete(STUDENT_ID);
   }
 }

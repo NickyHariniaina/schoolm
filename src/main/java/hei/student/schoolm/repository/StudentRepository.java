@@ -17,6 +17,11 @@ public class StudentRepository {
   private final JStudentMapper jStudentMapper;
 
   @Transactional(readOnly = true)
+  public List<Student> findAll() {
+    return jStudentRepository.findAll().stream().map(jStudentMapper::toDomain).toList();
+  }
+
+  @Transactional(readOnly = true)
   public Optional<Student> findById(UUID id) {
     return jStudentRepository.findById(id).map(jStudentMapper::toDomain);
   }
@@ -31,5 +36,10 @@ public class StudentRepository {
   @Transactional
   public Student save(Student student) {
     return jStudentMapper.toDomain(jStudentRepository.save(jStudentMapper.toEntity(student)));
+  }
+
+  @Transactional
+  public void deleteById(UUID id) {
+    jStudentRepository.deleteById(id);
   }
 }

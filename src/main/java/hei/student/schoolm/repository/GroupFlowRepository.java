@@ -35,4 +35,9 @@ public class GroupFlowRepository {
         .distinct()
         .toList();
   }
+
+  @Transactional
+  public void deleteAllByStudentId(UUID studentId) {
+    jGroupFlowRepository.deleteAllByStudentId(studentId);
+  }
 }

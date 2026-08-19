@@ -134,6 +134,90 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+  /students:
+    get:
+      tags:
+        - Student
+      summary: List all students
+      description: Returns the list of students.
+      operationId: getStudents
+      responses:
+        '200':
+          description: Students retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Student'
+    put:
+      tags:
+        - Student
+      summary: Create or update a student
+      description: >-
+        Creates a new student or updates an existing one. If the request body
+        contains an id, the existing student is updated. Otherwise, a new
+        student is created and a groupId plus a password are required. The
+        student reference is generated automatically.
+      operationId: upsertStudent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentRequest'
+      responses:
+        '200':
+          description: Student created or updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /students/{id}:
+    get:
+      tags:
+        - Student
+      summary: Get a student by id
+      description: Returns a single student by its identifier.
+      operationId: getStudentById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Student identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Student retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Student
+      summary: Delete a student
+      description: >-
+        Deletes a student along with their grades, grade history and group
+        flows.
+      operationId: deleteStudent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Student identifier
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Student deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
   /students/{id}/semester-validation:
     get:
       tags:
@@ -1282,6 +1366,29 @@ components:
         groupRef:
           type: string
           description: Reference of the student's current group
+    StudentRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+      properties:
+        id:
+          type: string
+          description: Identifier, present when updating an existing student
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          description: Required when creating, optional when updating
+        groupId:
+          type: string
+          description: Required when creating, must be null when updating
     Teacher:
       type: object
       properties:

@@ -9,4 +9,6 @@ public interface JGroupFlowRepository extends JpaRepository<JGroupFlow, UUID> {
   List<JGroupFlow> findByStudentIdOrderByCreatedAtDesc(UUID studentId);
 
   List<JGroupFlow> findByStudentId(UUID studentId);
+
+  void deleteAllByStudentId(UUID studentId);
 }

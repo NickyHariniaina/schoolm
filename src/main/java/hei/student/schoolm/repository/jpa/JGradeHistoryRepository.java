@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface JGradeHistoryRepository extends JpaRepository<JGradeHistory, UUID> {
   List<JGradeHistory> findAllByGradeIdOrderByChangedAtDesc(UUID gradeId);
+
+  void deleteAllByStudentId(UUID studentId);
 }
