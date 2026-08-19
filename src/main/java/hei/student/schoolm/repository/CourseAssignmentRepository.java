@@ -5,8 +5,8 @@ import hei.student.schoolm.model.CourseAssignment;
 import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.repository.jpa.JCourseAssignmentRepository;
 import hei.student.schoolm.repository.mapper.JCourseAssignmentMapper;
+import hei.student.schoolm.repository.mapper.JCourseMapper;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CourseAssignmentRepository {
   private final JCourseAssignmentRepository jCourseAssignmentRepository;
   private final JCourseAssignmentMapper jCourseAssignmentMapper;
+  private final JCourseMapper jCourseMapper;
 
   @Transactional(readOnly = true)
   public Page<CourseAssignment> findFilterPaged(
@@ -56,12 +57,9 @@ public class CourseAssignmentRepository {
   @Transactional(readOnly = true)
   public List<Course> findCurriculumCourses(
       Collection<UUID> groupIds, Collection<Semester> semesters) {
-    var coursesById = new LinkedHashMap<UUID, Course>();
-    findByGroupIdInAndSemesterIn(groupIds, semesters).stream()
-        .map(CourseAssignment::getCourse)
-        .filter(java.util.Objects::nonNull)
-        .forEach(course -> coursesById.putIfAbsent(course.getId(), course));
-    return List.copyOf(coursesById.values());
+    return jCourseAssignmentRepository.findCurriculumCourses(groupIds, semesters).stream()
+        .map(jCourseMapper::toDomainWithoutGroups)
+        .toList();
   }
 
   @Transactional
@@ -80,5 +78,10 @@ public class CourseAssignmentRepository {
       UUID courseId, UUID groupId, int academicYear, Semester semester) {
     return jCourseAssignmentRepository.existsByCourseIdAndGroupIdAndAcademicYearAndSemester(
         courseId, groupId, academicYear, semester);
+  }
+
+  @Transactional(readOnly = true)
+  public boolean existsByCourseId(UUID courseId) {
+    return jCourseAssignmentRepository.existsByCourseId(courseId);
   }
 }
