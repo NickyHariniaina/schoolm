@@ -16,6 +16,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import hei.student.schoolm.dto.LevelRequest;
 import hei.student.schoolm.dto.SemesterValidationDto;
 import hei.student.schoolm.dto.TranscriptDto;
 import hei.student.schoolm.exception.BadRequestException;
@@ -24,6 +25,7 @@ import hei.student.schoolm.mapper.StudentMapper;
 import hei.student.schoolm.model.*;
 import hei.student.schoolm.repository.CourseAssignmentRepository;
 import hei.student.schoolm.util.SecurityUtil;
+import hei.student.schoolm.validator.GroupValidator;
 import hei.student.schoolm.validator.StudentValidator;
 import java.time.Year;
 import java.util.List;
@@ -38,6 +40,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class StudentServiceTest {
   @Mock StudentValidator studentValidator;
+  @Mock GroupValidator groupValidator;
   @Mock GroupFlowService groupFlowService;
   @Mock CourseAssignmentRepository courseAssignmentRepository;
   @Mock StudentMapper studentMapper;
@@ -133,12 +136,14 @@ class StudentServiceTest {
 
   @Test
   void should_get_transcript_for_semester() {
+    var cohort = Cohort.builder().id(UUID.randomUUID()).ref("K").entryYear(Year.of(2023)).build();
+
     var student = createStudent();
     var group = createGroup(List.of());
-    var cohort = Cohort.builder().id(UUID.randomUUID()).ref("K").entryYear(Year.of(2024)).build();
     group.setCohort(cohort);
     student.setGroup(group);
 
+    var course = createCourse(COURSE_S3_1_ID, "PROG1", Semester.S1, 6, List.of(), List.of());
     var expectedTranscript =
         TranscriptDto.builder()
             .studentId(STUDENT_ID)
@@ -148,13 +153,14 @@ class StudentServiceTest {
             .build();
 
     when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
+    when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(group);
     when(groupFlowService.studentGroupIds(STUDENT_ID)).thenReturn(List.of(GROUP_ID));
     when(courseAssignmentRepository.findCurriculumCourses(
             List.of(GROUP_ID), List.of(Semester.S1, Semester.S2)))
-        .thenReturn(List.of());
+        .thenReturn(List.of(course));
     when(studentMapper.toTranscriptDto(any(), any(), any(), any())).thenReturn(expectedTranscript);
 
-    var result = studentService.getTranscriptForSemester(STUDENT_ID, Semester.S1);
+    var result = studentService.getTranscriptForLevel(STUDENT_ID, LevelRequest.L1);
 
     assertEquals(expectedTranscript, result);
     verify(studentMapper).toTranscriptDto(any(), any(), any(), any());
@@ -287,10 +293,7 @@ class StudentServiceTest {
     student.setGroup(group);
 
     when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
-    when(groupFlowService.studentGroupIds(STUDENT_ID)).thenReturn(List.of(GROUP_ID));
-    when(courseAssignmentRepository.findCurriculumCourses(
-            List.of(GROUP_ID), List.of(Semester.S1, Semester.S2)))
-        .thenReturn(List.of());
+    when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(group);
     when(studentMapper.toTranscriptDto(any(), any(), any(), any()))
         .thenReturn(TranscriptDto.builder().build());
 

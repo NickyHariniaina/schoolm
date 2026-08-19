@@ -3,9 +3,9 @@ package hei.student.schoolm.endpoint.rest.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 
+import hei.student.schoolm.dto.LevelRequest;
 import hei.student.schoolm.endpoint.event.EventProducer;
 import hei.student.schoolm.endpoint.event.model.TranscriptEmailRequested;
-import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.util.SecurityUtil;
 import java.util.List;
 import java.util.UUID;
@@ -33,9 +33,9 @@ class StudentTranscriptControllerTest {
   @Test
   void should_send_transcript_email_request_for_s1() {
     var studentId = UUID.randomUUID();
-    var semester = Semester.S1;
+    var level = LevelRequest.L1;
 
-    controller.emailTranscript(studentId, semester);
+    controller.emailTranscript(studentId, level);
 
     var captor = ArgumentCaptor.forClass(List.class);
     verify(eventProducer).accept(captor.capture());
@@ -43,15 +43,15 @@ class StudentTranscriptControllerTest {
     var events = (List<TranscriptEmailRequested>) captor.getValue();
     assertEquals(1, events.size());
     assertEquals(studentId, events.get(0).getStudentId());
-    assertEquals(Semester.S1, events.get(0).getSemester());
+    assertEquals(LevelRequest.L1, events.get(0).getLevel());
   }
 
   @Test
-  void should_send_transcript_email_request_for_s4() {
+  void should_send_transcript_email_request_for_l2() {
     var studentId = UUID.randomUUID();
-    var semester = Semester.S4;
+    var level = LevelRequest.L2;
 
-    controller.emailTranscript(studentId, semester);
+    controller.emailTranscript(studentId, level);
 
     var captor = ArgumentCaptor.forClass(List.class);
     verify(eventProducer).accept(captor.capture());
@@ -59,6 +59,6 @@ class StudentTranscriptControllerTest {
     var events = (List<TranscriptEmailRequested>) captor.getValue();
     assertEquals(1, events.size());
     assertEquals(studentId, events.get(0).getStudentId());
-    assertEquals(Semester.S4, events.get(0).getSemester());
+    assertEquals(LevelRequest.L2, events.get(0).getLevel());
   }
 }
