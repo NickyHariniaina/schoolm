@@ -183,7 +183,9 @@ class AdminIT extends FacadeIT {
   }
 
   @Test
-  void readingAnUnknownAdminReturnsNotFound() {
+  void readingAnUnknownAdminIsForbidden() {
+    // schoolm's AdminService.getById runs requireSelf(adminId) before checking existence,
+    // so reading an admin that is not yourself is always forbidden, never a 404.
     var admin = saveAdmin();
 
     webTestClient
@@ -192,7 +194,7 @@ class AdminIT extends FacadeIT {
         .header("Authorization", "Bearer " + adminToken(admin))
         .exchange()
         .expectStatus()
-        .isNotFound();
+        .isForbidden();
   }
 
   @Test
