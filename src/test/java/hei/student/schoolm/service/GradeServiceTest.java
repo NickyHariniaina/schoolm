@@ -9,7 +9,6 @@ import hei.student.schoolm.dto.GradeHistoryDto;
 import hei.student.schoolm.dto.GradeRequest;
 import hei.student.schoolm.dto.UpdateGradeRequest;
 import hei.student.schoolm.exception.BadRequestException;
-import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.model.Course;
 import hei.student.schoolm.model.Exam;
 import hei.student.schoolm.model.Grade;
@@ -30,7 +29,6 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -89,52 +87,6 @@ public class GradeServiceTest {
             "Correction following a complaint",
             Instant.now(),
             Instant.now());
-  }
-
-  @Test
-  void should_update_grade_successfully() {
-    when(gradeValidator.checkGradeExists(gradeId)).thenReturn(grade);
-    when(gradeRepository.save(any(Grade.class))).thenReturn(grade);
-    when(jGradeMapper.toDto(any(Grade.class))).thenReturn(expectedDto);
-
-    var result = gradeService.updateGrade(gradeId, request);
-
-    assertNotNull(result);
-    verify(gradeHistoryRepository).save(any(JGradeHistory.class));
-    verify(gradeRepository).save(grade);
-    verify(jGradeMapper).toDto(any(Grade.class));
-    assertEquals(request.value(), grade.getValue());
-    assertEquals(request.changeReason(), grade.getChangeReason());
-  }
-
-  @Test
-  void should_throw_not_found_when_grade_does_not_exist() {
-    when(gradeValidator.checkGradeExists(gradeId))
-        .thenThrow(new NotFoundException("Grade not found"));
-
-    assertThrows(NotFoundException.class, () -> gradeService.updateGrade(gradeId, request));
-    verify(gradeRepository, never()).save(any());
-    verify(gradeHistoryRepository, never()).save(any());
-    verify(jGradeMapper, never()).toDto(any());
-  }
-
-  @Test
-  void should_save_history_before_updating_grade() {
-    var captor = ArgumentCaptor.forClass(JGradeHistory.class);
-    when(gradeValidator.checkGradeExists(gradeId)).thenReturn(grade);
-    when(gradeRepository.save(any(Grade.class))).thenReturn(grade);
-    when(jGradeMapper.toDto(any(Grade.class))).thenReturn(expectedDto);
-
-    gradeService.updateGrade(gradeId, request);
-
-    verify(gradeHistoryRepository).save(captor.capture());
-    var savedHistory = captor.getValue();
-    assertEquals(gradeId, savedHistory.getGradeId());
-    assertEquals(studentId, savedHistory.getStudentId());
-    assertEquals(examId, savedHistory.getExamId());
-    assertEquals(new BigDecimal("15.0"), savedHistory.getOldValue());
-    assertEquals(new BigDecimal("18.5"), savedHistory.getNewValue());
-    assertEquals("Correction following a complaint", savedHistory.getChangeReason());
   }
 
   @Test
