@@ -17,6 +17,7 @@ import hei.student.schoolm.repository.jpa.JGroupRepository;
 import hei.student.schoolm.repository.jpa.JStudentRepository;
 import hei.student.schoolm.repository.model.JAdmin;
 import hei.student.schoolm.repository.model.JCohort;
+import hei.student.schoolm.repository.model.JStudent;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -236,7 +237,7 @@ class GroupIT extends FacadeIT {
     var studentId = UUID.randomUUID();
     var jGroup = groupRepository.findById(group.id()).orElseThrow();
     studentRepository.save(
-        hei.student.schoolm.repository.model.JStudent.builder()
+        JStudent.builder()
             .id(studentId)
             .firstName("Alan")
             .lastName("Turing")
