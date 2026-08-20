@@ -18,13 +18,20 @@ import static org.mockito.Mockito.when;
 
 import hei.student.schoolm.dto.LevelRequest;
 import hei.student.schoolm.dto.SemesterValidationDto;
+import hei.student.schoolm.dto.StudentRequest;
 import hei.student.schoolm.dto.TranscriptDto;
 import hei.student.schoolm.exception.BadRequestException;
+import hei.student.schoolm.exception.ForbiddenException;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.mapper.StudentMapper;
 import hei.student.schoolm.model.*;
 import hei.student.schoolm.repository.CourseAssignmentRepository;
+import hei.student.schoolm.repository.GradeRepository;
+import hei.student.schoolm.repository.GroupFlowRepository;
+import hei.student.schoolm.repository.StudentRepository;
+import hei.student.schoolm.repository.jpa.JGradeHistoryRepository;
 import hei.student.schoolm.util.SecurityUtil;
+import hei.student.schoolm.util.StdRefGenerator;
 import hei.student.schoolm.validator.GroupValidator;
 import hei.student.schoolm.validator.StudentValidator;
 import java.time.Year;
@@ -35,7 +42,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 class StudentServiceTest {
@@ -45,20 +54,20 @@ class StudentServiceTest {
   @Mock CourseAssignmentRepository courseAssignmentRepository;
   @Mock StudentMapper studentMapper;
   @Mock SecurityUtil securityUtil;
-  @Mock hei.student.schoolm.repository.StudentRepository studentRepository;
+  @Mock StudentRepository studentRepository;
   @Mock GroupService groupService;
-  @Mock hei.student.schoolm.repository.GroupFlowRepository groupFlowRepository;
-  @Mock hei.student.schoolm.repository.GradeRepository gradeRepository;
-  @Mock hei.student.schoolm.repository.jpa.JGradeHistoryRepository jGradeHistoryRepository;
-  @Mock hei.student.schoolm.util.StdRefGenerator stdRefGenerator;
-  @Mock org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+  @Mock GroupFlowRepository groupFlowRepository;
+  @Mock GradeRepository gradeRepository;
+  @Mock JGradeHistoryRepository jGradeHistoryRepository;
+  @Mock StdRefGenerator stdRefGenerator;
+  @Mock PasswordEncoder passwordEncoder;
   @InjectMocks StudentService studentService;
 
   private final SemesterValidationDto anyDto = SemesterValidationDto.builder().build();
 
   @BeforeEach
   void setUp() {
-    org.mockito.Mockito.lenient().when(securityUtil.isAdmin()).thenReturn(true);
+    Mockito.lenient().when(securityUtil.isAdmin()).thenReturn(true);
   }
 
   @Test
@@ -344,7 +353,7 @@ class StudentServiceTest {
             .group(group)
             .build();
     var request =
-        hei.student.schoolm.dto.StudentRequest.builder()
+        StudentRequest.builder()
             .firstName("Tokyo")
             .lastName("Watt")
             .email("tokyo@hei.school")
@@ -367,7 +376,7 @@ class StudentServiceTest {
   @Test
   void should_throw_when_creating_student_without_group() {
     var request =
-        hei.student.schoolm.dto.StudentRequest.builder()
+        StudentRequest.builder()
             .firstName("Tokyo")
             .lastName("Watt")
             .email("tokyo@hei.school")
@@ -381,7 +390,7 @@ class StudentServiceTest {
   void should_throw_when_creating_student_without_password() {
     var group = createGroup(List.of());
     var request =
-        hei.student.schoolm.dto.StudentRequest.builder()
+        StudentRequest.builder()
             .firstName("Tokyo")
             .lastName("Watt")
             .email("tokyo@hei.school")
@@ -395,7 +404,7 @@ class StudentServiceTest {
   void should_update_student() {
     var student = createStudent();
     var request =
-        hei.student.schoolm.dto.StudentRequest.builder()
+        StudentRequest.builder()
             .id(STUDENT_ID)
             .firstName("NewName")
             .lastName("Watt")
@@ -414,7 +423,7 @@ class StudentServiceTest {
   @Test
   void should_throw_when_updating_student_with_group_change() {
     var request =
-        hei.student.schoolm.dto.StudentRequest.builder()
+        StudentRequest.builder()
             .id(STUDENT_ID)
             .firstName("Tokyo")
             .lastName("Watt")
@@ -442,8 +451,6 @@ class StudentServiceTest {
   void should_throw_when_non_admin_deletes_student() {
     when(securityUtil.isAdmin()).thenReturn(false);
 
-    assertThrows(
-        hei.student.schoolm.exception.ForbiddenException.class,
-        () -> studentService.delete(STUDENT_ID));
+    assertThrows(ForbiddenException.class, () -> studentService.delete(STUDENT_ID));
   }
 }
