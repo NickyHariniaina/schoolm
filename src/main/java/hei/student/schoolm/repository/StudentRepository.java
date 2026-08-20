@@ -13,33 +13,31 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 @RequiredArgsConstructor
 public class StudentRepository {
-  private final JStudentRepository jStudentRepository;
-  private final JStudentMapper jStudentMapper;
+  private final JStudentRepository repository;
+  private final JStudentMapper mapper;
 
   @Transactional(readOnly = true)
   public List<Student> findAll() {
-    return jStudentRepository.findAll().stream().map(jStudentMapper::toDomain).toList();
+    return repository.findAll().stream().map(mapper::toDomain).toList();
   }
 
   @Transactional(readOnly = true)
   public Optional<Student> findById(UUID id) {
-    return jStudentRepository.findById(id).map(jStudentMapper::toDomain);
+    return repository.findById(id).map(mapper::toDomain);
   }
 
   @Transactional(readOnly = true)
   public List<Student> findAllByGroupId(UUID groupId) {
-    return jStudentRepository.findAllByGroupId(groupId).stream()
-        .map(jStudentMapper::toDomain)
-        .toList();
+    return repository.findAllByGroupId(groupId).stream().map(mapper::toDomain).toList();
   }
 
   @Transactional
   public Student save(Student student) {
-    return jStudentMapper.toDomain(jStudentRepository.save(jStudentMapper.toEntity(student)));
+    return mapper.toDomain(repository.save(mapper.toEntity(student)));
   }
 
   @Transactional
   public void deleteById(UUID id) {
-    jStudentRepository.deleteById(id);
+    repository.deleteById(id);
   }
 }
