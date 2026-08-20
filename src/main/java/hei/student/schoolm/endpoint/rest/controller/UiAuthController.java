@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequiredArgsConstructor
 public class UiAuthController {
 
-  private final AuthService authService;
+  private final AuthService service;
 
   @GetMapping("/ui/login")
   public String loginPage() {
@@ -32,7 +32,7 @@ public class UiAuthController {
       Model model,
       HttpServletResponse response) {
     try {
-      var auth = authService.login(new LoginRequest(email, password));
+      var auth = service.login(new LoginRequest(email, password));
       response.addHeader(
           HttpHeaders.SET_COOKIE,
           ResponseCookie.from(JwtAuthenticationFilter.TOKEN_COOKIE, auth.token())
