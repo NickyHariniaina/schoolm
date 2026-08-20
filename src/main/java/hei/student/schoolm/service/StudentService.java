@@ -78,6 +78,7 @@ public class StudentService {
     var student =
         studentRepository.save(
             Student.builder()
+                .id(UUID.randomUUID())
                 .email(request.email())
                 .firstName(request.firstName())
                 .lastName(request.lastName())

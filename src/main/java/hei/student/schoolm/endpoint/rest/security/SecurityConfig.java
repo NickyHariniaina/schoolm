@@ -105,6 +105,8 @@ public class SecurityConfig {
                     .hasAnyRole("ADMIN", "TEACHER")
                     .requestMatchers(PUT, "/exams")
                     .hasRole("ADMIN")
+                    .requestMatchers(PUT, "/exams/*/grades")
+                    .hasAnyRole("ADMIN", "TEACHER")
                     .requestMatchers(GET, "/exams/*")
                     .hasAnyRole("ADMIN", "TEACHER")
                     .requestMatchers(DELETE, "/exams/*")

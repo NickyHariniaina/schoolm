@@ -51,6 +51,7 @@ public class TeacherService {
 
     var teacher =
         Teacher.builder()
+            .id(UUID.randomUUID())
             .email(request.email())
             .firstName(request.firstName())
             .lastName(request.lastName())

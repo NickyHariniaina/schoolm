@@ -1,94 +1,156 @@
 package hei.student.schoolm.it;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import hei.student.schoolm.conf.FacadeIT;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import hei.student.schoolm.dto.AuthResponse;
+import hei.student.schoolm.dto.LoginRequest;
+import hei.student.schoolm.model.User.Role;
+import hei.student.schoolm.repository.jpa.JAdminRepository;
+import hei.student.schoolm.repository.model.JAdmin;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 class AuthIT extends FacadeIT {
 
-  @Autowired private TestRestTemplate restTemplate;
+  private static final AtomicInteger SEQUENCE = new AtomicInteger(0);
 
-  @LocalServerPort private int port;
+  @Autowired private JAdminRepository adminRepository;
+  @Autowired private PasswordEncoder passwordEncoder;
+  @Autowired private hei.student.schoolm.endpoint.rest.security.JwtService jwtService;
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
-  private final HttpClient httpClient = HttpClient.newHttpClient();
+  @LocalServerPort int port;
+  private WebTestClient webTestClient;
 
-  private static final String ADMIN_EMAIL = "admin@hei.school";
-  private static final String ADMIN_PASSWORD = "password";
-
-  private String baseUrl() {
-    return "http://localhost:" + port;
+  @BeforeEach
+  void setUp() {
+    webTestClient = WebTestClient.bindToServer().baseUrl("http://localhost:" + port).build();
   }
 
-  private HttpResponse<String> postLogin(String email, String password) throws Exception {
-    var body =
-        objectMapper.writeValueAsString(new hei.student.schoolm.dto.LoginRequest(email, password));
-    var request =
-        HttpRequest.newBuilder()
-            .uri(URI.create(baseUrl() + "/auth/login"))
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(body))
-            .build();
-    return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+  private String uniqueEmail(String prefix) {
+    return prefix + "-" + SEQUENCE.incrementAndGet() + "-" + UUID.randomUUID() + "@hei.school";
   }
 
-  private HttpResponse<String> get(String path, String token) throws Exception {
-    var builder = HttpRequest.newBuilder().uri(URI.create(baseUrl() + path)).GET();
-    if (token != null) {
-      builder.header("Authorization", "Bearer " + token);
-    }
-    return httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+  private JAdmin saveAdmin(String email, String rawPassword) {
+    return adminRepository.save(
+        JAdmin.builder()
+            .id(UUID.randomUUID())
+            .firstName("Ada")
+            .lastName("Lovelace")
+            .email(email)
+            .password(passwordEncoder.encode(rawPassword))
+            .role(Role.ADMIN)
+            .build());
   }
 
   @Test
-  void ping_is_public() throws Exception {
-    assertThat(get("/ping", null).statusCode()).isEqualTo(200);
+  void pingShouldBePublic() {
+    webTestClient.get().uri("/ping").exchange().expectStatus().isOk();
   }
 
   @Test
-  void login_returns_token_and_user() throws Exception {
-    var response = postLogin(ADMIN_EMAIL, ADMIN_PASSWORD);
+  void shouldLoginWithValidCredentials() {
+    var email = uniqueEmail("admin");
+    saveAdmin(email, "secret123");
 
-    assertThat(response.statusCode()).isEqualTo(200);
-    var json = objectMapper.readValue(response.body(), JsonNode.class);
-    assertThat(json.get("token").asText()).isNotBlank();
-    assertThat(json.get("user").get("email").asText()).isEqualTo(ADMIN_EMAIL);
-    assertThat(json.get("user").get("role").asText()).isEqualTo("ADMIN");
+    var response =
+        webTestClient
+            .post()
+            .uri("/auth/login")
+            .bodyValue(new LoginRequest(email, "secret123"))
+            .exchange()
+            .expectStatus()
+            .isOk()
+            .expectBody(AuthResponse.class)
+            .returnResult()
+            .getResponseBody();
+
+    assertNotNull(response);
+    assertNotNull(response.token());
+    assertEquals(email, response.user().email());
+    assertEquals(Role.ADMIN, response.user().role());
   }
 
   @Test
-  void login_rejects_wrong_password() throws Exception {
-    var response = postLogin(ADMIN_EMAIL, "wrong-password");
+  void shouldRejectWrongPassword() {
+    var email = uniqueEmail("admin");
+    saveAdmin(email, "correct");
 
-    assertThat(response.statusCode()).isEqualTo(401);
+    webTestClient
+        .post()
+        .uri("/auth/login")
+        .bodyValue(new LoginRequest(email, "wrong"))
+        .exchange()
+        .expectStatus()
+        .isUnauthorized();
   }
 
   @Test
-  void protected_endpoint_requires_token() throws Exception {
-    assertThat(get("/courses", null).statusCode()).isEqualTo(401);
+  void shouldRejectUnknownEmail() {
+    webTestClient
+        .post()
+        .uri("/auth/login")
+        .bodyValue(new LoginRequest("nobody@hei.school", "whatever"))
+        .exchange()
+        .expectStatus()
+        .isUnauthorized()
+        .expectBody()
+        .jsonPath("$.message")
+        .isEqualTo("Invalid credentials");
   }
 
   @Test
-  void bearer_token_grants_access() throws Exception {
-    var login =
-        objectMapper.readValue(postLogin(ADMIN_EMAIL, ADMIN_PASSWORD).body(), JsonNode.class);
-    var token = login.get("token").asText();
-
-    assertThat(get("/courses", token).statusCode()).isEqualTo(200);
+  void shouldRejectRequestsWithoutToken() {
+    webTestClient.get().uri("/courses").exchange().expectStatus().isUnauthorized();
   }
 
   @Test
-  void unknown_endpoint_returns_404_not_401() throws Exception {
-    assertThat(get("/nope/never-existed", null).statusCode()).isEqualTo(404);
+  void shouldRejectInvalidToken() {
+    webTestClient
+        .get()
+        .uri("/courses")
+        .header("Authorization", "Bearer invalid-token")
+        .exchange()
+        .expectStatus()
+        .isUnauthorized();
+  }
+
+  @Test
+  void validTokenGrantsAccessEvenForUnknownUser() {
+    // schoolm's JwtAuthenticationFilter does not check the user exists in the database:
+    // a well-formed token is trusted, so access is granted to a non-existent user.
+    var token = jwtService.generateToken(UUID.randomUUID(), "ghost@hei.school", Role.ADMIN);
+
+    webTestClient
+        .get()
+        .uri("/courses")
+        .header("Authorization", "Bearer " + token)
+        .exchange()
+        .expectStatus()
+        .isOk();
+  }
+
+  @Test
+  void unknownEndpointReturnsNotFoundInsteadOfUnauthorized() {
+    webTestClient.get().uri("/definitely-not-an-endpoint").exchange().expectStatus().isNotFound();
+  }
+
+  @Test
+  void protectedEndpointStillChallengesWithBasicAuth() {
+    webTestClient
+        .get()
+        .uri("/courses")
+        .exchange()
+        .expectStatus()
+        .isUnauthorized()
+        .expectHeader()
+        .valueEquals("WWW-Authenticate", "Basic realm=\"hei\"");
   }
 }
