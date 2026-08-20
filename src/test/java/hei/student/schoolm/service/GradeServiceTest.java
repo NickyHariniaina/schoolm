@@ -8,6 +8,7 @@ import hei.student.schoolm.dto.GradeDto;
 import hei.student.schoolm.dto.GradeHistoryDto;
 import hei.student.schoolm.dto.GradeRequest;
 import hei.student.schoolm.dto.UpdateGradeRequest;
+import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.model.Course;
 import hei.student.schoolm.model.Exam;
@@ -138,7 +139,7 @@ public class GradeServiceTest {
 
   @Test
   void should_get_grade_history() {
-    var now = java.time.Instant.now();
+    var now = Instant.now();
     var historyId = UUID.randomUUID();
     var history =
         JGradeHistory.builder()
@@ -259,8 +260,7 @@ public class GradeServiceTest {
     when(gradeValidator.checkGradeExists(gradeId)).thenReturn(grade);
 
     assertThrows(
-        hei.student.schoolm.exception.BadRequestException.class,
-        () -> gradeService.upsertGrades(examId, List.of(request)));
+        BadRequestException.class, () -> gradeService.upsertGrades(examId, List.of(request)));
   }
 
   @Test
