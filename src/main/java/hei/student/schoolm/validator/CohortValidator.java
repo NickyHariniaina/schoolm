@@ -10,16 +10,16 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class CohortValidator {
-  private final CohortRepository cohortRepository;
+  private final CohortRepository repository;
 
   public Cohort checkCohortExists(String ref) {
-    return cohortRepository
+    return repository
         .findByRef(ref)
         .orElseThrow(() -> new NotFoundException("Cohort " + ref + " not found"));
   }
 
   public Cohort checkCohortExists(UUID id) {
-    return cohortRepository
+    return repository
         .findById(id)
         .orElseThrow(() -> new NotFoundException("Cohort not found: " + id));
   }

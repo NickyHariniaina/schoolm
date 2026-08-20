@@ -21,7 +21,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   public static final String TOKEN_COOKIE = "hei_token";
 
-  private final JwtService jwtService;
+  private final JwtService service;
 
   @Override
   protected void doFilterInternal(
@@ -37,7 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     try {
-      var claims = jwtService.parseToken(token);
+      var claims = service.parseToken(token);
       var userId = claims.getSubject();
       var email = claims.get("email", String.class);
       var role = claims.get("role", String.class);

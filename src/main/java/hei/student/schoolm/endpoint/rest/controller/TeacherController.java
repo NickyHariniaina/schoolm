@@ -21,26 +21,26 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/teachers")
 @RequiredArgsConstructor
 public class TeacherController {
-  private final TeacherService teacherService;
+  private final TeacherService service;
 
   @GetMapping
   public List<TeacherResponse> getAll() {
-    return teacherService.getAll();
+    return service.getAll();
   }
 
   @GetMapping("/{id}")
   public TeacherResponse getById(@PathVariable UUID id) {
-    return teacherService.getById(id);
+    return service.getById(id);
   }
 
   @PutMapping
   public TeacherResponse upsert(@Valid @RequestBody TeacherRequest request) {
-    return teacherService.upsert(request);
+    return service.upsert(request);
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void delete(@PathVariable UUID id) {
-    teacherService.delete(id);
+    service.delete(id);
   }
 }

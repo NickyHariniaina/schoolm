@@ -13,31 +13,31 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 @RequiredArgsConstructor
 public class CourseRepository {
-  private final JCourseRepository jCourseRepository;
-  private final JCourseMapper jCourseMapper;
+  private final JCourseRepository repository;
+  private final JCourseMapper mapper;
 
   @Transactional(readOnly = true)
   public Optional<Course> findById(UUID id) {
-    return jCourseRepository.findById(id).map(jCourseMapper::toDomain);
+    return repository.findById(id).map(mapper::toDomain);
   }
 
   @Transactional(readOnly = true)
   public List<Course> findAll() {
-    return jCourseRepository.findAll().stream().map(jCourseMapper::toDomain).toList();
+    return repository.findAll().stream().map(mapper::toDomain).toList();
   }
 
   @Transactional
   public Course save(Course course) {
-    return jCourseMapper.toDomain(jCourseRepository.save(jCourseMapper.toEntity(course)));
+    return mapper.toDomain(repository.save(mapper.toEntity(course)));
   }
 
   @Transactional(readOnly = true)
   public boolean existsByTeacherId(UUID teacherId) {
-    return jCourseRepository.existsByTeachersId(teacherId);
+    return repository.existsByTeachersId(teacherId);
   }
 
   @Transactional
   public void deleteById(UUID id) {
-    jCourseRepository.deleteById(id);
+    repository.deleteById(id);
   }
 }

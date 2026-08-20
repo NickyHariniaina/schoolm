@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TeacherService {
   private final TeacherRepository teacherRepository;
   private final CourseRepository courseRepository;
-  private final PasswordEncoder passwordEncoder;
+  private final PasswordEncoder encoder;
   private final SecurityUtil securityUtil;
 
   @Transactional(readOnly = true)
@@ -56,7 +56,7 @@ public class TeacherService {
             .firstName(request.firstName())
             .lastName(request.lastName())
             .role(User.Role.TEACHER)
-            .password(passwordEncoder.encode(request.password()))
+            .password(encoder.encode(request.password()))
             .build();
 
     var saved = teacherRepository.save(teacher);
@@ -69,7 +69,7 @@ public class TeacherService {
     teacher.setFirstName(request.firstName());
     teacher.setLastName(request.lastName());
     if (request.password() != null && !request.password().isBlank()) {
-      teacher.setPassword(passwordEncoder.encode(request.password()));
+      teacher.setPassword(encoder.encode(request.password()));
     }
 
     var saved = teacherRepository.save(teacher);

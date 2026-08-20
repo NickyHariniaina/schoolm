@@ -7,11 +7,11 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class StdRefGenerator {
-  private final JStudentRepository jStudentRepository;
+  private final JStudentRepository repository;
 
   public String generate(int entryYear) {
     var prefix = "STD" + String.format("%02d", entryYear % 100);
-    return jStudentRepository
+    return repository
         .findTopByReferenceStartingWithOrderByReferenceDesc(prefix)
         .map(
             student -> prefix + String.format("%03d", nextSequence(student.getReference(), prefix)))

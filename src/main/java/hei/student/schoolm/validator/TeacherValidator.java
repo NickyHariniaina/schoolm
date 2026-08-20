@@ -12,11 +12,11 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class TeacherValidator {
-  private final TeacherRepository teacherRepository;
+  private final TeacherRepository repository;
 
   public List<Teacher> checkTeachersExist(List<UUID> teacherIds) {
     var uniqueIds = teacherIds.stream().distinct().toList();
-    var teachers = teacherRepository.findAllById(uniqueIds);
+    var teachers = repository.findAllById(uniqueIds);
     var foundIds = teachers.stream().map(Teacher::getId).collect(Collectors.toSet());
     var missing = uniqueIds.stream().filter(id -> !foundIds.contains(id)).toList();
     if (!missing.isEmpty()) {

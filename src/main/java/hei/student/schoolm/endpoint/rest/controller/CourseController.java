@@ -20,25 +20,25 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class CourseController {
   private final CourseService courseService;
-  private final CourseMapper courseMapper;
+  private final CourseMapper mapper;
   private final ExamService examService;
 
   @GetMapping
   public List<CourseDto> getAllCourses() {
     var courses = courseService.getAllCourses();
-    return courseMapper.toDtoList(courses);
+    return mapper.toDtoList(courses);
   }
 
   @GetMapping("/{courseId}")
   public CourseDto getCourseById(@PathVariable UUID courseId) {
     var course = courseService.getCourseById(courseId);
-    return courseMapper.toDto(course);
+    return mapper.toDto(course);
   }
 
   @PutMapping
   public CourseDto upsertCourse(@Valid @RequestBody CourseRequest request) {
     var course = courseService.upsert(request);
-    return courseMapper.toDto(course);
+    return mapper.toDto(course);
   }
 
   @DeleteMapping("/{courseId}")
@@ -57,7 +57,7 @@ public class CourseController {
       @PathVariable UUID courseId, @Valid @RequestBody TeacherIdsRequest request) {
 
     var course = courseService.assignTeachers(courseId, request.teacherIds());
-    return courseMapper.toDto(course);
+    return mapper.toDto(course);
   }
 
   @PutMapping("/{courseId}/group")
@@ -65,6 +65,6 @@ public class CourseController {
       @PathVariable UUID courseId, @Valid @RequestBody GroupIdsRequest request) {
 
     var course = courseService.assignGroups(courseId, request.groupIds());
-    return courseMapper.toDto(course);
+    return mapper.toDto(course);
   }
 }

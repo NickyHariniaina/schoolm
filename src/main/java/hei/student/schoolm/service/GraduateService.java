@@ -31,12 +31,12 @@ public class GraduateService {
   private static final Duration PRESIGN_DURATION = Duration.ofMinutes(15);
   private static final String XLSX_KEY_PREFIX = "graduates";
 
-  private final CohortValidator cohortValidator;
+  private final CohortValidator validator;
   private final GroupRepository groupRepository;
   private final StudentRepository studentRepository;
-  private final GroupFlowService groupFlowService;
+  private final GroupFlowService service;
   private final CourseAssignmentRepository courseAssignmentRepository;
-  private final GraduateXlsxWriter graduateXlsxWriter;
+  private final GraduateXlsxWriter writer;
   private final BucketComponent bucketComponent;
 
   public GraduateFileDto generateGraduateList(
@@ -46,7 +46,7 @@ public class GraduateService {
     var bucketKey = XLSX_KEY_PREFIX + "/" + cohortRef + "_" + track.name() + ".xlsx";
     var fileName = "graduate-list_" + cohortRef + "_" + track.name() + ".xlsx";
     var sheetName = "Diplomes " + track.name();
-    var file = graduateXlsxWriter.write(graduates, sheetName);
+    var file = writer.write(graduates, sheetName);
     try {
       bucketComponent.upload(file, bucketKey);
     } finally {
@@ -63,7 +63,7 @@ public class GraduateService {
 
   public List<GraduateEntry> computeGraduates(
       String cohortRef, Track track, Integer month, Integer year) {
-    var cohort = cohortValidator.checkCohortExists(cohortRef);
+    var cohort = validator.checkCohortExists(cohortRef);
     var currentSemester = resolveSemester(month, year, cohort.getEntryYear());
 
     var graduates = new ArrayList<GraduateEntry>();
@@ -100,7 +100,7 @@ public class GraduateService {
   }
 
   private List<Course> completedCourses(Student student, Semester currentSemester) {
-    var groupIds = groupFlowService.studentGroupIds(student.getId());
+    var groupIds = service.studentGroupIds(student.getId());
     var semesters = new java.util.ArrayList<Semester>();
     for (var semester : Semester.values()) {
       if (semester.ordinal() <= currentSemester.ordinal()) {

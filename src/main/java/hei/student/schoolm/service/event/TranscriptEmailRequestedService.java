@@ -29,28 +29,28 @@ public class TranscriptEmailRequestedService implements Consumer<TranscriptEmail
   private static final Duration S3_URL_EXPIRATION = Duration.ofHours(1);
   private static final String PDF_KEY_PREFIX = "transcripts";
 
-  private final StudentService studentService;
-  private final StudentValidator studentValidator;
-  private final StudentMapper studentMapper;
-  private final TranscriptPdfGenerator pdfGenerator;
+  private final StudentService service;
+  private final StudentValidator validator;
+  private final StudentMapper mapper;
+  private final TranscriptPdfGenerator generator;
   private final BucketComponent bucketComponent;
   private final Mailer mailer;
 
   @SneakyThrows
   @Override
   public void accept(TranscriptEmailRequested event) {
-    var transcript = studentService.getTranscriptForLevel(event.getStudentId(), event.getLevel());
-    var student = studentValidator.checkStudentExists(event.getStudentId());
+    var transcript = service.getTranscriptForLevel(event.getStudentId(), event.getLevel());
+    var student = validator.checkStudentExists(event.getStudentId());
 
-    var group = studentService.getGroup(event.getStudentId());
+    var group = service.getGroup(event.getStudentId());
 
     var semester = getSemesterForLevel(event.getLevel());
 
-    var pdfDto = studentMapper.toPdfDto(student, group, semester, transcript.getCourses());
+    var pdfDto = mapper.toPdfDto(student, group, semester, transcript.getCourses());
 
     var bucketKey =
         PDF_KEY_PREFIX + "/" + student.getReference() + "_" + transcript.getAcademicYear() + ".pdf";
-    var file = pdfGenerator.generate(pdfDto);
+    var file = generator.generate(pdfDto);
 
     URL presignedUrl;
     try {

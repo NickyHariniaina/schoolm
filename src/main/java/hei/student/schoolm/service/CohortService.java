@@ -16,11 +16,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class CohortService {
-  private final CohortRepository cohortRepository;
+  private final CohortRepository repository;
 
   @Transactional(readOnly = true)
   public List<CohortDto> getCohorts() {
-    return cohortRepository.findAll().stream()
+    return repository.findAll().stream()
         .sorted(
             Comparator.comparing((Cohort cohort) -> cohort.getEntryYear())
                 .reversed()
@@ -43,12 +43,12 @@ public class CohortService {
     cohort.setRef(request.ref().toUpperCase());
     cohort.setEntryYear(Year.of(request.entryYear()));
 
-    var saved = cohortRepository.save(cohort);
+    var saved = repository.save(cohort);
     return toDto(saved);
   }
 
   public Cohort getEntityOrThrow(UUID id) {
-    return cohortRepository
+    return repository
         .findById(id)
         .orElseThrow(() -> new NotFoundException("Cohort not found: " + id));
   }

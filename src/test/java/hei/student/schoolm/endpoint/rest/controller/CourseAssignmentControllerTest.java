@@ -126,7 +126,8 @@ class CourseAssignmentControllerTest {
     var status =
         new hei.student.schoolm.dto.CurriculumStatusResponse(
             Semester.S3, 30, 30, true, List.of(), List.of(response()));
-    when(courseAssignmentService.curriculumStatus(GROUP_ID, 2025, Semester.S3)).thenReturn(status);
+    when(courseAssignmentService.getCurriculumStatus(GROUP_ID, 2025, Semester.S3))
+        .thenReturn(status);
 
     mockMvc
         .perform(

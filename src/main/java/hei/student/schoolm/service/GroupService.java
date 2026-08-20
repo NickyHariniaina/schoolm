@@ -21,8 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class GroupService {
   private final GroupRepository groupRepository;
   private final StudentRepository studentRepository;
-  private final CohortService cohortService;
-  private final GroupValidator groupValidator;
+  private final CohortService service;
+  private final GroupValidator validator;
 
   @Transactional(readOnly = true)
   public List<GroupResponse> getAll(UUID cohortId) {
@@ -44,7 +44,7 @@ public class GroupService {
             : getEntityOrThrow(request.id());
     group.setRef(request.ref().toUpperCase());
     group.setTrack(request.track());
-    group.setCohort(cohortService.getEntityOrThrow(request.cohortId()));
+    group.setCohort(service.getEntityOrThrow(request.cohortId()));
 
     var saved = groupRepository.save(group);
     return toResponse(saved);
@@ -59,7 +59,7 @@ public class GroupService {
   }
 
   public Cohort getCohort(UUID groupId) {
-    var group = groupValidator.checkGroupExists(groupId);
+    var group = validator.checkGroupExists(groupId);
     return group.getCohort();
   }
 

@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 public class CourseAssignmentValidator {
   private static final int MAX_CREDITS_PER_SEMESTER = 30;
 
-  private final CourseAssignmentRepository courseAssignmentRepository;
+  private final CourseAssignmentRepository repository;
 
   public void validateCurriculum(Course course, Group group, Semester semester) {
     if (course.getSemester() != semester) {
@@ -46,7 +46,7 @@ public class CourseAssignmentValidator {
   public void validateNotDuplicate(
       UUID id, UUID courseId, UUID groupId, int academicYear, Semester semester) {
     boolean duplicate =
-        courseAssignmentRepository.existsByCourseIdAndGroupIdAndAcademicYearAndSemester(
+        repository.existsByCourseIdAndGroupIdAndAcademicYearAndSemester(
             courseId, groupId, academicYear, semester);
     if (duplicate && id == null) {
       throw new BadRequestException(
@@ -68,7 +68,7 @@ public class CourseAssignmentValidator {
   private void validateCreditCeiling(
       GroupYearSemester triple, List<CourseAssignmentRequest> requests) {
     var existing =
-        courseAssignmentRepository.findByGroupIdAndAcademicYearAndSemester(
+        repository.findByGroupIdAndAcademicYearAndSemester(
             triple.groupId(), triple.academicYear(), triple.semester());
     var replacedIds =
         requests.stream().filter(r -> r.id() != null).map(CourseAssignmentRequest::id).toList();

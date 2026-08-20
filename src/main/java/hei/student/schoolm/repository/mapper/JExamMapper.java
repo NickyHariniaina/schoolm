@@ -14,13 +14,13 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class JExamMapper {
-  private final JGradeMapper jGradeMapper;
+  private final JGradeMapper mapper;
 
   public Exam toDomain(JExam jExam) {
     var grades =
         jExam.getGrades() == null
             ? List.<Grade>of()
-            : jExam.getGrades().stream().map(jGradeMapper::toDomain).toList();
+            : jExam.getGrades().stream().map(mapper::toDomain).toList();
     return Exam.builder()
         .id(jExam.getId())
         .course(

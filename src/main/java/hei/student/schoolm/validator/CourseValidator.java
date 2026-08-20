@@ -11,15 +11,15 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class CourseValidator {
-  private final CourseRepository courseRepository;
+  private final CourseRepository repository;
 
   public Course checkCourseExists(UUID courseId) {
-    return courseRepository
+    return repository
         .findById(courseId)
         .orElseThrow(() -> new NotFoundException("Course " + courseId + " not found"));
   }
 
   public List<Course> getAllCourses() {
-    return courseRepository.findAll();
+    return repository.findAll();
   }
 }

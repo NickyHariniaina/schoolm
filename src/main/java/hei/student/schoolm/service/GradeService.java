@@ -29,7 +29,7 @@ public class GradeService {
   private final GradeRepository gradeRepository;
   private final GradeValidator gradeValidator;
   private final JGradeHistoryRepository gradeHistoryRepository;
-  private final JGradeMapper jGradeMapper;
+  private final JGradeMapper mapper;
   private final SecurityUtil securityUtil;
   private final ExamValidator examValidator;
   private final StudentValidator studentValidator;
@@ -39,24 +39,21 @@ public class GradeService {
   public List<GradeDto> getGradesByExamId(UUID examId) {
     var exam = examValidator.checkExamExists(examId);
     requireTeacherTeachesCourse(exam.getCourse());
-    return gradeRepository.findAllByExamId(examId).stream().map(jGradeMapper::toDto).toList();
+    return gradeRepository.findAllByExamId(examId).stream().map(mapper::toDto).toList();
   }
 
   @Transactional(readOnly = true)
   public GradeDto getGradeById(UUID gradeId) {
     var grade = gradeValidator.checkGradeExists(gradeId);
     requireTeacherTeaches(grade);
-    return jGradeMapper.toDto(grade);
+    return mapper.toDto(grade);
   }
 
   @Transactional
   public List<GradeDto> upsertGrades(UUID examId, List<GradeRequest> requests) {
     var exam = examValidator.checkExamExists(examId);
     requireTeacherTeachesCourse(exam.getCourse());
-    return requests.stream()
-        .map(request -> saveGrade(exam, request))
-        .map(jGradeMapper::toDto)
-        .toList();
+    return requests.stream().map(request -> saveGrade(exam, request)).map(mapper::toDto).toList();
   }
 
   private Grade saveGrade(Exam exam, GradeRequest request) {
@@ -106,7 +103,7 @@ public class GradeService {
     grade.setChangeReason(request.changeReason());
     var updatedGrade = gradeRepository.save(grade);
 
-    return jGradeMapper.toDto(updatedGrade);
+    return mapper.toDto(updatedGrade);
   }
 
   private void recordHistory(Grade grade, java.math.BigDecimal newValue, String changeReason) {
@@ -131,7 +128,7 @@ public class GradeService {
 
     var history = gradeHistoryRepository.findAllByGradeIdOrderByChangedAtDesc(gradeId);
 
-    return history.stream().map(jGradeMapper::toHistoryDto).toList();
+    return history.stream().map(mapper::toHistoryDto).toList();
   }
 
   private void requireTeacherTeaches(Grade grade) {

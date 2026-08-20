@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class JStudentMapper {
-  private final JGroupMapper jGroupMapper;
+  private final JGroupMapper mapper;
 
   public Student toDomain(JStudent jStudent) {
     return Student.builder()
@@ -21,7 +21,7 @@ public class JStudentMapper {
         .password(jStudent.getPassword())
         .createdAt(jStudent.getCreatedAt())
         .updatedAt(jStudent.getUpdatedAt())
-        .group(jStudent.getGroup() == null ? null : jGroupMapper.toDomain(jStudent.getGroup()))
+        .group(jStudent.getGroup() == null ? null : mapper.toDomain(jStudent.getGroup()))
         .build();
   }
 
@@ -36,7 +36,7 @@ public class JStudentMapper {
         .password(student.getPassword())
         .createdAt(student.getCreatedAt())
         .updatedAt(student.getUpdatedAt())
-        .group(student.getGroup() == null ? null : jGroupMapper.toEntity(student.getGroup()))
+        .group(student.getGroup() == null ? null : mapper.toEntity(student.getGroup()))
         .build();
   }
 }

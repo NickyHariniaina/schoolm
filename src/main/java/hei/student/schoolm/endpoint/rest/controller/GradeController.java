@@ -15,27 +15,27 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/grades")
 @RequiredArgsConstructor
 public class GradeController {
-  private final GradeService gradeService;
+  private final GradeService service;
 
   @GetMapping("/{gradeId}")
   public GradeDto getGradeById(@PathVariable UUID gradeId) {
-    return gradeService.getGradeById(gradeId);
+    return service.getGradeById(gradeId);
   }
 
   @PutMapping("/{gradeId}")
   public GradeDto updateGrade(
       @PathVariable UUID gradeId, @Valid @RequestBody UpdateGradeRequest request) {
-    return gradeService.updateGrade(gradeId, request);
+    return service.updateGrade(gradeId, request);
   }
 
   @DeleteMapping("/{gradeId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteGrade(@PathVariable UUID gradeId) {
-    gradeService.delete(gradeId);
+    service.delete(gradeId);
   }
 
   @GetMapping("/{gradeId}/history")
   public List<GradeHistoryDto> getGradeHistory(@PathVariable UUID gradeId) {
-    return gradeService.getGradeHistory(gradeId);
+    return service.getGradeHistory(gradeId);
   }
 }

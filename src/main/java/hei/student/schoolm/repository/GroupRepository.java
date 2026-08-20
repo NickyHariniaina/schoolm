@@ -13,39 +13,37 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 @RequiredArgsConstructor
 public class GroupRepository {
-  private final JGroupRepository jGroupRepository;
-  private final JGroupMapper jGroupMapper;
+  private final JGroupRepository repository;
+  private final JGroupMapper mapper;
 
   public List<Group> findAllById(List<UUID> ids) {
-    return jGroupRepository.findAllById(ids).stream().map(jGroupMapper::toDomain).toList();
+    return repository.findAllById(ids).stream().map(mapper::toDomain).toList();
   }
 
   @Transactional(readOnly = true)
   public List<Group> findAll() {
-    return jGroupRepository.findAll().stream().map(jGroupMapper::toDomain).toList();
+    return repository.findAll().stream().map(mapper::toDomain).toList();
   }
 
   @Transactional(readOnly = true)
   public List<Group> findAllByIdWithCourses(List<UUID> ids) {
-    return jGroupRepository.findAllById(ids).stream()
-        .map(jGroupMapper::toDomainWithCourses)
-        .toList();
+    return repository.findAllById(ids).stream().map(mapper::toDomainWithCourses).toList();
   }
 
   @Transactional(readOnly = true)
   public List<Group> findAllByCohortId(UUID cohortId) {
-    return jGroupRepository.findAllByCohortId(cohortId).stream()
-        .map(jGroupMapper::toDomainWithCourses)
+    return repository.findAllByCohortId(cohortId).stream()
+        .map(mapper::toDomainWithCourses)
         .toList();
   }
 
   @Transactional(readOnly = true)
   public Optional<Group> findById(UUID id) {
-    return jGroupRepository.findById(id).map(jGroupMapper::toDomainWithCourses);
+    return repository.findById(id).map(mapper::toDomainWithCourses);
   }
 
   @Transactional
   public Group save(Group group) {
-    return jGroupMapper.toDomain(jGroupRepository.save(jGroupMapper.toEntity(group)));
+    return mapper.toDomain(repository.save(mapper.toEntity(group)));
   }
 }
