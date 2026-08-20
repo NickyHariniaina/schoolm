@@ -3,11 +3,16 @@ package hei.student.schoolm.service;
 import hei.student.schoolm.dto.CourseAssignmentRequest;
 import hei.student.schoolm.dto.CourseAssignmentResponse;
 import hei.student.schoolm.dto.CurriculumStatusResponse;
+import hei.student.schoolm.exception.ForbiddenException;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.mapper.CourseAssignmentMapper;
 import hei.student.schoolm.mapper.CourseMapper;
+import hei.student.schoolm.model.Course;
 import hei.student.schoolm.model.CourseAssignment;
+import hei.student.schoolm.model.Group;
 import hei.student.schoolm.model.Semester;
+import hei.student.schoolm.model.Teacher;
+import hei.student.schoolm.model.Track;
 import hei.student.schoolm.repository.CourseAssignmentRepository;
 import hei.student.schoolm.repository.StudentRepository;
 import hei.student.schoolm.util.SecurityUtil;
@@ -46,8 +51,7 @@ public class CourseAssignmentService {
       var student =
           studentRepository
               .findById(securityUtil.getCurrentUserIdOrThrow())
-              .orElseThrow(
-                  () -> new hei.student.schoolm.exception.NotFoundException("Student not found"));
+              .orElseThrow(() -> new NotFoundException("Student not found"));
       groupId = student.getGroup() == null ? null : student.getGroup().getId();
     }
     return courseAssignmentRepository
@@ -61,20 +65,17 @@ public class CourseAssignmentService {
     if (securityUtil.isTeacher()) {
       var teacherId = securityUtil.getCurrentUserIdOrThrow();
       if (!entity.teacherIds().contains(teacherId)) {
-        throw new hei.student.schoolm.exception.ForbiddenException(
-            "You may only access course assignments you teach");
+        throw new ForbiddenException("You may only access course assignments you teach");
       }
     }
     if (securityUtil.isStudent()) {
       var student =
           studentRepository
               .findById(securityUtil.getCurrentUserIdOrThrow())
-              .orElseThrow(
-                  () -> new hei.student.schoolm.exception.NotFoundException("Student not found"));
+              .orElseThrow(() -> new NotFoundException("Student not found"));
       var currentGroupId = student.getGroup() == null ? null : student.getGroup().getId();
       if (!entity.getGroup().getId().equals(currentGroupId)) {
-        throw new hei.student.schoolm.exception.ForbiddenException(
-            "This course assignment is not part of your curriculum");
+        throw new ForbiddenException("This course assignment is not part of your curriculum");
       }
     }
     return courseAssignmentMapper.toResponse(entity);
@@ -100,10 +101,7 @@ public class CourseAssignmentService {
   }
 
   private CourseAssignment newAssignment(
-      CourseAssignmentRequest request,
-      hei.student.schoolm.model.Course course,
-      hei.student.schoolm.model.Group group,
-      List<hei.student.schoolm.model.Teacher> teachers) {
+      CourseAssignmentRequest request, Course course, Group group, List<Teacher> teachers) {
     validator.validateNotDuplicate(
         null, course.getId(), group.getId(), request.academicYear(), request.semester());
     return CourseAssignment.builder()
@@ -118,10 +116,7 @@ public class CourseAssignmentService {
   }
 
   private CourseAssignment updateAssignment(
-      CourseAssignmentRequest request,
-      hei.student.schoolm.model.Course course,
-      hei.student.schoolm.model.Group group,
-      List<hei.student.schoolm.model.Teacher> teachers) {
+      CourseAssignmentRequest request, Course course, Group group, List<Teacher> teachers) {
     var entity = findEntityOrThrow(request.id());
     entity.setCourse(course);
     entity.setGroup(group);
@@ -135,8 +130,7 @@ public class CourseAssignmentService {
   @Transactional
   public void delete(UUID id) {
     if (!securityUtil.isAdmin()) {
-      throw new hei.student.schoolm.exception.ForbiddenException(
-          "Only an admin can delete a course assignment");
+      throw new ForbiddenException("Only an admin can delete a course assignment");
     }
     var entity = findEntityOrThrow(id);
     courseAssignmentRepository.delete(entity);
@@ -160,7 +154,7 @@ public class CourseAssignmentService {
             .filter(
                 c ->
                     c.getTrack() == null
-                        || c.getTrack() == hei.student.schoolm.model.Track.COMMON
+                        || c.getTrack() == Track.COMMON
                         || c.getTrack() == group.getTrack())
             .filter(c -> !assignedCourseIds.contains(c.getId()))
             .map(courseMapper::toDto)
