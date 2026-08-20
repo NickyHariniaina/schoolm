@@ -7,6 +7,7 @@ import hei.student.schoolm.model.Course;
 import hei.student.schoolm.model.CourseAssignment;
 import hei.student.schoolm.model.Group;
 import hei.student.schoolm.model.Semester;
+import hei.student.schoolm.model.Teacher;
 import hei.student.schoolm.model.Track;
 import hei.student.schoolm.repository.model.JCohort;
 import hei.student.schoolm.repository.model.JCourse;
@@ -114,7 +115,7 @@ class JCourseAssignmentMapperTest {
             .id(ASSIGNMENT_ID)
             .course(Course.builder().id(COURSE_ID).build())
             .group(Group.builder().id(GROUP_ID).build())
-            .teachers(List.of(hei.student.schoolm.model.Teacher.builder().id(TEACHER_ID).build()))
+            .teachers(List.of(Teacher.builder().id(TEACHER_ID).build()))
             .academicYear(2025)
             .semester(Semester.S3)
             .credits(8)
