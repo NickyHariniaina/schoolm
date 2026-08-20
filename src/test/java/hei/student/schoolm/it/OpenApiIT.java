@@ -22,7 +22,7 @@ class OpenApiIT extends FacadeIT {
   void specShouldServeTheSwaggerUiPage() {
     webTestClient
         .get()
-        .uri("/spec")
+        .uri("/docs")
         .exchange()
         .expectStatus()
         .isOk()
@@ -50,7 +50,7 @@ class OpenApiIT extends FacadeIT {
 
   @Test
   void specAndRawYamlDoNotRequireAuthentication() {
-    webTestClient.get().uri("/spec").exchange().expectStatus().isOk();
+    webTestClient.get().uri("/docs").exchange().expectStatus().isOk();
     webTestClient.get().uri("/openapi.yaml").exchange().expectStatus().isOk();
   }
 

@@ -15,7 +15,7 @@ public class OpenApiController {
   private static final String UI_PATH = "spec-ui.html";
   private static final MediaType YAML = MediaType.parseMediaType("application/yaml");
 
-  @GetMapping(value = "/spec", produces = MediaType.TEXT_HTML_VALUE)
+  @GetMapping(value = "/docs", produces = MediaType.TEXT_HTML_VALUE)
   public ResponseEntity<Resource> specUi() {
     var page = new ClassPathResource(UI_PATH);
     return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(page);
