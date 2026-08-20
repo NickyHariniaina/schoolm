@@ -38,7 +38,10 @@ public class GroupService {
 
   @Transactional
   public GroupResponse upsert(GroupRequest request) {
-    var group = request.id() == null ? Group.builder().build() : getEntityOrThrow(request.id());
+    var group =
+        request.id() == null
+            ? Group.builder().id(UUID.randomUUID()).build()
+            : getEntityOrThrow(request.id());
     group.setRef(request.ref().toUpperCase());
     group.setTrack(request.track());
     group.setCohort(cohortService.getEntityOrThrow(request.cohortId()));

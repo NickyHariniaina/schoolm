@@ -107,6 +107,7 @@ public class CourseAssignmentService {
     validator.validateNotDuplicate(
         null, course.getId(), group.getId(), request.academicYear(), request.semester());
     return CourseAssignment.builder()
+        .id(UUID.randomUUID())
         .course(course)
         .group(group)
         .teachers(teachers)

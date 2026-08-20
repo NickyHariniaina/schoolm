@@ -36,7 +36,10 @@ public class CohortService {
 
   @Transactional
   public CohortDto upsert(CohortRequest request) {
-    var cohort = request.id() == null ? Cohort.builder().build() : getEntityOrThrow(request.id());
+    var cohort =
+        request.id() == null
+            ? Cohort.builder().id(UUID.randomUUID()).build()
+            : getEntityOrThrow(request.id());
     cohort.setRef(request.ref().toUpperCase());
     cohort.setEntryYear(Year.of(request.entryYear()));
 
