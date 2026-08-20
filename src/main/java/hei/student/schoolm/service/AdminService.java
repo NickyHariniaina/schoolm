@@ -14,24 +14,24 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class AdminService {
-  private final AdminRepository adminRepository;
-  private final AdminValidator adminValidator;
+  private final AdminRepository repository;
+  private final AdminValidator validator;
   private final SecurityUtil securityUtil;
 
   @Transactional(readOnly = true)
   public AdminResponse getById(UUID adminId) {
     securityUtil.requireSelf(adminId);
-    return toResponse(adminValidator.checkAdminExists(adminId));
+    return toResponse(validator.checkAdminExists(adminId));
   }
 
   @Transactional
   public AdminResponse update(UUID adminId, AdminRequest request) {
     securityUtil.requireSelf(adminId);
-    var admin = adminValidator.checkAdminExists(adminId);
+    var admin = validator.checkAdminExists(adminId);
     admin.setFirstName(request.firstName());
     admin.setLastName(request.lastName());
     admin.setEmail(request.email());
-    return toResponse(adminRepository.save(admin));
+    return toResponse(repository.save(admin));
   }
 
   private AdminResponse toResponse(Admin admin) {
