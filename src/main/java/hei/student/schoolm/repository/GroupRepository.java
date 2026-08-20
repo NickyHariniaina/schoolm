@@ -21,6 +21,11 @@ public class GroupRepository {
   }
 
   @Transactional(readOnly = true)
+  public List<Group> findAll() {
+    return jGroupRepository.findAll().stream().map(jGroupMapper::toDomain).toList();
+  }
+
+  @Transactional(readOnly = true)
   public List<Group> findAllByIdWithCourses(List<UUID> ids) {
     return jGroupRepository.findAllById(ids).stream()
         .map(jGroupMapper::toDomainWithCourses)
@@ -37,5 +42,10 @@ public class GroupRepository {
   @Transactional(readOnly = true)
   public Optional<Group> findById(UUID id) {
     return jGroupRepository.findById(id).map(jGroupMapper::toDomainWithCourses);
+  }
+
+  @Transactional
+  public Group save(Group group) {
+    return jGroupMapper.toDomain(jGroupRepository.save(jGroupMapper.toEntity(group)));
   }
 }

@@ -4,10 +4,12 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import hei.student.schoolm.dto.CohortDto;
+import hei.student.schoolm.dto.CohortRequest;
 import hei.student.schoolm.dto.GraduateFileDto;
 import hei.student.schoolm.endpoint.rest.security.JwtAuthenticationFilter;
 import hei.student.schoolm.exception.NotFoundException;
@@ -16,6 +18,7 @@ import hei.student.schoolm.service.CohortService;
 import hei.student.schoolm.service.GraduateService;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -23,6 +26,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(
@@ -102,4 +106,49 @@ class CohortControllerTest {
         .perform(get("/cohorts/{ref}/graduates", "J").param("track", "INVALID"))
         .andExpect(status().isBadRequest());
   }
+
+  @Test
+  void should_get_cohort_by_id() throws Exception {
+    when(cohortService.getById(COHORT_ID))
+        .thenReturn(CohortDto.builder().id(COHORT_ID).ref("J").entryYear(2024).build());
+
+    mockMvc
+        .perform(get("/cohorts/{id}", COHORT_ID))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id", is(COHORT_ID.toString())))
+        .andExpect(jsonPath("$.ref", is("J")))
+        .andExpect(jsonPath("$.entryYear", is(2024)));
+  }
+
+  @Test
+  void should_return_404_when_getting_missing_cohort() throws Exception {
+    when(cohortService.getById(COHORT_ID))
+        .thenThrow(new NotFoundException("Cohort not found: " + COHORT_ID));
+
+    mockMvc.perform(get("/cohorts/{id}", COHORT_ID)).andExpect(status().isNotFound());
+  }
+
+  @Test
+  void should_upsert_cohort() throws Exception {
+    when(cohortService.upsert(new CohortRequest(null, "promo", 2026)))
+        .thenReturn(CohortDto.builder().id(COHORT_ID).ref("PROMO").entryYear(2026).build());
+
+    mockMvc
+        .perform(
+            put("/cohorts")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"ref\":\"promo\",\"entryYear\":2026}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.ref", is("PROMO")))
+        .andExpect(jsonPath("$.entryYear", is(2026)));
+  }
+
+  @Test
+  void should_return_400_when_upserting_without_required_fields() throws Exception {
+    mockMvc
+        .perform(put("/cohorts").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        .andExpect(status().isBadRequest());
+  }
+
+  private static final UUID COHORT_ID = UUID.fromString("00000000-0000-0000-0000-000000000099");
 }

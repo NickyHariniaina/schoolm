@@ -45,6 +45,13 @@ class StudentServiceTest {
   @Mock CourseAssignmentRepository courseAssignmentRepository;
   @Mock StudentMapper studentMapper;
   @Mock SecurityUtil securityUtil;
+  @Mock hei.student.schoolm.repository.StudentRepository studentRepository;
+  @Mock GroupService groupService;
+  @Mock hei.student.schoolm.repository.GroupFlowRepository groupFlowRepository;
+  @Mock hei.student.schoolm.repository.GradeRepository gradeRepository;
+  @Mock hei.student.schoolm.repository.jpa.JGradeHistoryRepository jGradeHistoryRepository;
+  @Mock hei.student.schoolm.util.StdRefGenerator stdRefGenerator;
+  @Mock org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
   @InjectMocks StudentService studentService;
 
   private final SemesterValidationDto anyDto = SemesterValidationDto.builder().build();
@@ -298,5 +305,145 @@ class StudentServiceTest {
 
     studentService.getTranscript(STUDENT_ID, 10, 2024);
     verify(studentMapper).toTranscriptDto(any(), any(), any(), any());
+  }
+
+  @Test
+  void should_return_all_students() {
+    var student = createStudent();
+    when(studentRepository.findAll()).thenReturn(List.of(student));
+
+    var result = studentService.getAll();
+
+    assertEquals(1, result.size());
+    assertEquals(STUDENT_ID, result.get(0).id());
+  }
+
+  @Test
+  void should_get_student_by_id() {
+    var student = createStudent();
+    when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
+
+    var result = studentService.getById(STUDENT_ID);
+
+    assertEquals(STUDENT_ID, result.id());
+    verify(securityUtil).requireSelfOrStaff(STUDENT_ID);
+  }
+
+  @Test
+  void should_create_student_with_generated_reference_and_join_flow() {
+    var group = createGroup(List.of());
+    var cohort = Cohort.builder().id(UUID.randomUUID()).ref("K").entryYear(Year.of(2024)).build();
+    group.setCohort(cohort);
+    var student =
+        Student.builder()
+            .id(STUDENT_ID)
+            .firstName("Tokyo")
+            .lastName("Watt")
+            .email("tokyo@hei.school")
+            .reference("STD24001")
+            .group(group)
+            .build();
+    var request =
+        hei.student.schoolm.dto.StudentRequest.builder()
+            .firstName("Tokyo")
+            .lastName("Watt")
+            .email("tokyo@hei.school")
+            .password("secret")
+            .groupId(group.getId())
+            .build();
+
+    when(groupService.getEntityOrThrow(group.getId())).thenReturn(group);
+    when(stdRefGenerator.generate(2024)).thenReturn("STD24001");
+    when(studentRepository.save(any())).thenReturn(student);
+    when(groupFlowRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+    var result = studentService.upsert(request);
+
+    assertEquals(STUDENT_ID, result.id());
+    verify(stdRefGenerator).generate(2024);
+    verify(groupFlowRepository).save(any());
+  }
+
+  @Test
+  void should_throw_when_creating_student_without_group() {
+    var request =
+        hei.student.schoolm.dto.StudentRequest.builder()
+            .firstName("Tokyo")
+            .lastName("Watt")
+            .email("tokyo@hei.school")
+            .password("secret")
+            .build();
+
+    assertThrows(BadRequestException.class, () -> studentService.upsert(request));
+  }
+
+  @Test
+  void should_throw_when_creating_student_without_password() {
+    var group = createGroup(List.of());
+    var request =
+        hei.student.schoolm.dto.StudentRequest.builder()
+            .firstName("Tokyo")
+            .lastName("Watt")
+            .email("tokyo@hei.school")
+            .groupId(group.getId())
+            .build();
+
+    assertThrows(BadRequestException.class, () -> studentService.upsert(request));
+  }
+
+  @Test
+  void should_update_student() {
+    var student = createStudent();
+    var request =
+        hei.student.schoolm.dto.StudentRequest.builder()
+            .id(STUDENT_ID)
+            .firstName("NewName")
+            .lastName("Watt")
+            .email("tokyo@hei.school")
+            .build();
+
+    when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(student);
+    when(studentRepository.save(any())).thenReturn(student);
+
+    var result = studentService.upsert(request);
+
+    assertEquals(STUDENT_ID, result.id());
+    verify(studentRepository).save(any());
+  }
+
+  @Test
+  void should_throw_when_updating_student_with_group_change() {
+    var request =
+        hei.student.schoolm.dto.StudentRequest.builder()
+            .id(STUDENT_ID)
+            .firstName("Tokyo")
+            .lastName("Watt")
+            .email("tokyo@hei.school")
+            .groupId(GROUP_ID)
+            .build();
+
+    assertThrows(BadRequestException.class, () -> studentService.upsert(request));
+  }
+
+  @Test
+  void should_delete_student_and_cascade() {
+    when(securityUtil.isAdmin()).thenReturn(true);
+    when(studentValidator.checkStudentExists(STUDENT_ID)).thenReturn(createStudent());
+
+    studentService.delete(STUDENT_ID);
+
+    verify(gradeRepository).deleteAllByStudentId(STUDENT_ID);
+    verify(jGradeHistoryRepository).deleteAllByStudentId(STUDENT_ID);
+    verify(groupFlowRepository).deleteAllByStudentId(STUDENT_ID);
+    verify(studentRepository).deleteById(STUDENT_ID);
+  }
+
+  @Test
+  void should_throw_when_non_admin_deletes_student() {
+    when(securityUtil.isAdmin()).thenReturn(false);
+
+    assertThrows(
+        hei.student.schoolm.exception.ForbiddenException.class,
+        () -> studentService.delete(STUDENT_ID));
   }
 }

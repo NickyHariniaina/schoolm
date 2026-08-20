@@ -13,6 +13,7 @@ public class JTeacherMapper {
         .firstName(jTeacher.getFirstName())
         .lastName(jTeacher.getLastName())
         .role(jTeacher.getRole())
+        .password(jTeacher.getPassword())
         .createdAt(jTeacher.getCreatedAt())
         .updatedAt(jTeacher.getUpdatedAt())
         .build();
@@ -25,6 +26,7 @@ public class JTeacherMapper {
         .firstName(teacher.getFirstName())
         .lastName(teacher.getLastName())
         .role(teacher.getRole())
+        .password(teacher.getPassword())
         .createdAt(teacher.getCreatedAt())
         .updatedAt(teacher.getUpdatedAt())
         .build();

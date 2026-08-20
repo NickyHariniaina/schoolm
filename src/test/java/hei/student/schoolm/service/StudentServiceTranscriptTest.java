@@ -65,6 +65,13 @@ class StudentServiceTranscriptTest {
             courseAssignmentRepository,
             new StudentMapper(),
             securityUtil,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
             groupValidator);
     org.mockito.Mockito.lenient().when(securityUtil.isAdmin()).thenReturn(true);
   }

@@ -1,14 +1,19 @@
 package hei.student.schoolm.endpoint.rest.controller;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import hei.student.schoolm.dto.CourseRequest;
+import hei.student.schoolm.dto.ExamDto;
 import hei.student.schoolm.endpoint.rest.security.JwtAuthenticationFilter;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.mapper.CourseMapper;
@@ -17,7 +22,10 @@ import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.model.Teacher;
 import hei.student.schoolm.model.Track;
 import hei.student.schoolm.service.CourseService;
+import hei.student.schoolm.service.ExamService;
 import hei.student.schoolm.utils.GroupTestUtils;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -41,6 +49,7 @@ import org.springframework.test.web.servlet.MockMvc;
 class CourseControllerTest {
   @Autowired MockMvc mockMvc;
   @MockBean CourseService courseService;
+  @MockBean ExamService examService;
 
   private static final UUID COURSE_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
   private static final UUID TEACHER_TOKY = UUID.fromString("00000000-0000-0000-0000-000000000002");
@@ -248,5 +257,78 @@ class CourseControllerTest {
                 .contentType(APPLICATION_JSON)
                 .content("{\"groupIds\":[\"\"]}"))
         .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void should_create_course() throws Exception {
+    var course = createCourse(COURSE_ID, List.of());
+    when(courseService.upsert(any(CourseRequest.class))).thenReturn(course);
+
+    mockMvc
+        .perform(
+            put("/courses")
+                .contentType(APPLICATION_JSON)
+                .content(
+                    "{\"ref\":\"PROG4\",\"title\":\"Exploitation dans le cloud\","
+                        + "\"credit\":8,\"track\":\"EL\",\"semester\":\"S3\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(COURSE_ID.toString()))
+        .andExpect(jsonPath("$.ref").value("PROG4"))
+        .andExpect(jsonPath("$.track").value("EL"))
+        .andExpect(jsonPath("$.semester").value("S3"));
+
+    verify(courseService).upsert(any(CourseRequest.class));
+  }
+
+  @Test
+  void should_update_course() throws Exception {
+    var course = createCourse(COURSE_ID, List.of());
+    when(courseService.upsert(any(CourseRequest.class))).thenReturn(course);
+
+    mockMvc
+        .perform(
+            put("/courses")
+                .contentType(APPLICATION_JSON)
+                .content(
+                    "{\"id\":\""
+                        + COURSE_ID
+                        + "\",\"ref\":\"PROG4\",\"title\":\"New\","
+                        + "\"credit\":6,\"track\":\"EL\",\"semester\":\"S3\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(COURSE_ID.toString()))
+        .andExpect(jsonPath("$.credit").value(8));
+
+    verify(courseService).upsert(any(CourseRequest.class));
+  }
+
+  @Test
+  void should_return_400_when_course_body_invalid() throws Exception {
+    mockMvc
+        .perform(put("/courses").contentType(APPLICATION_JSON).content("{}"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void should_delete_course() throws Exception {
+    mockMvc.perform(delete("/courses/{courseId}", COURSE_ID)).andExpect(status().isNoContent());
+
+    verify(courseService).delete(COURSE_ID);
+  }
+
+  @Test
+  void should_list_exams_of_course() throws Exception {
+    var examId = UUID.fromString("00000000-0000-0000-0000-000000000006");
+    var examDto =
+        new ExamDto(
+            examId, COURSE_ID, LocalDate.of(2026, 3, 1), 1, 2, Instant.now(), Instant.now());
+    when(examService.getExamsByCourseId(COURSE_ID)).thenReturn(List.of(examDto));
+
+    mockMvc
+        .perform(get("/courses/{courseId}/exams", COURSE_ID))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].id").value(examId.toString()))
+        .andExpect(jsonPath("$[0].courseId").value(COURSE_ID.toString()));
+
+    verify(examService).getExamsByCourseId(COURSE_ID);
   }
 }

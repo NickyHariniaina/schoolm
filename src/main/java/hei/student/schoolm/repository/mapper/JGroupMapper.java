@@ -43,6 +43,7 @@ public class JGroupMapper {
         .id(group.getId())
         .ref(group.getRef())
         .track(group.getTrack())
+        .cohort(group.getCohort() == null ? null : jCohortMapper.toEntity(group.getCohort()))
         .createdAt(group.getCreatedAt())
         .updatedAt(group.getUpdatedAt())
         .build();

@@ -60,4 +60,19 @@ public class GradeRepository {
     var saved = jGradeRepository.save(jGrade);
     return jGradeMapper.toDomain(saved);
   }
+
+  @Transactional
+  public void deleteAllByStudentId(UUID studentId) {
+    jGradeRepository.deleteAllByStudentId(studentId);
+  }
+
+  @Transactional
+  public void deleteAllByExamId(UUID examId) {
+    jGradeRepository.deleteAllByExamId(examId);
+  }
+
+  @Transactional
+  public void deleteById(UUID id) {
+    jGradeRepository.deleteById(id);
+  }
 }

@@ -1,7 +1,9 @@
 package hei.student.schoolm.endpoint.rest.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -120,6 +122,31 @@ public class GradeControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void should_get_grade_by_id() throws Exception {
+    var gradeDto =
+        new GradeDto(
+            gradeId, studentId, examId, new BigDecimal("15.0"), null, Instant.now(), Instant.now());
+    when(gradeService.getGradeById(gradeId)).thenReturn(gradeDto);
+
+    mockMvc
+        .perform(get("/grades/{gradeId}", gradeId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(gradeId.toString()))
+        .andExpect(jsonPath("$.studentId").value(studentId.toString()))
+        .andExpect(jsonPath("$.examId").value(examId.toString()))
+        .andExpect(jsonPath("$.value").value(15.0));
+
+    verify(gradeService).getGradeById(gradeId);
+  }
+
+  @Test
+  void should_delete_grade() throws Exception {
+    mockMvc.perform(delete("/grades/{gradeId}", gradeId)).andExpect(status().isNoContent());
+
+    verify(gradeService).delete(gradeId);
   }
 
   @Test

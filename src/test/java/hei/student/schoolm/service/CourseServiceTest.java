@@ -4,9 +4,11 @@ import static hei.student.schoolm.utils.GroupTestUtils.createGroup;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import hei.student.schoolm.dto.CourseRequest;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.model.Course;
 import hei.student.schoolm.model.Group;
@@ -16,9 +18,14 @@ import hei.student.schoolm.model.Track;
 import hei.student.schoolm.repository.CourseRepository;
 import hei.student.schoolm.repository.GroupRepository;
 import hei.student.schoolm.repository.TeacherRepository;
+import hei.student.schoolm.repository.jpa.JExamRepository;
+import hei.student.schoolm.repository.jpa.JGradeHistoryRepository;
+import hei.student.schoolm.repository.jpa.JGradeRepository;
+import hei.student.schoolm.repository.model.JExam;
 import hei.student.schoolm.validator.CourseValidator;
 import hei.student.schoolm.validator.GroupValidator;
 import hei.student.schoolm.validator.TeacherValidator;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -43,6 +50,9 @@ class CourseServiceTest {
   @Mock CourseValidator courseValidator;
   @Mock TeacherValidator teacherValidator;
   @Mock GroupValidator groupValidator;
+  @Mock JExamRepository jExamRepository;
+  @Mock JGradeRepository jGradeRepository;
+  @Mock JGradeHistoryRepository jGradeHistoryRepository;
   @InjectMocks CourseService courseService;
 
   private Course createCourse() {
@@ -182,5 +192,86 @@ class CourseServiceTest {
     assertEquals(List.of(GROUP_L1_EL_01), result.getGroups().stream().map(Group::getId).toList());
     assertEquals(List.of(group1), course.getGroups());
     verify(courseRepository).save(course);
+  }
+
+  @Test
+  void should_create_course() {
+    var request =
+        CourseRequest.builder()
+            .ref("PROG4")
+            .title("Exploitation dans le cloud")
+            .credit(8)
+            .track(Track.EL)
+            .semester(Semester.S3)
+            .build();
+    var course = createCourse();
+    when(courseRepository.save(any(Course.class))).thenReturn(course);
+
+    var result = courseService.upsert(request);
+
+    assertEquals(COURSE_ID, result.getId());
+    assertEquals("PROG4", result.getRef());
+    assertEquals(Track.EL, result.getTrack());
+    assertEquals(Semester.S3, result.getSemester());
+    verify(courseRepository).save(any(Course.class));
+  }
+
+  @Test
+  void should_update_existing_course() {
+    var course = createCourse();
+    var request =
+        CourseRequest.builder()
+            .id(COURSE_ID)
+            .ref("PROG4")
+            .title("Nouveau titre")
+            .credit(6)
+            .track(Track.EL)
+            .semester(Semester.S3)
+            .build();
+    when(courseValidator.checkCourseExists(COURSE_ID)).thenReturn(course);
+    when(courseRepository.save(course)).thenReturn(course);
+
+    var result = courseService.upsert(request);
+
+    assertEquals("Nouveau titre", result.getTitle());
+    assertEquals(6, result.getCredit());
+    verify(courseRepository).save(course);
+  }
+
+  @Test
+  void should_throw_not_found_when_updating_missing_course() {
+    var unknown = UUID.fromString("99999999-9999-9999-9999-999999999996");
+    var request =
+        CourseRequest.builder()
+            .id(unknown)
+            .ref("PROG4")
+            .title("Titre")
+            .credit(8)
+            .track(Track.EL)
+            .semester(Semester.S3)
+            .build();
+    when(courseValidator.checkCourseExists(unknown))
+        .thenThrow(new NotFoundException("Course " + unknown + " not found"));
+
+    assertThrows(NotFoundException.class, () -> courseService.upsert(request));
+  }
+
+  @Test
+  void should_delete_course_and_its_exams_and_grades() {
+    var course = createCourse();
+    var exam =
+        JExam.builder()
+            .id(UUID.fromString("00000000-0000-0000-0000-000000000010"))
+            .dateExam(LocalDate.of(2026, 3, 1))
+            .build();
+    when(courseValidator.checkCourseExists(COURSE_ID)).thenReturn(course);
+    when(jExamRepository.findAllByCourseId(COURSE_ID)).thenReturn(List.of(exam));
+
+    courseService.delete(COURSE_ID);
+
+    verify(jGradeHistoryRepository).deleteAllByExamId(exam.getId());
+    verify(jGradeRepository).deleteAllByExamId(exam.getId());
+    verify(jExamRepository).deleteAllByCourseId(COURSE_ID);
+    verify(courseRepository).deleteById(COURSE_ID);
   }
 }

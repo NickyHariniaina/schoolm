@@ -2,13 +2,21 @@ package hei.student.schoolm.service;
 
 import hei.student.schoolm.dto.LevelRequest;
 import hei.student.schoolm.dto.SemesterValidationDto;
+import hei.student.schoolm.dto.StudentRequest;
+import hei.student.schoolm.dto.StudentResponse;
 import hei.student.schoolm.dto.TranscriptDto;
 import hei.student.schoolm.dto.TranscriptStatus;
 import hei.student.schoolm.exception.BadRequestException;
+import hei.student.schoolm.exception.ForbiddenException;
 import hei.student.schoolm.mapper.StudentMapper;
 import hei.student.schoolm.model.*;
 import hei.student.schoolm.repository.CourseAssignmentRepository;
+import hei.student.schoolm.repository.GradeRepository;
+import hei.student.schoolm.repository.GroupFlowRepository;
+import hei.student.schoolm.repository.StudentRepository;
+import hei.student.schoolm.repository.jpa.JGradeHistoryRepository;
 import hei.student.schoolm.util.SecurityUtil;
+import hei.student.schoolm.util.StdRefGenerator;
 import hei.student.schoolm.validator.GroupValidator;
 import hei.student.schoolm.validator.StudentValidator;
 import java.time.LocalDate;
@@ -17,6 +25,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +37,93 @@ public class StudentService {
   private final CourseAssignmentRepository courseAssignmentRepository;
   private final StudentMapper studentMapper;
   private final SecurityUtil securityUtil;
+  private final StudentRepository studentRepository;
+  private final GroupService groupService;
+  private final GroupFlowRepository groupFlowRepository;
+  private final GradeRepository gradeRepository;
+  private final JGradeHistoryRepository jGradeHistoryRepository;
+  private final StdRefGenerator stdRefGenerator;
+  private final PasswordEncoder passwordEncoder;
   private final GroupValidator groupValidator;
+
+  @Transactional(readOnly = true)
+  public List<StudentResponse> getAll() {
+    return studentRepository.findAll().stream().map(this::toResponse).toList();
+  }
+
+  @Transactional(readOnly = true)
+  public StudentResponse getById(UUID studentId) {
+    securityUtil.requireSelfOrStaff(studentId);
+    return toResponse(studentValidator.checkStudentExists(studentId));
+  }
+
+  @Transactional
+  public StudentResponse upsert(StudentRequest request) {
+    if (request.id() == null) {
+      return create(request);
+    }
+    return update(request);
+  }
+
+  private StudentResponse create(StudentRequest request) {
+    if (request.groupId() == null) {
+      throw new BadRequestException("groupId is required when creating a student");
+    }
+    if (request.password() == null || request.password().isBlank()) {
+      throw new BadRequestException("password is required when creating a student");
+    }
+    var group = groupService.getEntityOrThrow(request.groupId());
+    var reference = stdRefGenerator.generate(group.getCohort().getEntryYear().getValue());
+
+    var student =
+        studentRepository.save(
+            Student.builder()
+                .email(request.email())
+                .firstName(request.firstName())
+                .lastName(request.lastName())
+                .role(User.Role.STUDENT)
+                .password(passwordEncoder.encode(request.password()))
+                .reference(reference)
+                .group(group)
+                .build());
+
+    groupFlowRepository.save(
+        GroupFlow.builder()
+            .student(student)
+            .group(group)
+            .groupFlowType(GroupFlowType.JOIN)
+            .build());
+
+    return toResponse(student);
+  }
+
+  private StudentResponse update(StudentRequest request) {
+    if (request.groupId() != null) {
+      throw new BadRequestException(
+          "groupId cannot be changed on update; moves must go through /students/{id}/group-flows");
+    }
+    var student = studentValidator.checkStudentExists(request.id());
+    student.setEmail(request.email());
+    student.setFirstName(request.firstName());
+    student.setLastName(request.lastName());
+    if (request.password() != null && !request.password().isBlank()) {
+      student.setPassword(passwordEncoder.encode(request.password()));
+    }
+
+    return toResponse(studentRepository.save(student));
+  }
+
+  @Transactional
+  public void delete(UUID studentId) {
+    if (!securityUtil.isAdmin()) {
+      throw new ForbiddenException("Only an admin can delete a student");
+    }
+    studentValidator.checkStudentExists(studentId);
+    gradeRepository.deleteAllByStudentId(studentId);
+    jGradeHistoryRepository.deleteAllByStudentId(studentId);
+    groupFlowRepository.deleteAllByStudentId(studentId);
+    studentRepository.deleteById(studentId);
+  }
 
   @Transactional(readOnly = true)
   public SemesterValidationDto getStudentSemesterValidation(UUID studentId, Semester semester) {
@@ -156,5 +251,16 @@ public class StudentService {
         .courses(List.of())
         .status(TranscriptStatus.NOT_STARTED)
         .build();
+  }
+
+  private StudentResponse toResponse(Student student) {
+    return new StudentResponse(
+        student.getId(),
+        student.getReference(),
+        student.getFirstName(),
+        student.getLastName(),
+        student.getEmail(),
+        student.getGroup() == null ? null : student.getGroup().getId(),
+        student.getGroup() == null ? null : student.getGroup().getRef());
   }
 }
