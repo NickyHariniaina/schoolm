@@ -14,21 +14,21 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthService {
 
-  private final UserRepository userRepository;
-  private final JwtService jwtService;
-  private final PasswordEncoder passwordEncoder;
+  private final UserRepository repository;
+  private final JwtService service;
+  private final PasswordEncoder encoder;
 
   public AuthResponse login(LoginRequest request) {
     var user =
-        userRepository
+        repository
             .findByEmailIgnoreCase(request.email())
             .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
 
-    if (user.password() == null || !passwordEncoder.matches(request.password(), user.password())) {
+    if (user.password() == null || !encoder.matches(request.password(), user.password())) {
       throw new UnauthorizedException("Invalid credentials");
     }
 
-    var token = jwtService.generateToken(user.id(), user.email(), user.role());
+    var token = service.generateToken(user.id(), user.email(), user.role());
     var userResponse =
         new UserResponse(user.id(), user.firstName(), user.lastName(), user.email(), user.role());
     return new AuthResponse(token, userResponse);
