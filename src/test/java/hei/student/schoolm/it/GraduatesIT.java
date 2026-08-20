@@ -391,7 +391,7 @@ class GraduatesIT extends FacadeIT {
         .header("Authorization", "Bearer " + adminToken(admin))
         .exchange()
         .expectStatus()
-        .value(status -> assertEquals(HttpStatus.FOUND.value(), status.value()))
+        .value(status -> assertEquals(HttpStatus.FOUND.value(), status))
         .expectHeader()
         .value("Location", location -> assertTrue(location.startsWith("https://dummy-bucket")));
   }

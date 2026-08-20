@@ -27,6 +27,7 @@ import hei.student.schoolm.repository.jpa.JGroupRepository;
 import hei.student.schoolm.repository.jpa.JStudentRepository;
 import hei.student.schoolm.repository.jpa.JTeacherRepository;
 import hei.student.schoolm.repository.model.JAdmin;
+import hei.student.schoolm.repository.model.JCohort;
 import hei.student.schoolm.repository.model.JCourse;
 import hei.student.schoolm.repository.model.JExam;
 import hei.student.schoolm.repository.model.JGrade;

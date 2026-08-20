@@ -93,7 +93,7 @@ class AdminIT extends FacadeIT {
   }
 
   private AdminRequest adminRequest(String firstname, String lastname, String email) {
-    return AdminRequest.builder().firstname(firstname).lastname(lastname).email(email).build();
+    return AdminRequest.builder().firstName(firstname).lastName(lastname).email(email).build();
   }
 
   @Test
