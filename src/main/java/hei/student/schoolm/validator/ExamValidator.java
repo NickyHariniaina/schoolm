@@ -10,10 +10,10 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class ExamValidator {
-  private final ExamRepository examRepository;
+  private final ExamRepository repository;
 
   public Exam checkExamExists(UUID examId) {
-    return examRepository
+    return repository
         .findById(examId)
         .orElseThrow(() -> new NotFoundException("Exam " + examId + " not found"));
   }
