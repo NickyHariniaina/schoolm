@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
 
@@ -176,6 +177,6 @@ public class TranscriptPdfGenerator {
         noCoursesMessage,
         rows,
         statsHtml,
-        java.time.LocalDate.now());
+        LocalDate.now());
   }
 }
