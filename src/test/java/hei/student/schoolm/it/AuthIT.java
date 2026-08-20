@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import hei.student.schoolm.conf.FacadeIT;
 import hei.student.schoolm.dto.AuthResponse;
 import hei.student.schoolm.dto.LoginRequest;
+import hei.student.schoolm.endpoint.rest.security.JwtService;
 import hei.student.schoolm.model.User.Role;
 import hei.student.schoolm.repository.jpa.JAdminRepository;
 import hei.student.schoolm.repository.model.JAdmin;
@@ -24,7 +25,7 @@ class AuthIT extends FacadeIT {
 
   @Autowired private JAdminRepository adminRepository;
   @Autowired private PasswordEncoder passwordEncoder;
-  @Autowired private hei.student.schoolm.endpoint.rest.security.JwtService jwtService;
+  @Autowired private JwtService jwtService;
 
   @LocalServerPort int port;
   private WebTestClient webTestClient;
