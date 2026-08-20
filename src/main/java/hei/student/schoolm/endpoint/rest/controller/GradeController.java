@@ -2,9 +2,7 @@ package hei.student.schoolm.endpoint.rest.controller;
 
 import hei.student.schoolm.dto.GradeDto;
 import hei.student.schoolm.dto.GradeHistoryDto;
-import hei.student.schoolm.dto.UpdateGradeRequest;
 import hei.student.schoolm.service.GradeService;
-import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -20,12 +18,6 @@ public class GradeController {
   @GetMapping("/{gradeId}")
   public GradeDto getGradeById(@PathVariable UUID gradeId) {
     return service.getGradeById(gradeId);
-  }
-
-  @PutMapping("/{gradeId}")
-  public GradeDto updateGrade(
-      @PathVariable UUID gradeId, @Valid @RequestBody UpdateGradeRequest request) {
-    return service.updateGrade(gradeId, request);
   }
 
   @DeleteMapping("/{gradeId}")

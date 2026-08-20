@@ -3,7 +3,6 @@ package hei.student.schoolm.service;
 import hei.student.schoolm.dto.GradeDto;
 import hei.student.schoolm.dto.GradeHistoryDto;
 import hei.student.schoolm.dto.GradeRequest;
-import hei.student.schoolm.dto.UpdateGradeRequest;
 import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.exception.ForbiddenException;
 import hei.student.schoolm.model.Course;
@@ -90,21 +89,6 @@ public class GradeService {
     requireTeacherTeaches(grade);
     gradeHistoryRepository.deleteAllByGradeId(gradeId);
     gradeRepository.deleteById(gradeId);
-  }
-
-  @Transactional
-  public GradeDto updateGrade(UUID gradeId, UpdateGradeRequest request) {
-    var grade = gradeValidator.checkGradeExists(gradeId);
-    requireTeacherTeaches(grade);
-    var oldValue = grade.getValue();
-
-    recordHistory(grade, request.value(), request.changeReason());
-
-    grade.setValue(request.value());
-    grade.setChangeReason(request.changeReason());
-    var updatedGrade = gradeRepository.save(grade);
-
-    return mapper.toDto(updatedGrade);
   }
 
   private void recordHistory(Grade grade, BigDecimal newValue, String changeReason) {

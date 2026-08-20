@@ -618,36 +618,6 @@ paths:
                 $ref: '#/components/schemas/Grade'
         '404':
           $ref: '#/components/responses/NotFound'
-    put:
-      tags:
-        - Grade
-      summary: Update a grade with change reason
-      description: Updates a grade value and records the reason for the change. Keeps history of all changes.
-      operationId: updateGrade
-      parameters:
-        - name: gradeId
-          in: path
-          required: true
-          description: Grade identifier
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateGradeRequest'
-      responses:
-        '200':
-          description: Grade updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Grade'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
     delete:
       tags:
         - Grade
