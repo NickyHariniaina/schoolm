@@ -14,4 +14,5 @@ import lombok.Setter;
 public class CohortDto {
   private String ref;
   private int entryYear;
+  private boolean hasGraduates;
 }

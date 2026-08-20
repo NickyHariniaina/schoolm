@@ -3,6 +3,7 @@ package hei.student.schoolm.service;
 import hei.student.schoolm.dto.CohortDto;
 import hei.student.schoolm.model.Cohort;
 import hei.student.schoolm.repository.CohortRepository;
+import java.time.Year;
 import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -16,17 +17,24 @@ public class CohortService {
 
   @Transactional(readOnly = true)
   public List<CohortDto> getCohorts() {
+    var currentYear = Year.now().getValue();
+
     return cohortRepository.findAll().stream()
         .sorted(
             Comparator.comparing((Cohort cohort) -> cohort.getEntryYear())
                 .reversed()
                 .thenComparing(Cohort::getRef))
         .map(
-            cohort ->
-                CohortDto.builder()
-                    .ref(cohort.getRef())
-                    .entryYear(cohort.getEntryYear().getValue())
-                    .build())
+            cohort -> {
+              var entryYear = cohort.getEntryYear().getValue();
+
+              var hasGraduates = (entryYear + 3) <= currentYear;
+              return CohortDto.builder()
+                  .ref(cohort.getRef())
+                  .entryYear(entryYear)
+                  .hasGraduates(hasGraduates)
+                  .build();
+            })
         .toList();
   }
 }
