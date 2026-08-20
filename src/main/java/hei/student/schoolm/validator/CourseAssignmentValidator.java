@@ -5,6 +5,7 @@ import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.model.Course;
 import hei.student.schoolm.model.Group;
 import hei.student.schoolm.model.Semester;
+import hei.student.schoolm.model.Track;
 import hei.student.schoolm.repository.CourseAssignmentRepository;
 import java.util.List;
 import java.util.UUID;
@@ -29,7 +30,7 @@ public class CourseAssignmentValidator {
               + semester);
     }
     if (course.getTrack() != null
-        && course.getTrack() != hei.student.schoolm.model.Track.COMMON
+        && course.getTrack() != Track.COMMON
         && course.getTrack() != group.getTrack()) {
       throw new BadRequestException(
           "Course "
