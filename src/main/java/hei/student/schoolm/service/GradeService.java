@@ -4,6 +4,7 @@ import hei.student.schoolm.dto.GradeDto;
 import hei.student.schoolm.dto.GradeHistoryDto;
 import hei.student.schoolm.dto.GradeRequest;
 import hei.student.schoolm.dto.UpdateGradeRequest;
+import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.exception.ForbiddenException;
 import hei.student.schoolm.model.Course;
 import hei.student.schoolm.model.Exam;
@@ -17,6 +18,7 @@ import hei.student.schoolm.validator.CourseValidator;
 import hei.student.schoolm.validator.ExamValidator;
 import hei.student.schoolm.validator.GradeValidator;
 import hei.student.schoolm.validator.StudentValidator;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -74,8 +76,7 @@ public class GradeService {
       throw new ForbiddenException("grade does not belong to this exam");
     }
     if (request.changeReason() == null || request.changeReason().isBlank()) {
-      throw new hei.student.schoolm.exception.BadRequestException(
-          "changeReason is required when updating a grade");
+      throw new BadRequestException("changeReason is required when updating a grade");
     }
     recordHistory(grade, request.value(), request.changeReason());
     grade.setValue(request.value());
@@ -106,7 +107,7 @@ public class GradeService {
     return mapper.toDto(updatedGrade);
   }
 
-  private void recordHistory(Grade grade, java.math.BigDecimal newValue, String changeReason) {
+  private void recordHistory(Grade grade, BigDecimal newValue, String changeReason) {
     var history =
         JGradeHistory.builder()
             .id(UUID.randomUUID())
