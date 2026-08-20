@@ -1,0 +1,1877 @@
+openapi: 3.0.3
+info:
+  title: SchoolM API
+  description: School management API (HEI)
+  version: v1
+security:
+  - bearerAuth: []
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Log in and get a bearer token
+      description: Authenticates by email/password and returns a JWT along with the user profile.
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+  /courses:
+    get:
+      tags:
+        - Course
+      summary: List all courses
+      description: Returns the full list of courses.
+      operationId: getAllCourses
+      responses:
+        '200':
+          description: Courses retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
+    put:
+      tags:
+        - Course
+      summary: Create or update a course
+      description: >-
+        Creates a new course or updates an existing one. If the request body
+        contains an id, the existing course is updated. Otherwise, a new
+        course is created.
+      operationId: upsertCourse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseRequest'
+      responses:
+        '200':
+          description: Course created or updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /courses/{courseId}:
+    get:
+      tags:
+        - Course
+      summary: Get a course by id
+      description: Returns a single course by its identifier.
+      operationId: getCourseById
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: Course identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Course retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Course
+      summary: Delete a course
+      description: >-
+        Deletes a course along with its exams and their grades and grade
+        history.
+      operationId: deleteCourse
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: Course identifier
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Course deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /courses/{courseId}/teacher:
+    put:
+      tags:
+        - Course
+      summary: Assign teachers to a course
+      description: Replaces the full set of teachers assigned to the course.
+      operationId: assignTeachers
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: Course identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeacherIdsRequest'
+      responses:
+        '200':
+          description: Teachers assigned to the course successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /courses/{courseId}/group:
+    put:
+      tags:
+        - Course
+      summary: Assign groups to a course
+      description: Replaces the full set of groups that take the course.
+      operationId: assignGroups
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: Course identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupIdsRequest'
+      responses:
+        '200':
+          description: Groups assigned to the course successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /courses/{courseId}/exams:
+    get:
+      tags:
+        - Exam
+      summary: List exams of a course
+      description: Returns the exams of the given course.
+      operationId: getCourseExams
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: Course identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Exams retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exam'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /exams/{id}:
+    get:
+      tags:
+        - Exam
+      summary: Get an exam by id
+      description: Returns a single exam by its identifier.
+      operationId: getExamById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Exam identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Exam retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exam'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Exam
+      summary: Delete an exam
+      description: >-
+        Deletes an exam along with its grades and grade history.
+      operationId: deleteExam
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Exam identifier
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Exam deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /exams/{examId}/grades:
+    get:
+      tags:
+        - Grade
+      summary: List grades of an exam
+      description: Returns the grades of the given exam.
+      operationId: getExamGrades
+      parameters:
+        - name: examId
+          in: path
+          required: true
+          description: Exam identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Grades retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Grade'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Grade
+      summary: Create or update grades of an exam
+      description: >-
+        Creates new grades or updates existing ones of the given exam. When a
+        request item contains an id, the existing grade is updated and a
+        change reason is required. Otherwise, a new grade is created for the
+        given student.
+      operationId: upsertExamGrades
+      parameters:
+        - name: examId
+          in: path
+          required: true
+          description: Exam identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/GradeRequest'
+      responses:
+        '200':
+          description: Grades created or updated successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Grade'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /exams:
+    put:
+      tags:
+        - Exam
+      summary: Create or update an exam
+      description: >-
+        Creates a new exam or updates an existing one. If the request body
+        contains an id, the existing exam is updated.
+      operationId: upsertExam
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExamRequest'
+      responses:
+        '200':
+          description: Exam created or updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exam'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /students:
+    get:
+      tags:
+        - Student
+      summary: List all students
+      description: Returns the list of students.
+      operationId: getStudents
+      responses:
+        '200':
+          description: Students retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Student'
+    put:
+      tags:
+        - Student
+      summary: Create or update a student
+      description: >-
+        Creates a new student or updates an existing one. If the request body
+        contains an id, the existing student is updated. Otherwise, a new
+        student is created and a groupId plus a password are required. The
+        student reference is generated automatically.
+      operationId: upsertStudent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StudentRequest'
+      responses:
+        '200':
+          description: Student created or updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /students/{id}:
+    get:
+      tags:
+        - Student
+      summary: Get a student by id
+      description: Returns a single student by its identifier.
+      operationId: getStudentById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Student identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Student retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Student
+      summary: Delete a student
+      description: >-
+        Deletes a student along with their grades, grade history and group
+        flows.
+      operationId: deleteStudent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Student identifier
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Student deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /students/{id}/semester-validation:
+    get:
+      tags:
+        - Student
+      summary: Validate a semester for a student
+      description: >-
+        Returns whether a semester is validated for a student. A course is
+        acquired when its final grade is greater than or equal to 10, and the
+        semester is validated when every course of the semester is acquired.
+      operationId: getSemesterValidation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Student identifier
+          schema:
+            type: string
+        - name: semester
+          in: query
+          required: true
+          description: Semester to validate
+          schema:
+            type: string
+            enum:
+              - S1
+              - S2
+              - S3
+              - S4
+              - S5
+              - S6
+      responses:
+        '200':
+          description: Semester validation retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SemesterValidation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /students/{id}/graduate-transcript:
+    get:
+      tags:
+        - Student
+      summary: Get the graduate transcript of a student
+      description: >-
+        Returns the graduate transcript of a student. The transcript covers the
+        academic year of the current semester (or the one matching the given
+        month and year). A course is marked COMPLET when all its exams have been
+        taken (sum of coefficients equals one) and its semester has been reached;
+        otherwise it is INCOMPLET. The global status is COMPLET when every course
+        of the transcript is COMPLET.
+      operationId: getGraduateTranscript
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Student identifier
+          schema:
+            type: string
+        - name: month
+          in: query
+          required: false
+          description: >-
+            Month of the reference date. Defaults to the current month. Must be
+            between 1 and 12.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+        - name: year
+          in: query
+          required: false
+          description: >-
+            Year of the reference date. Defaults to the current year.
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Graduate transcript retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transcript'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /students/{id}/group-flows:
+    get:
+      tags:
+        - Student
+      summary: Get the group history of a student
+      description: >-
+        Returns the history of group changes of a student (JOIN events), ordered
+        by creation date descending. Grades are kept when a student changes
+        group, since they are attached to the student, not the group.
+      operationId: getGroupFlows
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Student identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Group flow history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GroupFlow'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Student
+      summary: Move a student to another group
+      description: >-
+        Moves a student to the given group. Records a JOIN group flow and
+        updates the student's current group. The student's grades are kept.
+      operationId: moveStudentToGroup
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Student identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MoveStudentGroupRequest'
+      responses:
+        '200':
+          description: Student moved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupFlow'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /students/{id}/transcript/email:
+    post:
+      tags:
+        - Student
+      summary: Email a student's transcript for a specific academic year
+      description: >-
+        Generates the transcript for the pair of semesters containing the
+        given level (S1/S2 = L1, S3/S4 = L2, S5/S6 = L3), uploads it as a
+        PDF file on S3, and emails it to the student.
+      operationId: emailTranscript
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: level
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/LevelRequest'
+      responses:
+        '202':
+          description: Transcript email requested successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /grades/{gradeId}:
+    get:
+      tags:
+        - Grade
+      summary: Get a grade by id
+      description: Returns a single grade by its identifier.
+      operationId: getGradeById
+      parameters:
+        - name: gradeId
+          in: path
+          required: true
+          description: Grade identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Grade retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grade'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Grade
+      summary: Update a grade with change reason
+      description: Updates a grade value and records the reason for the change. Keeps history of all changes.
+      operationId: updateGrade
+      parameters:
+        - name: gradeId
+          in: path
+          required: true
+          description: Grade identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGradeRequest'
+      responses:
+        '200':
+          description: Grade updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grade'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Grade
+      summary: Delete a grade
+      description: Deletes a grade along with its grade history.
+      operationId: deleteGrade
+      parameters:
+        - name: gradeId
+          in: path
+          required: true
+          description: Grade identifier
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Grade deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /grades/{gradeId}/history:
+    get:
+      tags:
+        - Grade
+      summary: Get grade change history
+      description: Returns all historical versions of a grade with timestamps and change reasons
+      operationId: getGradeHistory
+      parameters:
+        - name: gradeId
+          in: path
+          required: true
+          description: Grade identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Grade history retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GradeHistory'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /cohorts:
+    get:
+      tags:
+        - Cohort
+      summary: List all cohorts
+      description: Returns the list of cohorts (promotions), newest first.
+      operationId: getCohorts
+      responses:
+        '200':
+          description: Cohorts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cohort'
+    put:
+      tags:
+        - Cohort
+      summary: Create or update a cohort
+      description: >-
+        Creates a new cohort or updates an existing one. If the request body
+        contains an id, the existing cohort is updated. Otherwise, a new cohort
+        is created.
+      operationId: upsertCohort
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CohortRequest'
+      responses:
+        '200':
+          description: Cohort created or updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cohort'
+  /cohorts/{id}:
+    get:
+      tags:
+        - Cohort
+      summary: Get a cohort by id
+      description: Returns a single cohort by its identifier.
+      operationId: getCohortById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Cohort identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cohort retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cohort'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /cohorts/{ref}/graduates:
+    get:
+      tags:
+        - Cohort
+      summary: Generate the graduate list of a cohort as an XLSX file on S3
+      description: >-
+        Computes the graduates of the cohort for the given track (EL or TN) and
+        uploads the result as an XLSX file on S3. A student graduates when every
+        course of its group with exams (up to the current semester, or the one
+        matching the given month and year) has a final grade greater than or
+        equal to 10. Students are ranked by their credit-weighted average grade.
+        The response contains a presigned URL to download the file.
+      operationId: getGraduates
+      parameters:
+        - name: ref
+          in: path
+          required: true
+          description: Cohort reference (promotion)
+          schema:
+            type: string
+        - name: track
+          in: query
+          required: true
+          description: Track to generate the graduate list for
+          schema:
+            type: string
+            enum:
+              - EL
+              - TN
+        - name: month
+          in: query
+          required: false
+          description: >-
+            Month of the reference date. Defaults to the current month. Must be
+            between 1 and 12.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+        - name: year
+          in: query
+          required: false
+          description: >-
+            Year of the reference date. Defaults to the current year.
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Graduate list generated and uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GraduateFile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /groups:
+    get:
+      tags:
+        - Group
+      summary: List groups
+      description: >-
+        Returns all groups, optionally filtered by cohort identifier.
+      operationId: getGroups
+      parameters:
+        - name: cohortId
+          in: query
+          required: false
+          description: Filter by cohort identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Groups retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Group'
+    put:
+      tags:
+        - Group
+      summary: Create or update a group
+      description: >-
+        Creates a new group or updates an existing one. If the request body
+        contains an id, the existing group is updated. Otherwise, a new group
+        is created.
+      operationId: upsertGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupRequest'
+      responses:
+        '200':
+          description: Group created or updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+  /groups/{id}:
+    get:
+      tags:
+        - Group
+      summary: Get a group by id
+      description: Returns a single group by its identifier.
+      operationId: getGroupById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Group identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Group retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /groups/{id}/students:
+    get:
+      tags:
+        - Group
+      summary: List the students of a group
+      description: Returns the students currently in the given group.
+      operationId: getGroupStudents
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Group identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Students retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Student'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /teachers:
+    get:
+      tags:
+        - Teacher
+      summary: List all teachers
+      description: Returns the list of teachers.
+      operationId: getTeachers
+      responses:
+        '200':
+          description: Teachers retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Teacher'
+    put:
+      tags:
+        - Teacher
+      summary: Create or update a teacher
+      description: >-
+        Creates a new teacher or updates an existing one. If the request body
+        contains an id, the existing teacher is updated. Otherwise, a new
+        teacher is created and a password is required.
+      operationId: upsertTeacher
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeacherRequest'
+      responses:
+        '200':
+          description: Teacher created or updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Teacher'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /teachers/{id}:
+    get:
+      tags:
+        - Teacher
+      summary: Get a teacher by id
+      description: Returns a single teacher by its identifier.
+      operationId: getTeacherById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Teacher identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Teacher retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Teacher'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Teacher
+      summary: Delete a teacher
+      description: >-
+        Deletes a teacher. Fails with 409 if the teacher is still assigned to
+        a course.
+      operationId: deleteTeacher
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Teacher identifier
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Teacher deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Teacher is still assigned to a course
+  /course-assignments:
+    get:
+      tags:
+        - CourseAssignment
+      summary: List course assignments by filter
+      description: >-
+        Returns a paged list of course assignments (course + group + teachers for
+        a given academic year and semester). Each filter is optional.
+      operationId: getCourseAssignments
+      parameters:
+        - name: groupId
+          in: query
+          required: false
+          description: Filter by group identifier
+          schema:
+            type: string
+        - name: teacherId
+          in: query
+          required: false
+          description: Filter by teacher identifier
+          schema:
+            type: string
+        - name: courseId
+          in: query
+          required: false
+          description: Filter by course identifier
+          schema:
+            type: string
+        - name: academicYear
+          in: query
+          required: false
+          description: Filter by academic year
+          schema:
+            type: integer
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Course assignments retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CourseAssignment'
+                  totalElements:
+                    type: integer
+    put:
+      tags:
+        - CourseAssignment
+      summary: Create or update course assignments
+      description: >-
+        Creates new course assignments or updates existing ones in batch. An
+        assignment is identified by the unique combination of course, group,
+        academic year and semester.
+      operationId: upsertCourseAssignments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CourseAssignmentRequest'
+      responses:
+        '200':
+          description: Course assignments saved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CourseAssignment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /course-assignments/{id}:
+    get:
+      tags:
+        - CourseAssignment
+      summary: Get a course assignment by id
+      operationId: getCourseAssignmentById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Course assignment identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Course assignment retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseAssignment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - CourseAssignment
+      summary: Delete a course assignment
+      operationId: deleteCourseAssignment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Course assignment identifier
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Course assignment deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /course-assignments/curriculum-status:
+    get:
+      tags:
+        - CourseAssignment
+      summary: Get the curriculum status of a group for a semester
+      description: >-
+        Compares the credits assigned to a group for a given academic year and
+        semester against the target (30 credits) and lists the courses of the
+        curriculum that are not yet assigned.
+      operationId: getCurriculumStatus
+      parameters:
+        - name: groupId
+          in: query
+          required: true
+          description: Group identifier
+          schema:
+            type: string
+        - name: academicYear
+          in: query
+          required: true
+          description: Academic year
+          schema:
+            type: integer
+        - name: semester
+          in: query
+          required: true
+          description: Semester to check
+          schema:
+            $ref: '#/components/schemas/Semester'
+      responses:
+        '200':
+          description: Curriculum status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurriculumStatus'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /admins/{id}:
+    get:
+      tags:
+        - Admin
+      summary: Get the current admin profile
+      description: Returns the profile of the given admin. An admin may only access their own profile.
+      operationId: getAdminById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Admin identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Admin retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Admin'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Admin
+      summary: Update the current admin profile
+      description: Updates the profile of the given admin. An admin may only update their own profile.
+      operationId: updateAdmin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Admin identifier
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminRequest'
+      responses:
+        '200':
+          description: Admin updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Admin'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Admin:
+      type: object
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+    AdminRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - TEACHER
+            - STUDENT
+    CourseAssignmentRequest:
+      type: object
+      required:
+        - courseId
+        - groupId
+        - teacherIds
+        - academicYear
+        - semester
+        - credits
+      properties:
+        id:
+          type: string
+          description: Identifier, present when updating an existing assignment
+        courseId:
+          type: string
+        groupId:
+          type: string
+        teacherIds:
+          type: array
+          minItems: 1
+          items:
+            type: string
+        academicYear:
+          type: integer
+          minimum: 2000
+          maximum: 2100
+        semester:
+          $ref: '#/components/schemas/Semester'
+        credits:
+          type: integer
+          minimum: 1
+    CourseAssignment:
+      type: object
+      properties:
+        id:
+          type: string
+        courseId:
+          type: string
+        courseRef:
+          type: string
+        courseTitle:
+          type: string
+        groupId:
+          type: string
+        groupRef:
+          type: string
+        teacherIds:
+          type: array
+          items:
+            type: string
+        academicYear:
+          type: integer
+        semester:
+          $ref: '#/components/schemas/Semester'
+        credits:
+          type: integer
+    CurriculumStatus:
+      type: object
+      properties:
+        semester:
+          $ref: '#/components/schemas/Semester'
+        assignedCredits:
+          type: integer
+        targetCredits:
+          type: integer
+        complete:
+          type: boolean
+        missingCourses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Course'
+        assignments:
+          type: array
+          items:
+            $ref: '#/components/schemas/CourseAssignment'
+    TeacherIdsRequest:
+      type: object
+      required:
+        - teacherIds
+      properties:
+        teacherIds:
+          type: array
+          minItems: 1
+          items:
+            type: string
+          description: List of teacher identifiers to assign to the course
+    GroupIdsRequest:
+      type: object
+      required:
+        - groupIds
+      properties:
+        groupIds:
+          type: array
+          minItems: 1
+          items:
+            type: string
+          description: List of group identifiers that take the course
+    MoveStudentGroupRequest:
+      type: object
+      required:
+        - groupId
+      properties:
+        groupId:
+          type: string
+          description: Identifier of the group the student moves to
+    GroupFlow:
+      type: object
+      properties:
+        id:
+          type: string
+        studentId:
+          type: string
+        groupId:
+          type: string
+        groupFlowType:
+          type: string
+          enum:
+            - JOIN
+            - LEAVE
+        createdAt:
+          type: string
+          format: date-time
+    UpdateGradeRequest:
+      type: object
+      required:
+        - value
+        - changeReason
+      properties:
+        value:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 20
+          description: New grade value (0-20)
+        changeReason:
+          type: string
+          minLength: 1
+          description: Reason for the grade change
+    Course:
+      type: object
+      properties:
+        id:
+          type: string
+        ref:
+          type: string
+        title:
+          type: string
+        credit:
+          type: integer
+        track:
+          type: string
+        semester:
+          type: string
+        teacherIds:
+          type: array
+          items:
+            type: string
+          description: Teachers assigned to the course
+        groupIds:
+          type: array
+          items:
+            type: string
+          description: Groups that take the course
+    CourseRequest:
+      type: object
+      required:
+        - ref
+        - title
+        - credit
+        - track
+        - semester
+      properties:
+        id:
+          type: string
+          description: Identifier, present when updating an existing course
+        ref:
+          type: string
+        title:
+          type: string
+        credit:
+          type: integer
+        track:
+          type: string
+          description: Track of the course (COMMON, EL or TN)
+        semester:
+          type: string
+          description: Semester of the course (S1 to S6)
+    SemesterValidation:
+      type: object
+      properties:
+        studentId:
+          type: string
+        studentRef:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        groupRef:
+          type: string
+        semester:
+          type: string
+        totalCredits:
+          type: integer
+        acquiredCredits:
+          type: integer
+        validated:
+          type: boolean
+        courses:
+          type: array
+          items:
+            $ref: '#/components/schemas/CourseValidation'
+    CourseValidation:
+      type: object
+      properties:
+        courseId:
+          type: string
+        ref:
+          type: string
+        title:
+          type: string
+        credit:
+          type: integer
+        finalGrade:
+          type: number
+          format: double
+        acquired:
+          type: boolean
+    Transcript:
+      type: object
+      properties:
+        studentId:
+          type: string
+        studentRef:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        groupRef:
+          type: string
+        cohortRef:
+          type: string
+        academicYear:
+          type: string
+          description: Academic year of the transcript, e.g. 2024-2025
+        semesters:
+          type: array
+          items:
+            $ref: '#/components/schemas/Semester'
+          description: The pair of semesters covered by the transcript
+        courses:
+          type: array
+          items:
+            $ref: '#/components/schemas/CourseGrade'
+        status:
+          $ref: '#/components/schemas/TranscriptStatus'
+    CourseGrade:
+      type: object
+      properties:
+        courseId:
+          type: string
+        ref:
+          type: string
+        title:
+          type: string
+        semester:
+          $ref: '#/components/schemas/Semester'
+        credit:
+          type: integer
+        coefficientSum:
+          type: number
+          format: double
+          description: Sum of the coefficients of the exams of the course
+        exams:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExamGrade'
+        finalGrade:
+          type: number
+          format: double
+          description: Weighted sum of the exam grades
+        status:
+          $ref: '#/components/schemas/TranscriptStatus'
+    ExamGrade:
+      type: object
+      properties:
+        examId:
+          type: string
+        date:
+          type: string
+          description: Date of the exam
+        coefficient:
+          type: number
+          format: double
+        value:
+          type: number
+          format: double
+          nullable: true
+          description: Grade of the student, null when the exam has not been taken
+    Exam:
+      type: object
+      properties:
+        id:
+          type: string
+        courseId:
+          type: string
+        dateExam:
+          type: string
+          format: date
+        coefNumerator:
+          type: integer
+        coefDenominator:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ExamRequest:
+      type: object
+      required:
+        - courseId
+        - dateExam
+        - coefNumerator
+        - coefDenominator
+      properties:
+        id:
+          type: string
+          description: Identifier, present when updating an existing exam
+        courseId:
+          type: string
+          description: Identifier of the course the exam belongs to
+        dateExam:
+          type: string
+          format: date
+        coefNumerator:
+          type: integer
+        coefDenominator:
+          type: integer
+    Grade:
+      type: object
+      properties:
+        id:
+          type: string
+        studentId:
+          type: string
+        examId:
+          type: string
+        value:
+          type: number
+          format: double
+        changeReason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    GradeRequest:
+      type: object
+      required:
+        - studentId
+        - value
+      properties:
+        id:
+          type: string
+          description: Identifier, present when updating an existing grade
+        studentId:
+          type: string
+          description: Identifier of the graded student
+        value:
+          type: number
+          format: double
+        changeReason:
+          type: string
+          description: Required when updating an existing grade
+    GradeHistory:
+      type: object
+      properties:
+        id:
+          type: string
+        value:
+          type: number
+          format: double
+        changeReason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    Semester:
+      type: string
+      enum:
+        - S1
+        - S2
+        - S3
+        - S4
+        - S5
+        - S6
+    LevelRequest:
+      type: string
+      enum:
+        - L1
+        - L2
+        - L3
+    Cohort:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Cohort identifier
+        ref:
+          type: string
+          description: Cohort reference (promotion)
+        entryYear:
+          type: integer
+          description: Entry year of the cohort
+    CohortRequest:
+      type: object
+      required:
+        - ref
+        - entryYear
+      properties:
+        id:
+          type: string
+          description: Identifier, present when updating an existing cohort
+        ref:
+          type: string
+          description: Cohort reference (promotion)
+        entryYear:
+          type: integer
+          description: Entry year of the cohort
+    Group:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Group identifier
+        cohortId:
+          type: string
+          description: Cohort (promotion) identifier
+        cohortRef:
+          type: string
+          description: Cohort (promotion) reference
+        ref:
+          type: string
+          description: Group reference
+        track:
+          type: string
+          enum:
+            - COMMON
+            - EL
+            - TN
+          description: Track of the group
+    GroupRequest:
+      type: object
+      required:
+        - cohortId
+        - ref
+        - track
+      properties:
+        id:
+          type: string
+          description: Identifier, present when updating an existing group
+        cohortId:
+          type: string
+          description: Cohort (promotion) identifier
+        ref:
+          type: string
+          description: Group reference
+        track:
+          type: string
+          enum:
+            - COMMON
+            - EL
+            - TN
+          description: Track of the group
+    Student:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Student identifier
+        reference:
+          type: string
+          description: Student reference (matricule)
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        groupId:
+          type: string
+          description: Identifier of the student's current group
+        groupRef:
+          type: string
+          description: Reference of the student's current group
+    StudentRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+      properties:
+        id:
+          type: string
+          description: Identifier, present when updating an existing student
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          description: Required when creating, optional when updating
+        groupId:
+          type: string
+          description: Required when creating, must be null when updating
+    Teacher:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Teacher identifier
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+    TeacherRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+      properties:
+        id:
+          type: string
+          description: Identifier, present when updating an existing teacher
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          description: Required when creating, optional when updating
+    GraduateFile:
+      type: object
+      properties:
+        fileName:
+          type: string
+          description: Name of the generated XLSX file
+        url:
+          type: string
+          description: Presigned URL to download the file from S3
+        expiresAt:
+          type: string
+          format: date-time
+          description: Expiration date of the presigned URL
+    TranscriptStatus:
+      type: string
+      enum:
+        - COMPLET
+        - INCOMPLET
+    ErrorBody:
+      type: object
+      properties:
+        status:
+          type: integer
+        reason:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'
