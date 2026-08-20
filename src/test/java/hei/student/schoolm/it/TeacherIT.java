@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -372,6 +373,6 @@ class TeacherIT extends FacadeIT {
         .header("Authorization", "Bearer " + adminToken(admin))
         .exchange()
         .expectStatus()
-        .isEqualTo(org.springframework.http.HttpStatus.CONFLICT);
+        .isEqualTo(HttpStatus.CONFLICT);
   }
 }
