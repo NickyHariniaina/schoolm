@@ -12,11 +12,11 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class GroupValidator {
-  private final GroupRepository groupRepository;
+  private final GroupRepository repository;
 
   public List<Group> checkGroupsExist(List<UUID> groupIds) {
     var uniqueIds = groupIds.stream().distinct().toList();
-    var groups = groupRepository.findAllById(uniqueIds);
+    var groups = repository.findAllById(uniqueIds);
     var foundIds = groups.stream().map(Group::getId).collect(Collectors.toSet());
     var missing = uniqueIds.stream().filter(id -> !foundIds.contains(id)).toList();
     if (!missing.isEmpty()) {
@@ -26,7 +26,7 @@ public class GroupValidator {
   }
 
   public Group checkGroupExists(UUID groupId) {
-    return groupRepository
+    return repository
         .findById(groupId)
         .orElseThrow(() -> new NotFoundException("Group " + groupId + " not found"));
   }
