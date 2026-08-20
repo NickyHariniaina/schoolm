@@ -94,11 +94,11 @@ public class TranscriptEmailRequestedService implements Consumer<TranscriptEmail
   }
 
   private String buildHtmlBody(TranscriptPdfDto transcript, URL downloadUrl) {
-    var rows =
+    var coursesList =
         transcript.getCourses().stream()
             .map(
                 c ->
-                    "<tr><td>%s</td><td style='text-align:center'>%d</td><td style='text-align:center'>%s</td></tr>"
+                    "<li>%s (%d crédits) : %s</li>"
                         .formatted(
                             c.getTitle(),
                             c.getCredit(),
@@ -133,24 +133,14 @@ public class TranscriptEmailRequestedService implements Consumer<TranscriptEmail
     var creditsDisplay = transcript.getAcquiredCredits() + "/" + transcript.getTotalCredits();
     statsHtml += "<p><strong>Crédits acquis :</strong> " + creditsDisplay + "</p>";
 
-    var coursesMessage =
-        transcript.getCourses().isEmpty()
-            ? "<p><em>Aucun cours trouvé pour ce niveau.</em></p>"
-            : "";
-
     return """
            <html><body>
            <p>Bonjour %s,</p>
            <p>Voici votre relevé de notes pour l'année %s (%s).</p>
            %s
-           <table border="1" cellpadding="4" style="border-collapse:collapse">
-             <tr>
-               <th style="border:1px solid #ddd;padding:8px">Cours</th>
-               <th style="border:1px solid #ddd;padding:8px">Crédits</th>
-               <th style="border:1px solid #ddd;padding:8px">Note finale</th>
-             </tr>
-             %s
-           </table>
+           <ul>
+           %s
+           </ul>
            <p><a href="%s">Télécharger le relevé complet (PDF)</a></p>
            </body></html>
            """
@@ -158,9 +148,8 @@ public class TranscriptEmailRequestedService implements Consumer<TranscriptEmail
             transcript.getFirstName(),
             transcript.getAcademicYear(),
             statusMessage(transcript),
-            coursesMessage,
             statsHtml,
-            rows,
+            coursesList,
             downloadUrl);
   }
 
