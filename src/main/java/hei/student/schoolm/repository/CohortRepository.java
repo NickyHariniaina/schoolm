@@ -13,26 +13,26 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 @RequiredArgsConstructor
 public class CohortRepository {
-  private final JCohortRepository jCohortRepository;
-  private final JCohortMapper jCohortMapper;
+  private final JCohortRepository repository;
+  private final JCohortMapper mapper;
 
   @Transactional(readOnly = true)
   public List<Cohort> findAll() {
-    return jCohortRepository.findAll().stream().map(jCohortMapper::toDomain).toList();
+    return repository.findAll().stream().map(mapper::toDomain).toList();
   }
 
   @Transactional(readOnly = true)
   public Optional<Cohort> findById(UUID id) {
-    return jCohortRepository.findById(id).map(jCohortMapper::toDomain);
+    return repository.findById(id).map(mapper::toDomain);
   }
 
   @Transactional(readOnly = true)
   public Optional<Cohort> findByRef(String ref) {
-    return jCohortRepository.findByRef(ref).map(jCohortMapper::toDomain);
+    return repository.findByRef(ref).map(mapper::toDomain);
   }
 
   @Transactional
   public Cohort save(Cohort cohort) {
-    return jCohortMapper.toDomain(jCohortRepository.save(jCohortMapper.toEntity(cohort)));
+    return mapper.toDomain(repository.save(mapper.toEntity(cohort)));
   }
 }
