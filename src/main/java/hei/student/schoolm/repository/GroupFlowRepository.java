@@ -12,25 +12,24 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 @RequiredArgsConstructor
 public class GroupFlowRepository {
-  private final JGroupFlowRepository jGroupFlowRepository;
-  private final JGroupFlowMapper jGroupFlowMapper;
+  private final JGroupFlowRepository repository;
+  private final JGroupFlowMapper mapper;
 
   @Transactional
   public GroupFlow save(GroupFlow groupFlow) {
-    return jGroupFlowMapper.toDomain(
-        jGroupFlowRepository.save(jGroupFlowMapper.toEntity(groupFlow)));
+    return mapper.toDomain(repository.save(mapper.toEntity(groupFlow)));
   }
 
   @Transactional(readOnly = true)
   public List<GroupFlow> findByStudentId(UUID studentId) {
-    return jGroupFlowRepository.findByStudentIdOrderByCreatedAtDesc(studentId).stream()
-        .map(jGroupFlowMapper::toDomain)
+    return repository.findByStudentIdOrderByCreatedAtDesc(studentId).stream()
+        .map(mapper::toDomain)
         .toList();
   }
 
   @Transactional(readOnly = true)
   public List<UUID> findGroupIdsByStudentId(UUID studentId) {
-    return jGroupFlowRepository.findByStudentId(studentId).stream()
+    return repository.findByStudentId(studentId).stream()
         .map(flow -> flow.getGroup().getId())
         .distinct()
         .toList();
@@ -38,6 +37,6 @@ public class GroupFlowRepository {
 
   @Transactional
   public void deleteAllByStudentId(UUID studentId) {
-    jGroupFlowRepository.deleteAllByStudentId(studentId);
+    repository.deleteAllByStudentId(studentId);
   }
 }
