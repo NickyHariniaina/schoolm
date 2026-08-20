@@ -7,7 +7,6 @@ import hei.student.schoolm.conf.FacadeIT;
 import hei.student.schoolm.dto.GradeDto;
 import hei.student.schoolm.dto.GradeHistoryDto;
 import hei.student.schoolm.dto.GradeRequest;
-import hei.student.schoolm.dto.UpdateGradeRequest;
 import hei.student.schoolm.endpoint.rest.security.JwtService;
 import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.model.Track;
@@ -376,22 +375,33 @@ class GradeIT extends FacadeIT {
     var student = saveStudent();
     var grade = saveGrade(exam, student, new BigDecimal("14.0"));
 
+    var requests =
+        List.of(
+            GradeRequest.builder()
+                .id(grade.getId())
+                .studentId(student.getId())
+                .value(new BigDecimal("16.5"))
+                .changeReason("Recheck")
+                .build());
+
     var updated =
         webTestClient
             .put()
-            .uri("/grades/" + grade.getId())
+            .uri("/exams/" + exam.getId() + "/grades")
             .header("Authorization", "Bearer " + adminToken(admin))
-            .bodyValue(new UpdateGradeRequest(new BigDecimal("16.5"), "Recheck"))
+            .bodyValue(requests)
             .exchange()
             .expectStatus()
             .isOk()
-            .expectBody(GradeDto.class)
+            .expectBody(new ParameterizedTypeReference<List<GradeDto>>() {})
             .returnResult()
             .getResponseBody();
 
     assertNotNull(updated);
-    assertEquals(0, new BigDecimal("16.5").compareTo(updated.getValue()));
-    assertEquals("Recheck", updated.getChangeReason());
+    assertEquals(1, updated.size());
+    assertEquals(grade.getId(), updated.get(0).getId());
+    assertEquals(0, new BigDecimal("16.5").compareTo(updated.get(0).getValue()));
+    assertEquals("Recheck", updated.get(0).getChangeReason());
   }
 
   @Test
@@ -401,11 +411,20 @@ class GradeIT extends FacadeIT {
     var student = saveStudent();
     var grade = saveGrade(exam, student, new BigDecimal("14.0"));
 
+    var requests =
+        List.of(
+            GradeRequest.builder()
+                .id(grade.getId())
+                .studentId(student.getId())
+                .value(new BigDecimal("16.5"))
+                .changeReason(" ")
+                .build());
+
     webTestClient
         .put()
-        .uri("/grades/" + grade.getId())
+        .uri("/exams/" + exam.getId() + "/grades")
         .header("Authorization", "Bearer " + adminToken(admin))
-        .bodyValue(new UpdateGradeRequest(new BigDecimal("16.5"), " "))
+        .bodyValue(requests)
         .exchange()
         .expectStatus()
         .isBadRequest();
@@ -417,11 +436,21 @@ class GradeIT extends FacadeIT {
     var exam = saveExam(saveCourse());
     var student = saveStudent();
     var grade = saveGrade(exam, student, new BigDecimal("14.0"));
+
+    var requests =
+        List.of(
+            GradeRequest.builder()
+                .id(grade.getId())
+                .studentId(student.getId())
+                .value(new BigDecimal("16.5"))
+                .changeReason("Recheck")
+                .build());
+
     webTestClient
         .put()
-        .uri("/grades/" + grade.getId())
+        .uri("/exams/" + exam.getId() + "/grades")
         .header("Authorization", "Bearer " + adminToken(admin))
-        .bodyValue(new UpdateGradeRequest(new BigDecimal("16.5"), "Recheck"))
+        .bodyValue(requests)
         .exchange()
         .expectStatus()
         .isOk();
@@ -488,11 +517,20 @@ class GradeIT extends FacadeIT {
     var exam = saveExam(saveCourse());
     var grade = saveGrade(exam, student, new BigDecimal("12.0"));
 
+    var requests =
+        List.of(
+            GradeRequest.builder()
+                .id(grade.getId())
+                .studentId(student.getId())
+                .value(new BigDecimal("18.0"))
+                .changeReason("Recheck")
+                .build());
+
     webTestClient
         .put()
-        .uri("/grades/" + grade.getId())
+        .uri("/exams/" + exam.getId() + "/grades")
         .header("Authorization", "Bearer " + studentToken(student))
-        .bodyValue(new UpdateGradeRequest(new BigDecimal("18.0"), "Recheck"))
+        .bodyValue(requests)
         .exchange()
         .expectStatus()
         .isForbidden();
