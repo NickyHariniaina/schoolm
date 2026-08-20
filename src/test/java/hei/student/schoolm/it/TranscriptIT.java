@@ -1,8 +1,6 @@
 package hei.student.schoolm.it;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
@@ -14,7 +12,6 @@ import hei.student.schoolm.endpoint.event.EventProducer;
 import hei.student.schoolm.endpoint.event.model.TranscriptEmailRequested;
 import hei.student.schoolm.endpoint.rest.security.JwtService;
 import hei.student.schoolm.file.bucket.BucketComponent;
-import hei.student.schoolm.mail.Email;
 import hei.student.schoolm.mail.Mailer;
 import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.model.Track;
@@ -271,7 +268,6 @@ class TranscriptIT extends FacadeIT {
         .isForbidden();
   }
 
-
   @Test
   void anonymousCannotRequestTranscript() {
     var group = saveGroup();
@@ -284,7 +280,6 @@ class TranscriptIT extends FacadeIT {
         .expectStatus()
         .isUnauthorized();
   }
-
 
   @SneakyThrows
   private String pdfText(byte[] pdf) {
