@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hei.student.schoolm.dto.CourseAssignmentResponse;
+import hei.student.schoolm.dto.CurriculumStatusResponse;
 import hei.student.schoolm.endpoint.rest.security.JwtAuthenticationFilter;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.model.Semester;
@@ -124,8 +125,7 @@ class CourseAssignmentControllerTest {
   @Test
   void should_return_curriculum_status() throws Exception {
     var status =
-        new hei.student.schoolm.dto.CurriculumStatusResponse(
-            Semester.S3, 30, 30, true, List.of(), List.of(response()));
+        new CurriculumStatusResponse(Semester.S3, 30, 30, true, List.of(), List.of(response()));
     when(courseAssignmentService.getCurriculumStatus(GROUP_ID, 2025, Semester.S3))
         .thenReturn(status);
 
