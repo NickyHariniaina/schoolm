@@ -10,10 +10,10 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class StudentValidator {
-  private final StudentRepository studentRepository;
+  private final StudentRepository repository;
 
   public Student checkStudentExists(UUID studentId) {
-    return studentRepository
+    return repository
         .findById(studentId)
         .orElseThrow(() -> new NotFoundException("Student " + studentId + " not found"));
   }
