@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,7 +28,7 @@ class StudentTranscriptControllerTest {
 
   @BeforeEach
   void setUp() {
-    org.mockito.Mockito.lenient().when(securityUtil.isAdmin()).thenReturn(true);
+    Mockito.lenient().when(securityUtil.isAdmin()).thenReturn(true);
   }
 
   @Test
