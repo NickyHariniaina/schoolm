@@ -10,10 +10,10 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class GradeValidator {
-  private final GradeRepository gradeRepository;
+  private final GradeRepository repository;
 
   public Grade checkGradeExists(UUID gradeId) {
-    return gradeRepository
+    return repository
         .findById(gradeId)
         .orElseThrow(() -> new NotFoundException("Grade " + gradeId + " not found"));
   }
