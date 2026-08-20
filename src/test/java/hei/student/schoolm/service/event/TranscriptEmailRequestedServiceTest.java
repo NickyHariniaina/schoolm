@@ -175,5 +175,8 @@ class TranscriptEmailRequestedServiceTest {
     assertTrue(email.htmlBody().contains("Crédits acquis"));
     assertTrue(email.htmlBody().contains("15.5"));
     assertTrue(email.htmlBody().contains("30/30"));
+    assertTrue(email.htmlBody().contains("href=\"" + presignedUrl + "\""));
+    assertTrue(email.htmlBody().contains("Programmation 1 - Bases de la programmation"));
+    assertFalse(email.htmlBody().contains("<table"));
   }
 }
