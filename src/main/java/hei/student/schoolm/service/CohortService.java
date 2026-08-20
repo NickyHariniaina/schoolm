@@ -51,10 +51,12 @@ public class CohortService {
   }
 
   private CohortDto toDto(Cohort cohort) {
+    var entryYear = cohort.getEntryYear().getValue();
     return CohortDto.builder()
         .id(cohort.getId())
         .ref(cohort.getRef())
-        .entryYear(cohort.getEntryYear().getValue())
+        .entryYear(entryYear)
+        .hasGraduates((entryYear + 3) <= Year.now().getValue())
         .build();
   }
 }

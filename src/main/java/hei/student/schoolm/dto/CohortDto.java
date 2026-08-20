@@ -16,4 +16,5 @@ public class CohortDto {
   private UUID id;
   private String ref;
   private int entryYear;
+  private boolean hasGraduates;
 }

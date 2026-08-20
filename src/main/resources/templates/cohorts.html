@@ -40,6 +40,7 @@
         <tr>
           <th>Référence</th>
           <th>Année d'entrée</th>
+          <th>Statut</th>
           <th>Liste des diplômés</th>
         </tr>
       </thead>
@@ -48,18 +49,25 @@
           <td th:text="${cohort.ref}"></td>
           <td th:text="${cohort.entryYear}"></td>
           <td>
-            <a
+            <span th:if="${cohort.hasGraduates}" style="color:#27ae60;">Diplômés disponibles</span>
+            <span th:unless="${cohort.hasGraduates}" style="color:#e67e22;">En cours(pas encore de diplômés)</span>
+          </td>
+          <td>
+            <a th:if="${cohort.hasGraduates}"
               class="download"
               th:href="@{/cohorts/{ref}/graduates/download(ref=${cohort.ref}, track='EL')}"
             >
               Télécharger (EL)
             </a>
-            <a
+            <span th:unless="${cohort.hasGraduates}" class="status-message">Non disponible</span>
+
+            <a th:if="${cohort.hasGraduates}"
               class="download"
               th:href="@{/cohorts/{ref}/graduates/download(ref=${cohort.ref}, track='TN')}"
             >
               Télécharger (TN)
             </a>
+            <span th:unless="${cohort.hasGraduates}" class="status-message">Non disponible</span>
           </td>
         </tr>
       </tbody>
