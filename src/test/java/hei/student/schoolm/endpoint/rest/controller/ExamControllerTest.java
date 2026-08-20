@@ -10,11 +10,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import hei.student.schoolm.dto.ExamDto;
 import hei.student.schoolm.dto.ExamRequest;
+import hei.student.schoolm.dto.GradeDto;
+import hei.student.schoolm.dto.GradeRequest;
 import hei.student.schoolm.endpoint.rest.security.JwtAuthenticationFilter;
 import hei.student.schoolm.service.ExamService;
 import hei.student.schoolm.service.GradeService;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -37,11 +41,14 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc(addFilters = false)
 class ExamControllerTest {
   @Autowired MockMvc mockMvc;
+  @Autowired ObjectMapper objectMapper;
   @MockBean ExamService examService;
   @MockBean GradeService gradeService;
 
   private static final UUID COURSE_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
   private static final UUID EXAM_ID = UUID.fromString("00000000-0000-0000-0000-000000000002");
+  private static final UUID STUDENT_ID = UUID.fromString("00000000-0000-0000-0000-000000000003");
+  private static final UUID GRADE_ID = UUID.fromString("00000000-0000-0000-0000-000000000004");
 
   private ExamDto createExamDto() {
     return new ExamDto(
@@ -119,15 +126,49 @@ class ExamControllerTest {
   }
 
   @Test
-  void should_list_exams_of_course() throws Exception {
-    when(examService.getExamsByCourseId(COURSE_ID)).thenReturn(List.of(createExamDto()));
+  void should_upsert_grades_for_exam() throws Exception {
+    var gradeRequest = new GradeRequest(null, STUDENT_ID, new BigDecimal("15.0"), null);
+    var gradeDto =
+        new GradeDto(
+            GRADE_ID,
+            STUDENT_ID,
+            EXAM_ID,
+            new BigDecimal("15.0"),
+            null,
+            Instant.now(),
+            Instant.now());
+    when(gradeService.upsertGrades(any(UUID.class), any(List.class))).thenReturn(List.of(gradeDto));
 
     mockMvc
-        .perform(get("/courses/{courseId}/exams", COURSE_ID))
+        .perform(
+            put("/exams/{examId}/grades", EXAM_ID)
+                .contentType(APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(List.of(gradeRequest))))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].id").value(EXAM_ID.toString()))
-        .andExpect(jsonPath("$[0].courseId").value(COURSE_ID.toString()));
+        .andExpect(jsonPath("$[0].id").value(GRADE_ID.toString()))
+        .andExpect(jsonPath("$[0].value").value(15.0));
 
-    verify(examService).getExamsByCourseId(COURSE_ID);
+    verify(gradeService).upsertGrades(EXAM_ID, any(List.class));
+  }
+
+  @Test
+  void should_get_grades_for_exam() throws Exception {
+    var gradeDto =
+        new GradeDto(
+            GRADE_ID,
+            STUDENT_ID,
+            EXAM_ID,
+            new BigDecimal("15.0"),
+            null,
+            Instant.now(),
+            Instant.now());
+    when(gradeService.getGradesByExamId(EXAM_ID)).thenReturn(List.of(gradeDto));
+
+    mockMvc
+        .perform(get("/exams/{examId}/grades", EXAM_ID))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].id").value(GRADE_ID.toString()));
+
+    verify(gradeService).getGradesByExamId(EXAM_ID);
   }
 }

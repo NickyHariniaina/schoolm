@@ -12,7 +12,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hei.student.schoolm.dto.GradeDto;
 import hei.student.schoolm.dto.GradeHistoryDto;
-import hei.student.schoolm.dto.GradeRequest;
 import hei.student.schoolm.dto.UpdateGradeRequest;
 import hei.student.schoolm.endpoint.rest.security.JwtAuthenticationFilter;
 import hei.student.schoolm.service.GradeService;
@@ -148,41 +147,6 @@ public class GradeControllerTest {
     mockMvc.perform(delete("/grades/{gradeId}", gradeId)).andExpect(status().isNoContent());
 
     verify(gradeService).delete(gradeId);
-  }
-
-  @Test
-  void should_upsert_grades_for_exam() throws Exception {
-    var request = new GradeRequest(null, studentId, new BigDecimal("15.0"), null);
-    var gradeDto =
-        new GradeDto(
-            gradeId, studentId, examId, new BigDecimal("15.0"), null, Instant.now(), Instant.now());
-    when(gradeService.upsertGrades(any(UUID.class), any(List.class))).thenReturn(List.of(gradeDto));
-
-    mockMvc
-        .perform(
-            put("/exams/{examId}/grades", examId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(List.of(request))))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].id").value(gradeId.toString()))
-        .andExpect(jsonPath("$[0].value").value(15.0));
-
-    verify(gradeService).upsertGrades(examId, any(List.class));
-  }
-
-  @Test
-  void should_get_grades_for_exam() throws Exception {
-    var gradeDto =
-        new GradeDto(
-            gradeId, studentId, examId, new BigDecimal("15.0"), null, Instant.now(), Instant.now());
-    when(gradeService.getGradesByExamId(examId)).thenReturn(List.of(gradeDto));
-
-    mockMvc
-        .perform(get("/exams/{examId}/grades", examId))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].id").value(gradeId.toString()));
-
-    verify(gradeService).getGradesByExamId(examId);
   }
 
   @Test

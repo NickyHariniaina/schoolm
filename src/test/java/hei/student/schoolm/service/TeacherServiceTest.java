@@ -51,7 +51,6 @@ class TeacherServiceTest {
 
   @Test
   void should_get_teacher_by_id() {
-    when(securityUtil.isAdmin()).thenReturn(true);
     when(teacherRepository.findById(TEACHER_ID)).thenReturn(Optional.of(buildTeacher()));
 
     var result = teacherService.getById(TEACHER_ID);
@@ -62,7 +61,6 @@ class TeacherServiceTest {
 
   @Test
   void should_throw_when_teacher_not_found() {
-    when(securityUtil.isAdmin()).thenReturn(true);
     when(teacherRepository.findById(TEACHER_ID)).thenReturn(Optional.empty());
 
     assertThrows(NotFoundException.class, () -> teacherService.getById(TEACHER_ID));

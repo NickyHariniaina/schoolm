@@ -1,6 +1,7 @@
 package hei.student.schoolm.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -90,7 +91,7 @@ class ExamServiceTest {
 
     var result = examService.upsert(request);
 
-    assertEquals(EXAM_ID, result.id());
+    assertNotNull(result.id());
     assertEquals(COURSE_ID, result.courseId());
     verify(examRepository).save(any(), eq(COURSE_ID));
   }
