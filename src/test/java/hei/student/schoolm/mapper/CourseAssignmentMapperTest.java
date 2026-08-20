@@ -8,6 +8,7 @@ import hei.student.schoolm.model.Course;
 import hei.student.schoolm.model.CourseAssignment;
 import hei.student.schoolm.model.Group;
 import hei.student.schoolm.model.Semester;
+import hei.student.schoolm.model.Teacher;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,7 @@ class CourseAssignmentMapperTest {
         .id(ASSIGNMENT_ID)
         .course(Course.builder().id(COURSE_ID).ref("PROG4").title("Programmation 4").build())
         .group(Group.builder().id(GROUP_ID).ref("K1").build())
-        .teachers(List.of(hei.student.schoolm.model.Teacher.builder().id(TEACHER_ID).build()))
+        .teachers(List.of(Teacher.builder().id(TEACHER_ID).build()))
         .academicYear(2025)
         .semester(Semester.S3)
         .credits(8)
