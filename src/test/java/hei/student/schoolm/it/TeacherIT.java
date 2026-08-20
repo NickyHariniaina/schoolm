@@ -363,7 +363,7 @@ class TeacherIT extends FacadeIT {
                 .track(Track.COMMON)
                 .semester(Semester.S1)
                 .build());
-    course.getTeachers().add(teacher);
+    course.setTeachers(List.of(teacher));
     courseRepository.save(course);
 
     webTestClient

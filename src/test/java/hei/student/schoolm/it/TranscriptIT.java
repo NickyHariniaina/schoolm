@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +39,7 @@ import hei.student.schoolm.service.event.TranscriptEmailRequestedService;
 import java.io.File;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
@@ -79,6 +81,7 @@ class TranscriptIT extends FacadeIT {
 
   @LocalServerPort int port;
   private WebTestClient webTestClient;
+  private byte[] uploadedPdfBytes;
 
   @BeforeEach
   @SneakyThrows
@@ -92,6 +95,15 @@ class TranscriptIT extends FacadeIT {
         .thenReturn(
             URI.create("https://dummy-bucket.s3.eu-west-3.amazonaws.com/transcripts/test.pdf")
                 .toURL());
+    // The service deletes the temp PDF right after upload, so snapshot the bytes at upload time.
+    doAnswer(
+            invocation -> {
+              var file = (File) invocation.getArgument(0);
+              uploadedPdfBytes = Files.readAllBytes(file.toPath());
+              return null;
+            })
+        .when(bucketComponent)
+        .upload(any(), any());
     teardown();
   }
 
@@ -302,7 +314,7 @@ class TranscriptIT extends FacadeIT {
     var keyCaptor = ArgumentCaptor.forClass(String.class);
     verify(bucketComponent).upload(uploadCaptor.capture(), keyCaptor.capture());
     assertTrue(keyCaptor.getValue().startsWith("transcripts/" + student.getReference() + "_"));
-    assertTrue(uploadCaptor.getValue().length() > 100);
+    assertTrue(uploadedPdfBytes.length > 100);
 
     var emailCaptor = ArgumentCaptor.forClass(Email.class);
     verify(mailer).accept(emailCaptor.capture());
@@ -325,9 +337,8 @@ class TranscriptIT extends FacadeIT {
     transcriptEmailRequestedService.accept(
         new TranscriptEmailRequested(student.getId(), LevelRequest.L1));
 
-    var uploadCaptor = ArgumentCaptor.forClass(File.class);
-    verify(bucketComponent).upload(uploadCaptor.capture(), any());
-    var text = pdfText(uploadCaptor.getValue());
+    verify(bucketComponent).upload(any(), any());
+    var text = pdfText(uploadedPdfBytes);
     assertTrue(text.contains("RELEVÉ DE NOTES"));
     assertTrue(text.contains(course.getRef()));
     assertTrue(text.contains("14.00"));
@@ -343,15 +354,14 @@ class TranscriptIT extends FacadeIT {
     transcriptEmailRequestedService.accept(
         new TranscriptEmailRequested(student.getId(), LevelRequest.L1));
 
-    var uploadCaptor = ArgumentCaptor.forClass(File.class);
-    verify(bucketComponent).upload(uploadCaptor.capture(), any());
-    var text = pdfText(uploadCaptor.getValue());
+    verify(bucketComponent).upload(any(), any());
+    var text = pdfText(uploadedPdfBytes);
     assertTrue(text.contains("INCOMPLET (en cours)"));
     assertFalse(text.contains("COMPLET"));
   }
 
   @SneakyThrows
-  private String pdfText(File pdf) {
+  private String pdfText(byte[] pdf) {
     try (var document = PDDocument.load(pdf)) {
       return new PDFTextStripper().getText(document);
     }

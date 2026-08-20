@@ -171,7 +171,7 @@ class GradeIT extends FacadeIT {
 
   private JCourse saveCourseTaughtBy(JTeacher teacher) {
     var course = saveCourse();
-    course.getTeachers().add(teacher);
+    course.setTeachers(List.of(teacher));
     return courseRepository.save(course);
   }
 

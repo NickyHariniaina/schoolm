@@ -21,6 +21,7 @@ import hei.student.schoolm.repository.model.JAdmin;
 import hei.student.schoolm.repository.model.JCourse;
 import hei.student.schoolm.repository.model.JTeacher;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
@@ -351,7 +352,7 @@ class ExamIT extends FacadeIT {
                 .role(Role.TEACHER)
                 .build());
     var course = saveCourse();
-    course.getTeachers().add(teacher);
+    course.setTeachers(List.of(teacher));
     courseRepository.save(course);
     var exam =
         webTestClient
