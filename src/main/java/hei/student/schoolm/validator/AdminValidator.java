@@ -10,10 +10,10 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class AdminValidator {
-  private final AdminRepository adminRepository;
+  private final AdminRepository repository;
 
   public Admin checkAdminExists(UUID adminId) {
-    return adminRepository
+    return repository
         .findById(adminId)
         .orElseThrow(() -> new NotFoundException("Admin " + adminId + " not found"));
   }
