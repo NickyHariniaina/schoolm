@@ -208,7 +208,7 @@ class CourseAssignmentServiceTest {
     when(validator.creditsPerSemester()).thenReturn(30);
     when(courseValidator.getAllCourses()).thenReturn(List.of(courseS3));
 
-    var result = courseAssignmentService.curriculumStatus(GROUP_ID, 2025, Semester.S3);
+    var result = courseAssignmentService.getCurriculumStatus(GROUP_ID, 2025, Semester.S3);
 
     assertTrue(result.complete());
     assertEquals(30, result.assignedCredits());
@@ -226,7 +226,7 @@ class CourseAssignmentServiceTest {
     when(courseValidator.getAllCourses()).thenReturn(List.of(courseS3));
 
     CurriculumStatusResponse result =
-        courseAssignmentService.curriculumStatus(GROUP_ID, 2025, Semester.S3);
+        courseAssignmentService.getCurriculumStatus(GROUP_ID, 2025, Semester.S3);
 
     assertFalse(result.complete());
     assertEquals(0, result.assignedCredits());

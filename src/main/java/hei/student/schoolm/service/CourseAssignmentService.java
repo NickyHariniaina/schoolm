@@ -143,7 +143,7 @@ public class CourseAssignmentService {
   }
 
   @Transactional(readOnly = true)
-  public CurriculumStatusResponse curriculumStatus(
+  public CurriculumStatusResponse getCurriculumStatus(
       UUID groupId, int academicYear, Semester semester) {
     var group = groupValidator.checkGroupExists(groupId);
     var assignments =
