@@ -3,8 +3,10 @@ package hei.student.schoolm.repository.mapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import hei.student.schoolm.model.Group;
 import hei.student.schoolm.model.GroupFlow;
 import hei.student.schoolm.model.GroupFlowType;
+import hei.student.schoolm.model.Student;
 import hei.student.schoolm.repository.model.JGroup;
 import hei.student.schoolm.repository.model.JGroupFlow;
 import hei.student.schoolm.repository.model.JStudent;
@@ -59,8 +61,8 @@ class JGroupFlowMapperTest {
     var flow =
         GroupFlow.builder()
             .id(FLOW_ID)
-            .student(hei.student.schoolm.model.Student.builder().id(STUDENT_ID).build())
-            .group(hei.student.schoolm.model.Group.builder().id(GROUP_ID).build())
+            .student(Student.builder().id(STUDENT_ID).build())
+            .group(Group.builder().id(GROUP_ID).build())
             .groupFlowType(GroupFlowType.JOIN)
             .createdAt(Instant.parse("2025-01-01T00:00:00Z"))
             .build();

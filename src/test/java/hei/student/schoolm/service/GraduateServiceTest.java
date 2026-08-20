@@ -12,6 +12,7 @@ import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.file.bucket.BucketComponent;
 import hei.student.schoolm.file.xlsx.GraduateXlsxWriter;
+import hei.student.schoolm.model.Course;
 import hei.student.schoolm.model.Group;
 import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.model.Student;
@@ -75,7 +76,7 @@ class GraduateServiceTest {
     when(groupFlowService.studentGroupIds(student.getId())).thenReturn(List.of(group.getId()));
     var courses =
         group.getCourses() == null
-            ? List.<hei.student.schoolm.model.Course>of()
+            ? List.<Course>of()
             : group.getCourses().stream()
                 .filter(c -> c.getSemester().ordinal() <= currentSemester.ordinal())
                 .toList();

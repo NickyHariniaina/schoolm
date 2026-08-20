@@ -101,7 +101,7 @@ public class GraduateService {
 
   private List<Course> completedCourses(Student student, Semester currentSemester) {
     var groupIds = service.studentGroupIds(student.getId());
-    var semesters = new java.util.ArrayList<Semester>();
+    var semesters = new ArrayList<Semester>();
     for (var semester : Semester.values()) {
       if (semester.ordinal() <= currentSemester.ordinal()) {
         semesters.add(semester);

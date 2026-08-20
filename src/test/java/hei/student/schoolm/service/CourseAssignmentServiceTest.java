@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import hei.student.schoolm.dto.CourseAssignmentRequest;
 import hei.student.schoolm.dto.CurriculumStatusResponse;
+import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.mapper.CourseAssignmentMapper;
 import hei.student.schoolm.mapper.CourseMapper;
@@ -19,6 +20,7 @@ import hei.student.schoolm.model.Course;
 import hei.student.schoolm.model.CourseAssignment;
 import hei.student.schoolm.model.Group;
 import hei.student.schoolm.model.Semester;
+import hei.student.schoolm.model.Teacher;
 import hei.student.schoolm.model.Track;
 import hei.student.schoolm.repository.CourseAssignmentRepository;
 import hei.student.schoolm.repository.StudentRepository;
@@ -33,8 +35,10 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -60,7 +64,7 @@ class CourseAssignmentServiceTest {
 
   @BeforeEach
   void setUp() {
-    org.mockito.Mockito.lenient().when(securityUtil.isAdmin()).thenReturn(true);
+    Mockito.lenient().when(securityUtil.isAdmin()).thenReturn(true);
   }
 
   private Course course(Semester semester) {
@@ -124,12 +128,7 @@ class CourseAssignmentServiceTest {
     when(courseValidator.checkCourseExists(COURSE_ID)).thenReturn(course);
     when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(group);
     when(teacherValidator.checkTeachersExist(List.of(TEACHER_ID)))
-        .thenReturn(
-            List.of(
-                hei.student.schoolm.model.Teacher.builder()
-                    .id(TEACHER_ID)
-                    .firstName("Andry")
-                    .build()));
+        .thenReturn(List.of(Teacher.builder().id(TEACHER_ID).firstName("Andry").build()));
     var saved =
         CourseAssignment.builder()
             .id(ASSIGNMENT_ID)
@@ -155,19 +154,12 @@ class CourseAssignmentServiceTest {
     when(courseValidator.checkCourseExists(COURSE_ID)).thenReturn(course(Semester.S3));
     when(groupValidator.checkGroupExists(GROUP_ID)).thenReturn(group());
     when(teacherValidator.checkTeachersExist(List.of(TEACHER_ID)))
-        .thenReturn(
-            List.of(
-                hei.student.schoolm.model.Teacher.builder()
-                    .id(TEACHER_ID)
-                    .firstName("Andry")
-                    .build()));
-    doThrow(new hei.student.schoolm.exception.BadRequestException("duplicate"))
+        .thenReturn(List.of(Teacher.builder().id(TEACHER_ID).firstName("Andry").build()));
+    doThrow(new BadRequestException("duplicate"))
         .when(validator)
-        .validateNotDuplicate(any(), any(), any(), org.mockito.ArgumentMatchers.anyInt(), any());
+        .validateNotDuplicate(any(), any(), any(), ArgumentMatchers.anyInt(), any());
 
-    assertThrows(
-        hei.student.schoolm.exception.BadRequestException.class,
-        () -> courseAssignmentService.upsert(List.of(request)));
+    assertThrows(BadRequestException.class, () -> courseAssignmentService.upsert(List.of(request)));
   }
 
   @Test

@@ -8,6 +8,7 @@ import hei.student.schoolm.repository.model.JCourseAssignment;
 import hei.student.schoolm.repository.model.JGroup;
 import hei.student.schoolm.repository.model.JTeacher;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -47,7 +48,7 @@ public class JCourseAssignmentMapper {
             ? List.<JTeacher>of()
             : courseAssignment.getTeachers().stream()
                 .map(teacher -> JTeacher.builder().id(teacher.getId()).build())
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
     return JCourseAssignment.builder()
         .id(courseAssignment.getId())
         .course(

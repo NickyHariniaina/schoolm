@@ -4,6 +4,7 @@ import hei.student.schoolm.dto.TeacherRequest;
 import hei.student.schoolm.dto.TeacherResponse;
 import hei.student.schoolm.exception.BadRequestException;
 import hei.student.schoolm.exception.ConflictException;
+import hei.student.schoolm.exception.ForbiddenException;
 import hei.student.schoolm.exception.NotFoundException;
 import hei.student.schoolm.model.Teacher;
 import hei.student.schoolm.model.User;
@@ -79,8 +80,7 @@ public class TeacherService {
   @Transactional
   public void delete(UUID id) {
     if (!securityUtil.isAdmin()) {
-      throw new hei.student.schoolm.exception.ForbiddenException(
-          "Only an admin can delete a teacher");
+      throw new ForbiddenException("Only an admin can delete a teacher");
     }
     getEntityOrThrow(id);
     if (courseRepository.existsByTeacherId(id)) {

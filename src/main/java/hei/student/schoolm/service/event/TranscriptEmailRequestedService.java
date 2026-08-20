@@ -1,5 +1,6 @@
 package hei.student.schoolm.service.event;
 
+import hei.student.schoolm.dto.LevelRequest;
 import hei.student.schoolm.dto.TranscriptPdfDto;
 import hei.student.schoolm.dto.TranscriptStatus;
 import hei.student.schoolm.endpoint.event.model.TranscriptEmailRequested;
@@ -71,7 +72,7 @@ public class TranscriptEmailRequestedService implements Consumer<TranscriptEmail
             List.of()));
   }
 
-  private Semester getSemesterForLevel(hei.student.schoolm.dto.LevelRequest level) {
+  private Semester getSemesterForLevel(LevelRequest level) {
     return switch (level) {
       case L1 -> Semester.S1;
       case L2 -> Semester.S3;

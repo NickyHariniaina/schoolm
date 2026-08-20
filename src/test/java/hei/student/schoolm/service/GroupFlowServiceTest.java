@@ -23,8 +23,10 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,7 +44,7 @@ class GroupFlowServiceTest {
 
   @BeforeEach
   void setUp() {
-    org.mockito.Mockito.lenient().when(securityUtil.isAdmin()).thenReturn(true);
+    Mockito.lenient().when(securityUtil.isAdmin()).thenReturn(true);
   }
 
   private Student student() {
@@ -95,8 +97,7 @@ class GroupFlowServiceTest {
             .groupFlowType(GroupFlowType.JOIN)
             .createdAt(Instant.parse("2025-09-01T00:00:00Z"))
             .build();
-    when(groupFlowRepository.save(org.mockito.ArgumentMatchers.any(GroupFlow.class)))
-        .thenReturn(savedFlow);
+    when(groupFlowRepository.save(ArgumentMatchers.any(GroupFlow.class))).thenReturn(savedFlow);
 
     var result = groupFlowService.move(STUDENT_ID, new MoveStudentGroupRequest(GROUP_NEW_ID));
 

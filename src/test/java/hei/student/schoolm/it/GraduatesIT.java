@@ -24,6 +24,7 @@ import hei.student.schoolm.repository.jpa.JGroupRepository;
 import hei.student.schoolm.repository.jpa.JStudentRepository;
 import hei.student.schoolm.repository.jpa.JTeacherRepository;
 import hei.student.schoolm.repository.model.JAdmin;
+import hei.student.schoolm.repository.model.JCohort;
 import hei.student.schoolm.repository.model.JCourse;
 import hei.student.schoolm.repository.model.JCourseAssignment;
 import hei.student.schoolm.repository.model.JExam;
@@ -136,16 +137,16 @@ class GraduatesIT extends FacadeIT {
     return jwtService.generateToken(UUID.randomUUID(), uniqueEmail(), Role.STUDENT);
   }
 
-  private hei.student.schoolm.repository.model.JCohort saveCohort() {
+  private JCohort saveCohort() {
     return cohortRepository.save(
-        hei.student.schoolm.repository.model.JCohort.builder()
+        JCohort.builder()
             .id(UUID.randomUUID())
             .ref("GRA-COH-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
             .entryYear(2023)
             .build());
   }
 
-  private JGroup saveGroup(hei.student.schoolm.repository.model.JCohort cohort, Track track) {
+  private JGroup saveGroup(JCohort cohort, Track track) {
     return groupRepository.save(
         JGroup.builder()
             .id(UUID.randomUUID())
