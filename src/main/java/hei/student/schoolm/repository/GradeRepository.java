@@ -16,29 +16,27 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 @RequiredArgsConstructor
 public class GradeRepository {
-  private final JGradeRepository jGradeRepository;
-  private final JGradeMapper jGradeMapper;
+  private final JGradeRepository repository;
+  private final JGradeMapper mapper;
 
   @Transactional(readOnly = true)
   public Optional<Grade> findById(UUID id) {
-    return jGradeRepository.findById(id).map(jGradeMapper::toDomain);
+    return repository.findById(id).map(mapper::toDomain);
   }
 
   @Transactional(readOnly = true)
   public List<Grade> findAll() {
-    return jGradeRepository.findAll().stream().map(jGradeMapper::toDomain).toList();
+    return repository.findAll().stream().map(mapper::toDomain).toList();
   }
 
   @Transactional(readOnly = true)
   public List<Grade> findAllByStudentId(UUID studentId) {
-    return jGradeRepository.findAllByStudentId(studentId).stream()
-        .map(jGradeMapper::toDomain)
-        .toList();
+    return repository.findAllByStudentId(studentId).stream().map(mapper::toDomain).toList();
   }
 
   @Transactional(readOnly = true)
   public List<Grade> findAllByExamId(UUID examId) {
-    return jGradeRepository.findAllByExamId(examId).stream().map(jGradeMapper::toDomain).toList();
+    return repository.findAllByExamId(examId).stream().map(mapper::toDomain).toList();
   }
 
   @Transactional
@@ -57,22 +55,22 @@ public class GradeRepository {
       jGrade.setExam(JExam.builder().id(grade.getExam().getId()).build());
     }
 
-    var saved = jGradeRepository.save(jGrade);
-    return jGradeMapper.toDomain(saved);
+    var saved = repository.save(jGrade);
+    return mapper.toDomain(saved);
   }
 
   @Transactional
   public void deleteAllByStudentId(UUID studentId) {
-    jGradeRepository.deleteAllByStudentId(studentId);
+    repository.deleteAllByStudentId(studentId);
   }
 
   @Transactional
   public void deleteAllByExamId(UUID examId) {
-    jGradeRepository.deleteAllByExamId(examId);
+    repository.deleteAllByExamId(examId);
   }
 
   @Transactional
   public void deleteById(UUID id) {
-    jGradeRepository.deleteById(id);
+    repository.deleteById(id);
   }
 }
