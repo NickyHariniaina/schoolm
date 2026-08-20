@@ -14,28 +14,28 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 @RequiredArgsConstructor
 public class ExamRepository {
-  private final JExamRepository jExamRepository;
-  private final JExamMapper jExamMapper;
+  private final JExamRepository repository;
+  private final JExamMapper mapper;
 
   @Transactional(readOnly = true)
   public Optional<Exam> findById(UUID id) {
-    return jExamRepository.findById(id).map(jExamMapper::toDomain);
+    return repository.findById(id).map(mapper::toDomain);
   }
 
   @Transactional(readOnly = true)
   public List<Exam> findAllByCourseId(UUID courseId) {
-    return jExamRepository.findAllByCourseId(courseId).stream().map(jExamMapper::toDomain).toList();
+    return repository.findAllByCourseId(courseId).stream().map(mapper::toDomain).toList();
   }
 
   @Transactional
   public Exam save(Exam exam, UUID courseId) {
-    JExam jExam = jExamMapper.toEntity(exam, courseId);
-    var saved = jExamRepository.save(jExam);
-    return jExamMapper.toDomain(saved);
+    JExam jExam = mapper.toEntity(exam, courseId);
+    var saved = repository.save(jExam);
+    return mapper.toDomain(saved);
   }
 
   @Transactional
   public void deleteById(UUID id) {
-    jExamRepository.deleteById(id);
+    repository.deleteById(id);
   }
 }
