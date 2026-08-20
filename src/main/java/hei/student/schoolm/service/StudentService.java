@@ -35,15 +35,15 @@ public class StudentService {
   private final StudentValidator studentValidator;
   private final GroupFlowService groupFlowService;
   private final CourseAssignmentRepository courseAssignmentRepository;
-  private final StudentMapper studentMapper;
+  private final StudentMapper mapper;
   private final SecurityUtil securityUtil;
   private final StudentRepository studentRepository;
   private final GroupService groupService;
   private final GroupFlowRepository groupFlowRepository;
   private final GradeRepository gradeRepository;
   private final JGradeHistoryRepository jGradeHistoryRepository;
-  private final StdRefGenerator stdRefGenerator;
-  private final PasswordEncoder passwordEncoder;
+  private final StdRefGenerator generator;
+  private final PasswordEncoder encoder;
   private final GroupValidator groupValidator;
 
   @Transactional(readOnly = true)
@@ -73,7 +73,7 @@ public class StudentService {
       throw new BadRequestException("password is required when creating a student");
     }
     var group = groupService.getEntityOrThrow(request.groupId());
-    var reference = stdRefGenerator.generate(group.getCohort().getEntryYear().getValue());
+    var reference = generator.generate(group.getCohort().getEntryYear().getValue());
 
     var student =
         studentRepository.save(
@@ -83,7 +83,7 @@ public class StudentService {
                 .firstName(request.firstName())
                 .lastName(request.lastName())
                 .role(User.Role.STUDENT)
-                .password(passwordEncoder.encode(request.password()))
+                .password(encoder.encode(request.password()))
                 .reference(reference)
                 .group(group)
                 .build());
@@ -108,7 +108,7 @@ public class StudentService {
     student.setFirstName(request.firstName());
     student.setLastName(request.lastName());
     if (request.password() != null && !request.password().isBlank()) {
-      student.setPassword(passwordEncoder.encode(request.password()));
+      student.setPassword(encoder.encode(request.password()));
     }
 
     return toResponse(studentRepository.save(student));
@@ -132,7 +132,7 @@ public class StudentService {
     var student = studentValidator.checkStudentExists(studentId);
     var courses = coursesForStudent(studentId, List.of(semester));
     var group = student.getGroup();
-    return studentMapper.toSemesterValidationDto(student, group, semester, courses);
+    return mapper.toSemesterValidationDto(student, group, semester, courses);
   }
 
   public Group getGroup(UUID studentId) {
@@ -154,7 +154,7 @@ public class StudentService {
 
     var filteredCourses = filterCourses(coursesForStudent(studentId, pair), pair, studentTrack);
 
-    return studentMapper.toTranscriptDto(student, group, semester, filteredCourses);
+    return mapper.toTranscriptDto(student, group, semester, filteredCourses);
   }
 
   public TranscriptDto getTranscriptForLevel(UUID studentId, LevelRequest level) {
@@ -177,7 +177,7 @@ public class StudentService {
       return buildEmptyTranscriptDto(student, group, semesters);
     }
 
-    return studentMapper.toTranscriptDto(student, group, semester, filteredCourses);
+    return mapper.toTranscriptDto(student, group, semester, filteredCourses);
   }
 
   private boolean hasLevelStarted(LevelRequest level, Semester currentSemester) {
