@@ -11,6 +11,7 @@ import hei.student.schoolm.validator.GroupValidator;
 import hei.student.schoolm.validator.StudentValidator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,8 +39,7 @@ public class GroupFlowService {
     if (student.getGroup() == null) {
       return flowGroupIds;
     }
-    return java.util.stream.Stream.concat(
-            java.util.stream.Stream.of(student.getGroup().getId()), flowGroupIds.stream())
+    return Stream.concat(Stream.of(student.getGroup().getId()), flowGroupIds.stream())
         .distinct()
         .toList();
   }
