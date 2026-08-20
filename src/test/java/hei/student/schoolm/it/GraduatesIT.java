@@ -1,14 +1,12 @@
 package hei.student.schoolm.it;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import hei.student.schoolm.conf.FacadeIT;
-import hei.student.schoolm.dto.GraduateEntry;
 import hei.student.schoolm.dto.GraduateFileDto;
 import hei.student.schoolm.endpoint.rest.security.JwtService;
 import hei.student.schoolm.file.bucket.BucketComponent;
@@ -219,12 +217,7 @@ class GraduatesIT extends FacadeIT {
                 .coefDenominator(1)
                 .build());
     gradeRepository.save(
-        JGrade.builder()
-            .id(UUID.randomUUID())
-            .exam(exam)
-            .student(student)
-            .value(value)
-            .build());
+        JGrade.builder().id(UUID.randomUUID()).exam(exam).student(student).value(value).build());
     return exam;
   }
 

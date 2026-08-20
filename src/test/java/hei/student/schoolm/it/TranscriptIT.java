@@ -2,7 +2,6 @@ package hei.student.schoolm.it;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
@@ -203,12 +202,7 @@ class TranscriptIT extends FacadeIT {
 
   private JGrade saveGrade(JExam exam, JStudent student, BigDecimal value) {
     return gradeRepository.save(
-        JGrade.builder()
-            .id(UUID.randomUUID())
-            .exam(exam)
-            .student(student)
-            .value(value)
-            .build());
+        JGrade.builder().id(UUID.randomUUID()).exam(exam).student(student).value(value).build());
   }
 
   @Test
@@ -256,7 +250,9 @@ class TranscriptIT extends FacadeIT {
     webTestClient
         .post()
         .uri("/students/" + student.getId() + "/transcript/email?level=L1")
-        .header("Authorization", "Bearer " + jwtService.generateToken(teacher.getId(), teacher.getEmail(), Role.TEACHER))
+        .header(
+            "Authorization",
+            "Bearer " + jwtService.generateToken(teacher.getId(), teacher.getEmail(), Role.TEACHER))
         .exchange()
         .expectStatus()
         .isForbidden();

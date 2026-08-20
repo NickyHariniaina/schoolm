@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import hei.student.schoolm.conf.FacadeIT;
 import hei.student.schoolm.dto.ExamDto;
 import hei.student.schoolm.dto.ExamRequest;
+import hei.student.schoolm.endpoint.rest.security.JwtService;
 import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.model.Track;
 import hei.student.schoolm.model.User.Role;
@@ -18,8 +19,6 @@ import hei.student.schoolm.repository.jpa.JStudentRepository;
 import hei.student.schoolm.repository.jpa.JTeacherRepository;
 import hei.student.schoolm.repository.model.JAdmin;
 import hei.student.schoolm.repository.model.JCourse;
-import hei.student.schoolm.repository.model.JExam;
-import hei.student.schoolm.repository.model.JGroup;
 import hei.student.schoolm.repository.model.JTeacher;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -31,7 +30,6 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import hei.student.schoolm.endpoint.rest.security.JwtService;
 
 class ExamIT extends FacadeIT {
 
@@ -342,7 +340,8 @@ class ExamIT extends FacadeIT {
 
   @Test
   void teacherCanReadExamOfCourseTheyTeach() {
-    var teacher = teacherRepository.save(
+    var teacher =
+        teacherRepository.save(
             JTeacher.builder()
                 .id(UUID.randomUUID())
                 .firstName("Grace")

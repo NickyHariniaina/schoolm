@@ -8,6 +8,7 @@ import hei.student.schoolm.conf.FacadeIT;
 import hei.student.schoolm.dto.CourseAssignmentRequest;
 import hei.student.schoolm.dto.CourseAssignmentResponse;
 import hei.student.schoolm.dto.CurriculumStatusResponse;
+import hei.student.schoolm.endpoint.rest.security.JwtService;
 import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.model.Track;
 import hei.student.schoolm.model.User.Role;
@@ -33,7 +34,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import hei.student.schoolm.endpoint.rest.security.JwtService;
 
 class CourseAssignmentIT extends FacadeIT {
 
@@ -189,7 +189,10 @@ class CourseAssignmentIT extends FacadeIT {
                 adminToken(admin),
                 List.of(
                     assignmentRequest(
-                        course.getId(), group.getId(), List.of(teacher.getId()), course.getCredit())))
+                        course.getId(),
+                        group.getId(),
+                        List.of(teacher.getId()),
+                        course.getCredit())))
             .get(0);
 
     assertNotNull(assignment);
@@ -279,8 +282,7 @@ class CourseAssignmentIT extends FacadeIT {
 
     upsertAssignments(
         adminToken(saveAdmin()),
-        List.of(
-            assignmentRequest(course.getId(), group.getId(), List.of(teacher.getId()), 4)));
+        List.of(assignmentRequest(course.getId(), group.getId(), List.of(teacher.getId()), 4)));
     upsertAssignments(
         adminToken(saveAdmin()),
         List.of(
@@ -293,7 +295,8 @@ class CourseAssignmentIT extends FacadeIT {
             .uri("/course-assignments?teacherId=" + otherTeacher.getId())
             .header(
                 "Authorization",
-                "Bearer " + jwtService.generateToken(teacher.getId(), teacher.getEmail(), Role.TEACHER))
+                "Bearer "
+                    + jwtService.generateToken(teacher.getId(), teacher.getEmail(), Role.TEACHER))
             .exchange()
             .expectStatus()
             .isOk()
@@ -328,7 +331,10 @@ class CourseAssignmentIT extends FacadeIT {
         webTestClient
             .get()
             .uri("/course-assignments")
-            .header("Authorization", "Bearer " + jwtService.generateToken(student.getId(), student.getEmail(), Role.STUDENT))
+            .header(
+                "Authorization",
+                "Bearer "
+                    + jwtService.generateToken(student.getId(), student.getEmail(), Role.STUDENT))
             .exchange()
             .expectStatus()
             .isOk()
@@ -354,7 +360,8 @@ class CourseAssignmentIT extends FacadeIT {
         List.of(assignmentRequest(course.getId(), group.getId(), List.of(teacher.getId()), 4)));
     upsertAssignments(
         adminToken(admin),
-        List.of(assignmentRequest(otherCourse.getId(), group.getId(), List.of(teacher.getId()), 4)));
+        List.of(
+            assignmentRequest(otherCourse.getId(), group.getId(), List.of(teacher.getId()), 4)));
 
     var results =
         webTestClient
@@ -387,7 +394,9 @@ class CourseAssignmentIT extends FacadeIT {
         List.of(assignmentRequest(course.getId(), group.getId(), List.of(teacher.getId()), 4)));
 
     var uri =
-        "/course-assignments/curriculum-status?groupId=" + group.getId() + "&academicYear=2025&semester=S1";
+        "/course-assignments/curriculum-status?groupId="
+            + group.getId()
+            + "&academicYear=2025&semester=S1";
 
     var status =
         webTestClient
@@ -409,7 +418,9 @@ class CourseAssignmentIT extends FacadeIT {
     webTestClient
         .get()
         .uri(uri)
-        .header("Authorization", "Bearer " + jwtService.generateToken(teacher.getId(), teacher.getEmail(), Role.TEACHER))
+        .header(
+            "Authorization",
+            "Bearer " + jwtService.generateToken(teacher.getId(), teacher.getEmail(), Role.TEACHER))
         .exchange()
         .expectStatus()
         .isForbidden();
@@ -417,7 +428,9 @@ class CourseAssignmentIT extends FacadeIT {
     webTestClient
         .get()
         .uri(uri)
-        .header("Authorization", "Bearer " + jwtService.generateToken(student.getId(), student.getEmail(), Role.STUDENT))
+        .header(
+            "Authorization",
+            "Bearer " + jwtService.generateToken(student.getId(), student.getEmail(), Role.STUDENT))
         .exchange()
         .expectStatus()
         .isForbidden();
@@ -435,7 +448,10 @@ class CourseAssignmentIT extends FacadeIT {
                 adminToken(admin),
                 List.of(
                     assignmentRequest(
-                        course.getId(), group.getId(), List.of(teacher.getId()), course.getCredit())))
+                        course.getId(),
+                        group.getId(),
+                        List.of(teacher.getId()),
+                        course.getCredit())))
             .get(0);
 
     webTestClient
@@ -464,7 +480,9 @@ class CourseAssignmentIT extends FacadeIT {
     webTestClient
         .put()
         .uri("/course-assignments")
-        .header("Authorization", "Bearer " + jwtService.generateToken(teacher.getId(), teacher.getEmail(), Role.TEACHER))
+        .header(
+            "Authorization",
+            "Bearer " + jwtService.generateToken(teacher.getId(), teacher.getEmail(), Role.TEACHER))
         .bodyValue(
             List.of(
                 assignmentRequest(
@@ -484,7 +502,9 @@ class CourseAssignmentIT extends FacadeIT {
     webTestClient
         .put()
         .uri("/course-assignments")
-        .header("Authorization", "Bearer " + jwtService.generateToken(student.getId(), student.getEmail(), Role.STUDENT))
+        .header(
+            "Authorization",
+            "Bearer " + jwtService.generateToken(student.getId(), student.getEmail(), Role.STUDENT))
         .bodyValue(
             List.of(
                 assignmentRequest(

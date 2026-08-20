@@ -137,12 +137,7 @@ class AuthIT extends FacadeIT {
 
   @Test
   void unknownEndpointReturnsNotFoundInsteadOfUnauthorized() {
-    webTestClient
-        .get()
-        .uri("/definitely-not-an-endpoint")
-        .exchange()
-        .expectStatus()
-        .isNotFound();
+    webTestClient.get().uri("/definitely-not-an-endpoint").exchange().expectStatus().isNotFound();
   }
 
   @Test

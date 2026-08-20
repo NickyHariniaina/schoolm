@@ -8,6 +8,7 @@ import hei.student.schoolm.conf.FacadeIT;
 import hei.student.schoolm.dto.GroupRequest;
 import hei.student.schoolm.dto.GroupResponse;
 import hei.student.schoolm.dto.StudentResponse;
+import hei.student.schoolm.endpoint.rest.security.JwtService;
 import hei.student.schoolm.model.Track;
 import hei.student.schoolm.model.User.Role;
 import hei.student.schoolm.repository.jpa.JAdminRepository;
@@ -27,7 +28,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import hei.student.schoolm.endpoint.rest.security.JwtService;
 
 class GroupIT extends FacadeIT {
 
@@ -101,8 +101,7 @@ class GroupIT extends FacadeIT {
         .put()
         .uri("/groups")
         .header("Authorization", "Bearer " + token)
-        .bodyValue(
-            GroupRequest.builder().cohortId(cohortId).ref(ref).track(track).build())
+        .bodyValue(GroupRequest.builder().cohortId(cohortId).ref(ref).track(track).build())
         .exchange()
         .expectStatus()
         .isOk()

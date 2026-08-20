@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import hei.student.schoolm.conf.FacadeIT;
 import hei.student.schoolm.dto.AdminRequest;
 import hei.student.schoolm.dto.AdminResponse;
+import hei.student.schoolm.endpoint.rest.security.JwtService;
 import hei.student.schoolm.model.User.Role;
 import hei.student.schoolm.repository.jpa.JAdminRepository;
 import hei.student.schoolm.repository.jpa.JTeacherRepository;
@@ -20,7 +21,6 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import hei.student.schoolm.endpoint.rest.security.JwtService;
 
 class AdminIT extends FacadeIT {
 
@@ -199,11 +199,6 @@ class AdminIT extends FacadeIT {
   void unauthenticatedAccessIsRejected() {
     var admin = saveAdmin();
 
-    webTestClient
-        .get()
-        .uri("/admins/" + admin.getId())
-        .exchange()
-        .expectStatus()
-        .isUnauthorized();
+    webTestClient.get().uri("/admins/" + admin.getId()).exchange().expectStatus().isUnauthorized();
   }
 }

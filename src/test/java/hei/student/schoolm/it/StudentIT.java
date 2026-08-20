@@ -15,6 +15,7 @@ import hei.student.schoolm.dto.StudentResponse;
 import hei.student.schoolm.dto.TranscriptDto;
 import hei.student.schoolm.endpoint.event.EventProducer;
 import hei.student.schoolm.endpoint.event.model.TranscriptEmailRequested;
+import hei.student.schoolm.endpoint.rest.security.JwtService;
 import hei.student.schoolm.model.GroupFlowType;
 import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.model.Track;
@@ -34,7 +35,6 @@ import hei.student.schoolm.repository.model.JExam;
 import hei.student.schoolm.repository.model.JGrade;
 import hei.student.schoolm.repository.model.JGroup;
 import hei.student.schoolm.repository.model.JStudent;
-import hei.student.schoolm.repository.model.JTeacher;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -42,6 +42,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -49,8 +50,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import hei.student.schoolm.endpoint.rest.security.JwtService;
-import org.mockito.ArgumentCaptor;
 
 class StudentIT extends FacadeIT {
 
@@ -191,7 +190,10 @@ class StudentIT extends FacadeIT {
         webTestClient
             .get()
             .uri("/students/" + student.id())
-            .header("Authorization", "Bearer " + studentToken(studentRepository.findByEmailIgnoreCase(email).orElseThrow()))
+            .header(
+                "Authorization",
+                "Bearer "
+                    + studentToken(studentRepository.findByEmailIgnoreCase(email).orElseThrow()))
             .exchange()
             .expectStatus()
             .isOk()
@@ -213,7 +215,11 @@ class StudentIT extends FacadeIT {
     webTestClient
         .get()
         .uri("/students/" + studentA.id())
-        .header("Authorization", "Bearer " + studentToken(studentRepository.findByEmailIgnoreCase(studentB.email()).orElseThrow()))
+        .header(
+            "Authorization",
+            "Bearer "
+                + studentToken(
+                    studentRepository.findByEmailIgnoreCase(studentB.email()).orElseThrow()))
         .exchange()
         .expectStatus()
         .isForbidden();
@@ -229,7 +235,11 @@ class StudentIT extends FacadeIT {
     webTestClient
         .get()
         .uri("/students")
-        .header("Authorization", "Bearer " + studentToken(studentRepository.findByEmailIgnoreCase(student.email()).orElseThrow()))
+        .header(
+            "Authorization",
+            "Bearer "
+                + studentToken(
+                    studentRepository.findByEmailIgnoreCase(student.email()).orElseThrow()))
         .exchange()
         .expectStatus()
         .isForbidden();
@@ -435,7 +445,9 @@ class StudentIT extends FacadeIT {
     webTestClient
         .delete()
         .uri("/students/" + student.id())
-        .header("Authorization", "Bearer " + studentToken(studentRepository.findByEmailIgnoreCase(email).orElseThrow()))
+        .header(
+            "Authorization",
+            "Bearer " + studentToken(studentRepository.findByEmailIgnoreCase(email).orElseThrow()))
         .exchange()
         .expectStatus()
         .isForbidden();
@@ -448,15 +460,16 @@ class StudentIT extends FacadeIT {
     var group = saveGroup(cohort, "STUDENT-GRP-N", Track.EL);
     var student = createStudent(adminToken(admin), group, uniqueEmail(), "secret123");
 
-    var course = courseRepository.save(
-        JCourse.builder()
-            .id(UUID.randomUUID())
-            .ref("STC" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
-            .title("Course")
-            .credit(4)
-            .track(Track.COMMON)
-            .semester(Semester.S1)
-            .build());
+    var course =
+        courseRepository.save(
+            JCourse.builder()
+                .id(UUID.randomUUID())
+                .ref("STC" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                .title("Course")
+                .credit(4)
+                .track(Track.COMMON)
+                .semester(Semester.S1)
+                .build());
     var exam =
         examRepository.save(
             JExam.builder()
@@ -484,7 +497,7 @@ class StudentIT extends FacadeIT {
         .expectStatus()
         .isNoContent();
 
-assertFalse(gradeRepository.findById(grade.getId()).isPresent());
+    assertFalse(gradeRepository.findById(grade.getId()).isPresent());
     assertTrue(groupRepository.findById(group.getId()).isPresent());
     assertTrue(
         jdbcTemplate
@@ -503,7 +516,11 @@ assertFalse(gradeRepository.findById(grade.getId()).isPresent());
         webTestClient
             .get()
             .uri("/students/" + student.id() + "/semester-validation?semester=S1")
-            .header("Authorization", "Bearer " + studentToken(studentRepository.findByEmailIgnoreCase(student.email()).orElseThrow()))
+            .header(
+                "Authorization",
+                "Bearer "
+                    + studentToken(
+                        studentRepository.findByEmailIgnoreCase(student.email()).orElseThrow()))
             .exchange()
             .expectStatus()
             .isOk()
@@ -527,7 +544,11 @@ assertFalse(gradeRepository.findById(grade.getId()).isPresent());
         webTestClient
             .get()
             .uri("/students/" + student.id() + "/graduate-transcript")
-            .header("Authorization", "Bearer " + studentToken(studentRepository.findByEmailIgnoreCase(student.email()).orElseThrow()))
+            .header(
+                "Authorization",
+                "Bearer "
+                    + studentToken(
+                        studentRepository.findByEmailIgnoreCase(student.email()).orElseThrow()))
             .exchange()
             .expectStatus()
             .isOk()
@@ -573,7 +594,11 @@ assertFalse(gradeRepository.findById(grade.getId()).isPresent());
     webTestClient
         .post()
         .uri("/students/" + studentA.id() + "/transcript/email?level=L1")
-        .header("Authorization", "Bearer " + studentToken(studentRepository.findByEmailIgnoreCase(studentB.email()).orElseThrow()))
+        .header(
+            "Authorization",
+            "Bearer "
+                + studentToken(
+                    studentRepository.findByEmailIgnoreCase(studentB.email()).orElseThrow()))
         .exchange()
         .expectStatus()
         .isForbidden();

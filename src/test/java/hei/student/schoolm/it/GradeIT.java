@@ -8,6 +8,7 @@ import hei.student.schoolm.dto.GradeDto;
 import hei.student.schoolm.dto.GradeHistoryDto;
 import hei.student.schoolm.dto.GradeRequest;
 import hei.student.schoolm.dto.UpdateGradeRequest;
+import hei.student.schoolm.endpoint.rest.security.JwtService;
 import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.model.Track;
 import hei.student.schoolm.model.User.Role;
@@ -39,7 +40,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import hei.student.schoolm.endpoint.rest.security.JwtService;
 
 class GradeIT extends FacadeIT {
 
@@ -136,7 +136,12 @@ class GradeIT extends FacadeIT {
                 .track(Track.EL)
                 .cohort(
                     cohortRepository.save(
-                        JCohort.builder().id(UUID.randomUUID()).ref("COH-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase()).entryYear(2025).build()))
+                        JCohort.builder()
+                            .id(UUID.randomUUID())
+                            .ref(
+                                "COH-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                            .entryYear(2025)
+                            .build()))
                 .build());
     return studentRepository.save(
         JStudent.builder()
@@ -182,12 +187,7 @@ class GradeIT extends FacadeIT {
 
   private JGrade saveGrade(JExam exam, JStudent student, BigDecimal value) {
     return gradeRepository.save(
-        JGrade.builder()
-            .id(UUID.randomUUID())
-            .exam(exam)
-            .student(student)
-            .value(value)
-            .build());
+        JGrade.builder().id(UUID.randomUUID()).exam(exam).student(student).value(value).build());
   }
 
   private GradeRequest gradeRequest(UUID studentId, BigDecimal value) {
@@ -233,7 +233,10 @@ class GradeIT extends FacadeIT {
     var admin = saveAdmin();
     var exam = saveExam(saveCourse());
     var student = saveStudent();
-    upsertGrades(adminToken(admin), exam.getId(), List.of(gradeRequest(student.getId(), new BigDecimal("12.0"))));
+    upsertGrades(
+        adminToken(admin),
+        exam.getId(),
+        List.of(gradeRequest(student.getId(), new BigDecimal("12.0"))));
 
     var listed =
         webTestClient

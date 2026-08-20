@@ -1,6 +1,5 @@
 package hei.student.schoolm.it;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -102,8 +101,7 @@ class UIIT extends FacadeIT {
     var token =
         setCookie
             .substring(
-                (JwtAuthenticationFilter.TOKEN_COOKIE + "=").length(),
-                setCookie.indexOf(";"))
+                (JwtAuthenticationFilter.TOKEN_COOKIE + "=").length(), setCookie.indexOf(";"))
             .trim();
     assertTrue(token.length() > 0);
 
@@ -153,8 +151,7 @@ class UIIT extends FacadeIT {
     var token =
         setCookie
             .substring(
-                (JwtAuthenticationFilter.TOKEN_COOKIE + "=").length(),
-                setCookie.indexOf(";"))
+                (JwtAuthenticationFilter.TOKEN_COOKIE + "=").length(), setCookie.indexOf(";"))
             .trim();
 
     webTestClient
@@ -190,9 +187,7 @@ class UIIT extends FacadeIT {
     webTestClient
         .get()
         .uri("/")
-        .headers(
-            headers ->
-                headers.setBasicAuth(admin.getEmail(), "secret123"))
+        .headers(headers -> headers.setBasicAuth(admin.getEmail(), "secret123"))
         .exchange()
         .expectStatus()
         .isOk()

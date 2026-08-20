@@ -10,6 +10,7 @@ import hei.student.schoolm.dto.CourseRequest;
 import hei.student.schoolm.dto.ExamDto;
 import hei.student.schoolm.dto.GroupIdsRequest;
 import hei.student.schoolm.dto.TeacherIdsRequest;
+import hei.student.schoolm.endpoint.rest.security.JwtService;
 import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.model.Track;
 import hei.student.schoolm.model.User.Role;
@@ -22,7 +23,6 @@ import hei.student.schoolm.repository.jpa.JStudentRepository;
 import hei.student.schoolm.repository.jpa.JTeacherRepository;
 import hei.student.schoolm.repository.model.JAdmin;
 import hei.student.schoolm.repository.model.JCohort;
-import hei.student.schoolm.repository.model.JCourse;
 import hei.student.schoolm.repository.model.JExam;
 import hei.student.schoolm.repository.model.JGroup;
 import hei.student.schoolm.repository.model.JTeacher;
@@ -38,7 +38,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import hei.student.schoolm.endpoint.rest.security.JwtService;
 
 class CourseIT extends FacadeIT {
 
@@ -123,7 +122,8 @@ class CourseIT extends FacadeIT {
     return jwtService.generateToken(UUID.randomUUID(), uniqueEmail(), Role.STUDENT);
   }
 
-  private CourseRequest courseRequest(String ref, String title, int credit, Track track, Semester semester) {
+  private CourseRequest courseRequest(
+      String ref, String title, int credit, Track track, Semester semester) {
     return CourseRequest.builder()
         .ref(ref)
         .title(title)
@@ -133,7 +133,8 @@ class CourseIT extends FacadeIT {
         .build();
   }
 
-  private CourseDto createCourse(String token, String ref, String title, int credit, Track track, Semester semester) {
+  private CourseDto createCourse(
+      String token, String ref, String title, int credit, Track track, Semester semester) {
     return webTestClient
         .put()
         .uri("/courses")
@@ -234,7 +235,8 @@ class CourseIT extends FacadeIT {
   @Test
   void adminCanReadACourseById() {
     var admin = saveAdmin();
-    var created = createCourse(adminToken(admin), uniqueRef(), "Test course", 4, Track.COMMON, Semester.S1);
+    var created =
+        createCourse(adminToken(admin), uniqueRef(), "Test course", 4, Track.COMMON, Semester.S1);
 
     var fetched =
         webTestClient
@@ -268,7 +270,8 @@ class CourseIT extends FacadeIT {
   @Test
   void adminCanDeleteACourse() {
     var admin = saveAdmin();
-    var created = createCourse(adminToken(admin), uniqueRef(), "Doomed course", 4, Track.COMMON, Semester.S1);
+    var created =
+        createCourse(adminToken(admin), uniqueRef(), "Doomed course", 4, Track.COMMON, Semester.S1);
 
     webTestClient
         .delete()
@@ -303,7 +306,8 @@ class CourseIT extends FacadeIT {
   @Test
   void adminCanAssignTeachersToACourse() {
     var admin = saveAdmin();
-    var course = createCourse(adminToken(admin), uniqueRef(), "Course", 4, Track.COMMON, Semester.S1);
+    var course =
+        createCourse(adminToken(admin), uniqueRef(), "Course", 4, Track.COMMON, Semester.S1);
     var teacher =
         teacherRepository.save(
             JTeacher.builder()
@@ -338,7 +342,8 @@ class CourseIT extends FacadeIT {
     var admin = saveAdmin();
     var cohort = saveCohort("COURSE-COHORT-2025", 2025);
     var group = saveGroup(cohort, "COURSE-GRP-A", Track.EL);
-    var course = createCourse(adminToken(admin), uniqueRef(), "Course", 4, Track.COMMON, Semester.S1);
+    var course =
+        createCourse(adminToken(admin), uniqueRef(), "Course", 4, Track.COMMON, Semester.S1);
 
     var updated =
         webTestClient
@@ -361,7 +366,8 @@ class CourseIT extends FacadeIT {
   @Test
   void adminCanListExamsOfACourse() {
     var admin = saveAdmin();
-    var course = createCourse(adminToken(admin), uniqueRef(), "Course", 4, Track.COMMON, Semester.S1);
+    var course =
+        createCourse(adminToken(admin), uniqueRef(), "Course", 4, Track.COMMON, Semester.S1);
     var jCourse = courseRepository.getReferenceById(course.getId());
     examRepository.save(
         JExam.builder()
@@ -427,7 +433,8 @@ class CourseIT extends FacadeIT {
   @Test
   void studentCannotDeleteACourse() {
     var admin = saveAdmin();
-    var course = createCourse(adminToken(admin), uniqueRef(), "Course", 4, Track.COMMON, Semester.S1);
+    var course =
+        createCourse(adminToken(admin), uniqueRef(), "Course", 4, Track.COMMON, Semester.S1);
 
     webTestClient
         .delete()

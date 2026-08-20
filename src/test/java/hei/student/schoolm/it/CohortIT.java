@@ -8,12 +8,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import hei.student.schoolm.conf.FacadeIT;
 import hei.student.schoolm.dto.CohortDto;
 import hei.student.schoolm.dto.CohortRequest;
+import hei.student.schoolm.endpoint.rest.security.JwtService;
 import hei.student.schoolm.model.User.Role;
 import hei.student.schoolm.repository.jpa.JAdminRepository;
 import hei.student.schoolm.repository.jpa.JCohortRepository;
 import hei.student.schoolm.repository.jpa.JStudentRepository;
 import hei.student.schoolm.repository.model.JAdmin;
-import hei.student.schoolm.repository.model.JCohort;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,7 +25,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import hei.student.schoolm.endpoint.rest.security.JwtService;
 
 class CohortIT extends FacadeIT {
 
@@ -138,7 +137,12 @@ class CohortIT extends FacadeIT {
             .put()
             .uri("/cohorts")
             .header("Authorization", "Bearer " + adminToken(admin))
-            .bodyValue(CohortRequest.builder().id(created.getId()).ref("COHORT-2026").entryYear(2026).build())
+            .bodyValue(
+                CohortRequest.builder()
+                    .id(created.getId())
+                    .ref("COHORT-2026")
+                    .entryYear(2026)
+                    .build())
             .exchange()
             .expectStatus()
             .isOk()

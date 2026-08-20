@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import hei.student.schoolm.conf.FacadeIT;
 import hei.student.schoolm.dto.TeacherRequest;
 import hei.student.schoolm.dto.TeacherResponse;
+import hei.student.schoolm.endpoint.rest.security.JwtService;
 import hei.student.schoolm.model.Semester;
 import hei.student.schoolm.model.Track;
 import hei.student.schoolm.model.User.Role;
@@ -29,7 +30,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import hei.student.schoolm.endpoint.rest.security.JwtService;
 
 class TeacherIT extends FacadeIT {
 
@@ -178,11 +178,7 @@ class TeacherIT extends FacadeIT {
         .uri("/teachers")
         .header("Authorization", "Bearer " + adminToken(admin))
         .bodyValue(
-            TeacherRequest.builder()
-                .firstName("John")
-                .lastName("Doe")
-                .email(uniqueEmail())
-                .build())
+            TeacherRequest.builder().firstName("John").lastName("Doe").email(uniqueEmail()).build())
         .exchange()
         .expectStatus()
         .isBadRequest();
@@ -254,7 +250,10 @@ class TeacherIT extends FacadeIT {
         webTestClient
             .get()
             .uri("/teachers/" + teacher.getId())
-            .header("Authorization", "Bearer " + jwtService.generateToken(teacher.getId(), teacher.getEmail(), Role.TEACHER))
+            .header(
+                "Authorization",
+                "Bearer "
+                    + jwtService.generateToken(teacher.getId(), teacher.getEmail(), Role.TEACHER))
             .exchange()
             .expectStatus()
             .isOk()
@@ -285,7 +284,9 @@ class TeacherIT extends FacadeIT {
     webTestClient
         .put()
         .uri("/teachers")
-        .header("Authorization", "Bearer " + jwtService.generateToken(teacher.getId(), teacher.getEmail(), Role.TEACHER))
+        .header(
+            "Authorization",
+            "Bearer " + jwtService.generateToken(teacher.getId(), teacher.getEmail(), Role.TEACHER))
         .bodyValue(
             TeacherRequest.builder()
                 .firstName("John")
@@ -340,7 +341,9 @@ class TeacherIT extends FacadeIT {
     webTestClient
         .delete()
         .uri("/teachers/" + teacher.getId())
-        .header("Authorization", "Bearer " + jwtService.generateToken(teacher.getId(), teacher.getEmail(), Role.TEACHER))
+        .header(
+            "Authorization",
+            "Bearer " + jwtService.generateToken(teacher.getId(), teacher.getEmail(), Role.TEACHER))
         .exchange()
         .expectStatus()
         .isForbidden();
