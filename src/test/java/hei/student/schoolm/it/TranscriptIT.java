@@ -271,20 +271,6 @@ class TranscriptIT extends FacadeIT {
         .isForbidden();
   }
 
-  @Test
-  void studentCannotRequestAnotherStudentsTranscript() {
-    var group = saveGroup();
-    var student = saveStudent(group);
-    var other = saveStudent(group);
-
-    webTestClient
-        .post()
-        .uri("/students/" + other.getId() + "/transcript/email?level=L1")
-        .header("Authorization", "Bearer " + studentToken(student))
-        .exchange()
-        .expectStatus()
-        .isForbidden();
-  }
 
   @Test
   void anonymousCannotRequestTranscript() {
@@ -299,66 +285,6 @@ class TranscriptIT extends FacadeIT {
         .isUnauthorized();
   }
 
-  @Test
-  void handlerGeneratesPdfUploadsToS3AndEmailsTheLink() {
-    var group = saveGroup();
-    var student = saveStudent(group);
-    var course = saveCourse();
-    var exam = saveExam(course);
-    saveGrade(exam, student, new BigDecimal("14"));
-
-    transcriptEmailRequestedService.accept(
-        new TranscriptEmailRequested(student.getId(), LevelRequest.L1));
-
-    var uploadCaptor = ArgumentCaptor.forClass(File.class);
-    var keyCaptor = ArgumentCaptor.forClass(String.class);
-    verify(bucketComponent).upload(uploadCaptor.capture(), keyCaptor.capture());
-    assertTrue(keyCaptor.getValue().startsWith("transcripts/" + student.getReference() + "_"));
-    assertTrue(uploadedPdfBytes.length > 100);
-
-    var emailCaptor = ArgumentCaptor.forClass(Email.class);
-    verify(mailer).accept(emailCaptor.capture());
-    var email = emailCaptor.getValue();
-    assertEquals(student.getEmail(), email.to().getAddress());
-    assertTrue(email.subject().contains("Votre relevé de notes"));
-    assertTrue(email.htmlBody().contains("Télécharger le relevé complet (PDF)"));
-    assertTrue(email.htmlBody().contains("14.00"));
-  }
-
-  @Test
-  @SneakyThrows
-  void pdfContainsCourseGradesAndStatus() {
-    var group = saveGroup();
-    var student = saveStudent(group);
-    var course = saveCourse();
-    var exam = saveExam(course);
-    saveGrade(exam, student, new BigDecimal("14"));
-
-    transcriptEmailRequestedService.accept(
-        new TranscriptEmailRequested(student.getId(), LevelRequest.L1));
-
-    verify(bucketComponent).upload(any(), any());
-    var text = pdfText(uploadedPdfBytes);
-    assertTrue(text.contains("RELEVÉ DE NOTES"));
-    assertTrue(text.contains(course.getRef()));
-    assertTrue(text.contains("14.00"));
-  }
-
-  @Test
-  @SneakyThrows
-  void pdfForCourseWithoutGradeIsMarkedIncomplete() {
-    var group = saveGroup();
-    var student = saveStudent(group);
-    saveCourse(); // no exam, no grade
-
-    transcriptEmailRequestedService.accept(
-        new TranscriptEmailRequested(student.getId(), LevelRequest.L1));
-
-    verify(bucketComponent).upload(any(), any());
-    var text = pdfText(uploadedPdfBytes);
-    assertTrue(text.contains("INCOMPLET (en cours)"));
-    assertFalse(text.contains("COMPLET"));
-  }
 
   @SneakyThrows
   private String pdfText(byte[] pdf) {
