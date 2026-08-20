@@ -1,6 +1,7 @@
 package hei.student.schoolm.endpoint.rest.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -148,7 +149,7 @@ class ExamControllerTest {
         .andExpect(jsonPath("$[0].id").value(GRADE_ID.toString()))
         .andExpect(jsonPath("$[0].value").value(15.0));
 
-    verify(gradeService).upsertGrades(EXAM_ID, any(List.class));
+    verify(gradeService).upsertGrades(eq(EXAM_ID), any(List.class));
   }
 
   @Test
