@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/course-assignments")
 public class CourseAssignmentController {
-  private final CourseAssignmentService courseAssignmentService;
+  private final CourseAssignmentService service;
 
   @GetMapping
   public Page<CourseAssignmentResponse> getByFilter(
@@ -35,30 +35,29 @@ public class CourseAssignmentController {
       @RequestParam(required = false) UUID courseId,
       @RequestParam(required = false) Integer academicYear,
       Pageable pageable) {
-    return courseAssignmentService.getByFilter(
-        groupId, teacherId, courseId, academicYear, pageable);
+    return service.getByFilter(groupId, teacherId, courseId, academicYear, pageable);
   }
 
   @GetMapping("/{id}")
   public CourseAssignmentResponse getById(@PathVariable UUID id) {
-    return courseAssignmentService.getById(id);
+    return service.getById(id);
   }
 
   @GetMapping("/curriculum-status")
-  public CurriculumStatusResponse curriculumStatus(
+  public CurriculumStatusResponse getCurriculumStatus(
       @RequestParam UUID groupId, @RequestParam int academicYear, @RequestParam Semester semester) {
-    return courseAssignmentService.curriculumStatus(groupId, academicYear, semester);
+    return service.getCurriculumStatus(groupId, academicYear, semester);
   }
 
   @PutMapping
   public List<CourseAssignmentResponse> upsert(
       @RequestBody @Valid List<@Valid CourseAssignmentRequest> requests) {
-    return courseAssignmentService.upsert(requests);
+    return service.upsert(requests);
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void delete(@PathVariable UUID id) {
-    courseAssignmentService.delete(id);
+    service.delete(id);
   }
 }

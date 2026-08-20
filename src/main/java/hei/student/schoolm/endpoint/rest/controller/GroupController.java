@@ -20,25 +20,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/groups")
 @RequiredArgsConstructor
 public class GroupController {
-  private final GroupService groupService;
+  private final GroupService service;
 
   @GetMapping
   public List<GroupResponse> getAll(@RequestParam(required = false) UUID cohortId) {
-    return groupService.getAll(cohortId);
+    return service.getAll(cohortId);
   }
 
   @GetMapping("/{id}")
   public GroupResponse getById(@PathVariable UUID id) {
-    return groupService.getById(id);
+    return service.getById(id);
   }
 
   @GetMapping("/{id}/students")
   public List<StudentResponse> getStudents(@PathVariable UUID id) {
-    return groupService.getStudents(id);
+    return service.getStudents(id);
   }
 
   @PutMapping
   public GroupResponse upsert(@Valid @RequestBody GroupRequest request) {
-    return groupService.upsert(request);
+    return service.upsert(request);
   }
 }

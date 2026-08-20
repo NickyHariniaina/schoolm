@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/auth")
 public class AuthController {
 
-  private final AuthService authService;
+  private final AuthService service;
 
   @PostMapping("/login")
   public AuthResponse login(@Valid @RequestBody LoginRequest request) {
-    return authService.login(request);
+    return service.login(request);
   }
 }

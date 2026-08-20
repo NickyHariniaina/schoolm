@@ -17,15 +17,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/admins")
 @RequiredArgsConstructor
 public class AdminController {
-  private final AdminService adminService;
+  private final AdminService service;
 
   @GetMapping("/{id}")
   public AdminResponse getById(@PathVariable UUID id) {
-    return adminService.getById(id);
+    return service.getById(id);
   }
 
   @PutMapping("/{id}")
   public AdminResponse update(@PathVariable UUID id, @Valid @RequestBody AdminRequest request) {
-    return adminService.update(id, request);
+    return service.update(id, request);
   }
 }
